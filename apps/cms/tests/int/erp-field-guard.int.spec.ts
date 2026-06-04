@@ -67,4 +67,41 @@ describe('ErpCatalogSyncService', () => {
     )
     expect(syncReq.context?.erpSync).toBe(true)
   })
+
+  it('creates draft product when SKU is missing', async () => {
+    const dto = {
+      skuErp: 'NEW-SKU-999',
+      shortDescription: 'Nuevo artículo desde ERP',
+      p1Price: 5,
+      p2Price: 4,
+      vatRate: 21,
+      isWildcard: false,
+    }
+    const syncReq = { context: { erpSync: true } } as PayloadRequest
+
+    const create = vi.fn().mockResolvedValue({ id: 99 })
+    const find = vi.fn().mockResolvedValue({ docs: [] })
+    const payload = { find, create, update: vi.fn() } as unknown as Payload
+    const reader = {
+      listProducts: vi.fn(),
+      getProductBySku: vi.fn(),
+      listSuppliers: vi.fn(),
+    }
+
+    const service = new ErpCatalogSyncService(payload, reader)
+    const applied = await service.applyProduct(dto, syncReq)
+
+    expect(applied).toBe(true)
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'products',
+        data: expect.objectContaining({
+          skuErp: 'NEW-SKU-999',
+          _status: 'draft',
+          title: 'Nuevo artículo desde ERP',
+        }),
+        req: syncReq,
+      }),
+    )
+  })
 })

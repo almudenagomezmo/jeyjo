@@ -91,7 +91,24 @@ export class ErpCatalogSyncService {
       return true
     }
 
-    return false
+    const title =
+      dto.shortDescription?.trim().slice(0, 200) || `Producto ${dto.skuErp}`
+    const slug = slugFromSkuErp(dto.skuErp)
+
+    await this.payload.create({
+      collection: 'products',
+      data: {
+        title,
+        slug,
+        _status: 'draft',
+        ...(data as Partial<Product>),
+        enableVariants: false,
+        priceInUSDEnabled: false,
+      },
+      overrideAccess: true,
+      req: syncReq,
+    })
+    return true
   }
 
   async applySupplier(dto: ErpSupplierDto, req?: PayloadRequest): Promise<string> {
@@ -155,4 +172,12 @@ export class ErpCatalogSyncService {
 
 function formatError(e: unknown): string {
   return e instanceof Error ? e.message : String(e)
+}
+
+function slugFromSkuErp(skuErp: string): string {
+  const base = skuErp
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return base.length > 0 ? base : 'producto-erp'
 }

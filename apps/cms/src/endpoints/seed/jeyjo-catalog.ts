@@ -1,5 +1,59 @@
 import type { Payload, PayloadRequest } from 'payload'
 
+type RefFixture = {
+  skuErp: string
+  title: string
+  slug: string
+  shortDescription: string
+  p1Price: number
+  p2Price: number
+  vatRate: number
+  erpStock: number
+}
+
+const REF_FIXTURES: RefFixture[] = [
+  {
+    skuErp: 'REF-001',
+    title: 'Fixture CA-PRECIOS-001',
+    slug: 'ref-001',
+    shortDescription: 'Producto fixture CA-PRECIOS-001.',
+    p1Price: 1,
+    p2Price: 0.9,
+    vatRate: 21,
+    erpStock: 100,
+  },
+  {
+    skuErp: 'REF-002',
+    title: 'Fixture CA-PRECIOS-002',
+    slug: 'ref-002',
+    shortDescription: 'Producto fixture CA-PRECIOS-002.',
+    p1Price: 12,
+    p2Price: 10,
+    vatRate: 21,
+    erpStock: 50,
+  },
+  {
+    skuErp: 'REF-003',
+    title: 'Fixture CA-PRECIOS-003',
+    slug: 'ref-003',
+    shortDescription: 'Producto fixture CA-PRECIOS-003 (oferta grupo).',
+    p1Price: 12,
+    p2Price: 10,
+    vatRate: 21,
+    erpStock: 30,
+  },
+  {
+    skuErp: 'REF-004',
+    title: 'Fixture CA-PRECIOS-004',
+    slug: 'ref-004',
+    shortDescription: 'Producto fixture CA-PRECIOS-004 (precio especial).',
+    p1Price: 10,
+    p2Price: 8,
+    vatRate: 21,
+    erpStock: 20,
+  },
+]
+
 export async function seedJeyjoCatalog({
   payload,
   req,
@@ -97,6 +151,7 @@ export async function seedJeyjoCatalog({
       skuErp: 'ERP-PVC-032',
       shortDescription: 'Manguito de unión PVC diametro 32mm.',
       p1Price: 1.2,
+      p2Price: 1.05,
       vatRate: 21,
       erpStock: 500,
       syncErpAt: new Date().toISOString(),
@@ -106,6 +161,31 @@ export async function seedJeyjoCatalog({
     },
     req,
   })
+
+  for (const ref of REF_FIXTURES) {
+    await payload.create({
+      collection: 'products',
+      data: {
+        title: ref.title,
+        slug: ref.slug,
+        _status: 'published',
+        supplier: supplier.id,
+        categories: [parentCategory.id],
+        skuErp: ref.skuErp,
+        shortDescription: ref.shortDescription,
+        p1Price: ref.p1Price,
+        p2Price: ref.p2Price,
+        vatRate: ref.vatRate,
+        packUnit: 1,
+        erpStock: ref.erpStock,
+        syncErpAt: new Date().toISOString(),
+        metaDescription: `${ref.title} — compra online en Jeyjo.`,
+        enableVariants: false,
+        priceInUSDEnabled: false,
+      },
+      req,
+    })
+  }
 
   payload.logger.info('— Jeyjo catalog seed complete')
 }

@@ -8,7 +8,7 @@ Payload CMS collections for Jeyjo catalog domain: products, hierarchical categor
 
 ### Requirement: Products collection models Jeyjo catalog entity
 
-The CMS SHALL expose a Payload `products` collection aligned with architecture entity PRODUCTO, including ERP read-only fields and editable enrichment fields in separate admin tabs. ERP field values on disk SHALL only change through authorized ERP sync operations (via `ErpCatalogSyncService` with `erpSync` request context) or equivalent server-side integration entry points, not through staff admin edits or arbitrary API clients.
+The CMS SHALL expose a Payload `products` collection aligned with architecture entity PRODUCTO, including ERP read-only fields and editable enrichment fields in separate admin tabs. ERP field values on disk SHALL only change through authorized ERP sync operations (via `ErpCatalogSyncService` with `erpSync` request context) or equivalent server-side integration entry points, not through staff admin edits or arbitrary API clients. When ERP sync applies a DTO for a SKU that does not yet exist, the service SHALL create a new product in draft status with ERP fields populated and a generated title/slug, leaving enrichment and publication to staff.
 
 #### Scenario: Admin views product with ERP tab
 
@@ -24,6 +24,11 @@ The CMS SHALL expose a Payload `products` collection aligned with architecture e
 
 - **WHEN** `ErpCatalogSyncService` applies an `ErpProductDto` for an existing product with `erpSync` context
 - **THEN** ERP fields update to match the DTO and `syncErpAt` is set to the sync timestamp
+
+#### Scenario: ERP sync creates draft product for new SKU
+
+- **WHEN** `ErpCatalogSyncService` applies an `ErpProductDto` for a SKU not present in Payload with `erpSync` context
+- **THEN** a new product is created with `_status` draft, ERP fields from the DTO, generated title/slug, and `syncErpAt` set
 
 ### Requirement: Categories collection supports hierarchy
 

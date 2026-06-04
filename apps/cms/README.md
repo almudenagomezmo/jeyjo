@@ -94,7 +94,24 @@ Audit console: `http://localhost:3001/admin/audit-log`
 
 ```bash
 pnpm --filter @jeyjo/pricing test
-pnpm test:int   # incluye pricing-engine + order-iva-snapshot
+pnpm test:int   # incluye pricing-engine + order-iva-snapshot + erp-sync
+```
+
+## Sync lectura ERP (`catalog-sync-read-stub`, ROADMAP #7)
+
+- **Orquestador:** `src/erp/ErpCatalogSyncOrchestrator.ts` — pull stub → Payload + tablas `special_prices` / `group_offers`.
+- **Manual (dev):** `POST /next/sync-from-stub` (admin autenticado, deshabilitado en producción).
+- **Cron (staging/prod):** `GET /api/cron/erp-catalog-sync` con `Authorization: Bearer $CRON_SECRET` (Vercel cada 15 min, ver `vercel.json`).
+- **Metadatos:** tabla Supabase `erp_sync_runs`; cada ejecución escribe en `audit_log` (`SYNC_ERP_READ`).
+- **Stub ampliado:** SKUs `REF-001..004`, comodín `9000000001` (RF-006); productos nuevos desde ERP se crean en `_status: draft`.
+- **Storefront:** lee P1/P2/IVA vía `CMS_INTERNAL_URL` + filtro público (sin comodín ni borradores).
+
+```bash
+# Tras seed + migraciones
+curl -X POST http://localhost:3001/next/sync-from-stub -H "Cookie: ..."   # admin session
+curl http://localhost:3001/api/cron/erp-catalog-sync -H "Authorization: Bearer $CRON_SECRET"
+pnpm --filter @jeyjo/erp-ports test
+pnpm test:int   # erp-sync, erp-orchestrator
 ```
 
 ## Scripts

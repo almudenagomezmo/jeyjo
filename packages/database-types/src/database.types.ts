@@ -73,6 +73,42 @@ export type Database = {
         }
         Relationships: []
       }
+      erp_sync_runs: {
+        Row: {
+          adapter: string
+          error_summary: string | null
+          finished_at: string | null
+          id: string
+          pricing_rows_upserted: number
+          products_updated: number
+          started_at: string
+          status: string
+          suppliers_updated: number
+        }
+        Insert: {
+          adapter: string
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          pricing_rows_upserted?: number
+          products_updated?: number
+          started_at?: string
+          status: string
+          suppliers_updated?: number
+        }
+        Update: {
+          adapter?: string
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          pricing_rows_upserted?: number
+          products_updated?: number
+          started_at?: string
+          status?: string
+          suppliers_updated?: number
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           billing_series: string | null

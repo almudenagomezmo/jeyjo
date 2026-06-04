@@ -9,7 +9,7 @@ export const maxDuration = 120
 
 /**
  * Manual dev trigger: pull catalog from stub ERP adapter into Payload.
- * POST /next/sync-from-stub (admin auth). No cron — see change #7.
+ * POST /next/sync-from-stub (admin auth). Production uses /api/cron/erp-catalog-sync.
  */
 export async function POST(): Promise<Response> {
   if (process.env.NODE_ENV === 'production') {
@@ -26,7 +26,11 @@ export async function POST(): Promise<Response> {
 
   try {
     const payloadReq = await createLocalReq({ user }, payload)
-    const result = await syncCatalogFromStubAdapter({ payload, req: payloadReq })
+    const result = await syncCatalogFromStubAdapter({
+      payload,
+      req: payloadReq,
+      actorName: user.email ?? user.id?.toString() ?? 'admin',
+    })
     return Response.json({ success: true, ...result })
   } catch (e) {
     payload.logger.error({ err: e, message: 'Error syncing from stub ERP' })

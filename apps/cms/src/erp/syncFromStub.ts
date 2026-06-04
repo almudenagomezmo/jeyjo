@@ -1,16 +1,15 @@
 import type { Payload, PayloadRequest } from 'payload'
 
-import { ErpCatalogSyncService } from '@/erp/ErpCatalogSyncService'
-import { getErpAdapters } from '@/erp/registry'
+import { runCatalogSyncRead, type ErpSyncOrchestratorResult } from '@/erp/ErpCatalogSyncOrchestrator'
 
 export async function syncCatalogFromStubAdapter({
   payload,
   req,
+  actorName,
 }: {
   payload: Payload
   req?: PayloadRequest
-}): Promise<ReturnType<ErpCatalogSyncService['syncAllFromReader']>> {
-  const { catalogReader } = getErpAdapters()
-  const service = new ErpCatalogSyncService(payload, catalogReader)
-  return service.syncAllFromReader(req)
+  actorName?: string | null
+}): Promise<ErpSyncOrchestratorResult> {
+  return runCatalogSyncRead({ payload, req, actorName })
 }

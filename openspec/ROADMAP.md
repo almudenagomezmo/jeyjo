@@ -14,7 +14,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 4 | `erp-port-adapters-contracts` | 3 | RF-023, RI-001, US-15 | Completado | 2026-06-04 |
 | 5 | `backoffice-mfa-audit-roles` | 3 | RF-002, RF-029, RF-030 | Completado | 2026-06-04 |
 | 6 | `price-engine-core` | 4 | RF-007, RF-011, US-02 | Completado | 2026-06-04 |
-| 7 | `catalog-sync-read-stub` | 4, 6 | RF-005, RF-006, RF-023 | Pendiente | — |
+| 7 | `catalog-sync-read-stub` | 4, 6 | RF-005, RF-006, RF-023 | Completado | 2026-06-04 |
 | 8 | `stock-multisource-adapters` | 7 | RF-005, RI-003, RI-004 | Pendiente | — |
 | 9 | `storefront-shell-navigation` | 1, 7 | Alcance §1.2–4, US-01 | Pendiente | — |
 | 10 | `plp-faceted-listing` | 6, 7, 9 | RF-010, RF-011, US-01, US-02 | Pendiente | — |
@@ -52,6 +52,6 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 42 | `system-config-backoffice` | 5, 30 | Alcance §1.36 | Pendiente | — |
 | 43 | `seo-technical-auditor` | 21, 34 | Alcance auditor SEO | Pendiente | — |
 
-**Siguiente cambio recomendado:** #7 `catalog-sync-read-stub` (dependencias #4 y #6 completadas).
+**Siguiente cambio recomendado:** #8 `stock-multisource-adapters` (dependencia #7 completada).
 
 Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live.

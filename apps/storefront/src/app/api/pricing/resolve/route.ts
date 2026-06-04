@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { isB2BCustomerGroup, resolvePrice } from '@jeyjo/pricing'
 
 import { getStorefrontPricingRepository } from '@/lib/pricing/repository'
+import { getProductPriceBase } from '@/lib/pricing/product-catalog'
 
 export async function POST(request: Request) {
   if (process.env.PRICING_ENGINE_ENABLED === 'false') {
@@ -19,6 +20,11 @@ export async function POST(request: Request) {
   const sku = body.sku?.trim()
   if (!sku) {
     return NextResponse.json({ error: 'sku is required' }, { status: 400 })
+  }
+
+  const productBase = await getProductPriceBase(sku)
+  if (!productBase) {
+    return NextResponse.json({ error: 'Product not available' }, { status: 404 })
   }
 
   try {

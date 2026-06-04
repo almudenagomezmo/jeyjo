@@ -32,6 +32,19 @@ describe('stub ErpCatalogReader', () => {
     await expect(reader.getProductBySku('UNKNOWN-SKU')).resolves.toBeNull()
   })
 
+  it('includes CA-PRECIOS fixture REF-003 and wildcard SKU', async () => {
+    const reader = createStubCatalogReader()
+    const ref3 = await reader.getProductBySku('REF-003')
+    expect(ref3?.p1Price).toBe(12)
+    expect(ref3?.p2Price).toBe(10)
+
+    const wildcard = await reader.getProductBySku('9000000001')
+    expect(wildcard?.isWildcard).toBe(true)
+
+    const page = await reader.listProducts({ limit: 100 })
+    expect(page.items.some((p) => p.skuErp === 'REF-004')).toBe(true)
+  })
+
   it('simulates ERP_UNAVAILABLE without corrupting store', async () => {
     const reader = createStubCatalogReader()
     setStubSimulateUnavailable(true)
