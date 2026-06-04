@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils/cn";
 const links = [
   { href: "/cuenta", label: "Mi cuenta" },
   { href: "/cuenta/pedidos", label: "Mis pedidos" },
+  { href: "/cuenta/presupuestos", label: "Mis presupuestos" },
   { href: "/cuenta/direcciones", label: "Direcciones" },
   { href: "/cuenta/perfil", label: "Perfil" },
 ];

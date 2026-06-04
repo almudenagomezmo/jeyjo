@@ -17,6 +17,11 @@ export type {
   ErpDeliveryNoteListItem,
 } from './ports/documents-reader.js'
 export type { ErpPricingReader } from './ports/pricing-reader.js'
+export type { ErpPurchaseHistoryReader } from './ports/purchase-history-reader.js'
+export type {
+  ErpPurchaseHistoryLineDto,
+  ErpPurchaseHistoryListOptions,
+} from './types/purchase-history-dtos.js'
 
 export {
   createStubAdapterBundle,
@@ -31,5 +36,7 @@ export {
   STUB_SPECIAL_PRICES,
   STUB_GROUP_OFFERS,
   createStubPricingReader,
+  createStubPurchaseHistoryReader,
+  STUB_PURCHASE_HISTORY,
   type StubAdapterBundle,
 } from './adapters/stub/index.js'

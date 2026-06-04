@@ -21,6 +21,7 @@ import { submitRedirectForm } from "@/lib/payments/submit-redirect-form";
 import type { PaymentSettings } from "@/lib/payments/settings";
 import { formatMoney } from "@/lib/utils/format";
 import { WalletPayButtons } from "@/components/checkout/WalletPayButtons";
+import { isQuotesEnabledClient } from "@/lib/quotes/enabled";
 
 const PAYMENT_LABELS: Record<string, string> = {
   card: "Tarjeta",
@@ -488,6 +489,11 @@ export function CheckoutPage({
               <Button size="lg" disabled={placing || !prepareToken} onClick={() => void placeOrder()}>
                 {placing ? "Confirmando…" : "Confirmar pedido"}
               </Button>
+              {isQuotesEnabledClient() && (
+                <Button variant="secondary" size="lg" className="mt-2 w-full" asChild>
+                  <Link href="/presupuesto">Solicitar presupuesto</Link>
+                </Button>
+              )}
             </Card>
           )}
         </div>

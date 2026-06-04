@@ -39,8 +39,9 @@ describe('intranet navigation config', () => {
     expect(CONTABILIDAD_SUBNAV).toHaveLength(5)
   })
 
-  it('provides scaffolds for leaf routes', () => {
-    expect(getScaffoldForPath('/intranet/pedidos')?.roadmapRef).toContain('#23')
+  it('provides scaffolds for pending leaf routes', () => {
+    expect(getScaffoldForPath('/intranet/pedidos')).toBeFalsy()
+    expect(getScaffoldForPath('/intranet/pedido-rapido')?.roadmapRef).toContain('#24')
     expect(getScaffoldForPath('/intranet/contabilidad/facturas')?.roadmapRef).toContain('#37')
   })
 })

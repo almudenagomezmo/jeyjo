@@ -85,6 +85,18 @@ export const STUB_SAMPLE_PRODUCTS: ErpProductDto[] = [
     allowOrderWithoutStock: false,
   },
   {
+    skuErp: 'REF-010',
+    shortDescription: 'Producto fixture CA-B2B-004 (histórico compras).',
+    p1Price: 7,
+    p2Price: 6.111111,
+    vatRate: 21,
+    packUnit: 1,
+    erpStock: 30,
+    supplierErpCode: 'DIST-001',
+    isWildcard: false,
+    allowOrderWithoutStock: false,
+  },
+  {
     skuErp: '9000000001',
     shortDescription: 'Referencia comodín interna (imprenta genérica).',
     p1Price: 0,

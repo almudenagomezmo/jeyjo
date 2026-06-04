@@ -26,6 +26,7 @@ export const COLLECTION_ACCESS: Record<string, StaffRole[]> = {
   forms: ['superadmin', 'personalizacion'],
   'form-submissions': ['superadmin', 'personalizacion', 'administracion'],
   orders: ['superadmin', 'administracion'],
+  quotes: ['superadmin', 'administracion'],
   users: ['superadmin', 'mantenimiento'],
   transactions: ['superadmin', 'administracion'],
   addresses: ['superadmin', 'administracion'],
@@ -75,7 +76,7 @@ export function canWriteCollection(
     }
   }
 
-  if (collection === 'orders') {
+  if (collection === 'orders' || collection === 'quotes') {
     return hasStaffRole(user, ['superadmin', 'administracion'])
   }
 

@@ -16,6 +16,7 @@ import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
 import { Categories } from '@/collections/Categories'
+import { Quotes } from '@/collections/Quotes'
 import { Media } from '@/collections/Media'
 import { Pages } from '@/collections/Pages'
 import { Suppliers } from '@/collections/Suppliers'
@@ -29,6 +30,7 @@ import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
 import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
 import { pimHealthEndpoint } from '@/endpoints/pim-health'
 import { ordersOmsEndpoints } from '@/endpoints/orders-oms'
+import { quotesOmsEndpoints } from '@/endpoints/quotes-oms'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
 import { qdrantCollections } from '@/lib/qdrant-collections'
@@ -100,11 +102,15 @@ export default buildConfig({
           Component: '@/components/EvaOrdersQueueView#EvaOrdersQueueView',
           path: '/oms/eva',
         },
+        quotesInbox: {
+          Component: '@/components/QuotesInboxView#QuotesInboxView',
+          path: '/quotes',
+        },
       },
     },
     user: Users.slug,
   },
-  collections: [Users, Pages, Categories, Suppliers, Media],
+  collections: [Users, Pages, Categories, Suppliers, Media, Quotes],
   cors: corsOrigins,
   csrf: corsOrigins,
   db: postgresAdapter({
@@ -161,6 +167,7 @@ export default buildConfig({
     bulkSeoTemplateEndpoint,
     pimHealthEndpoint,
     ...ordersOmsEndpoints,
+    ...quotesOmsEndpoints,
   ],
   globals: [Header, Footer, Home, PaymentSettings],
   plugins,

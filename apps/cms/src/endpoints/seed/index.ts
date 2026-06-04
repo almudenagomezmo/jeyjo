@@ -6,6 +6,7 @@ import { seedJeyjoCatalog } from './jeyjo-catalog'
 import { seedHomeMerchandising } from './home-merchandising'
 import { seedStaffUsers } from './staff-users'
 import { seedEvaPendingOrder } from './eva-order'
+import { seedSampleQuotes } from './sample-quotes'
 import { productHatData } from './product-hat'
 import { productTshirtData, productTshirtVariant } from './product-tshirt'
 import { homePageData } from './home'
@@ -30,6 +31,7 @@ const collections: CollectionSlug[] = [
   'transactions',
   'addresses',
   'orders',
+  'quotes',
 ]
 
 const categories = ['Accessories', 'T-Shirts', 'Hats']
@@ -595,6 +597,7 @@ export const seed = async ({
   await seedHomeMerchandising({ payload, req, heroMediaId: imageHero.id })
   await seedStaffUsers(payload)
   await seedEvaPendingOrder({ payload, req })
+  await seedSampleQuotes({ payload, req })
 
   payload.logger.info('Seeded database successfully!')
 }

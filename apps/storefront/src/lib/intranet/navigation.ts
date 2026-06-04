@@ -85,12 +85,6 @@ export const INTRANET_PRIMARY_NAV: IntranetNavItem[] = [
   {
     href: '/intranet/pedidos',
     label: 'Histórico de pedidos',
-    scaffold: {
-      title: 'Histórico de pedidos',
-      description:
-        'Consulta tus compras anteriores, repite pedidos habituales y analiza tu consumo con precios actuales.',
-      roadmapRef: '#23 purchase-history-repeat',
-    },
   },
   {
     href: '/intranet/pedido-rapido',

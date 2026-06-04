@@ -266,6 +266,9 @@ importers:
       '@jeyjo/database-types':
         specifier: workspace:*
         version: link:../../packages/database-types
+      '@jeyjo/erp-ports':
+        specifier: workspace:*
+        version: link:../../packages/erp-ports
       '@jeyjo/pricing':
         specifier: workspace:*
         version: link:../../packages/pricing

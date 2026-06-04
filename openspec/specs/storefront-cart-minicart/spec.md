@@ -142,3 +142,39 @@ The storefront SHALL provide a `/cart` route listing all cart lines with quantit
 
 - **WHEN** a user clicks "Tramitar" in the minicart footer with lines present
 - **THEN** the browser navigates to `/checkout`
+
+### Requirement: Cart supports batch add from purchase history repeat
+
+The cart store SHALL expose an action to add multiple products by CMS `productId` and quantity in one call, used after a successful purchase history repeat API response, preserving merge-by-product semantics of `addItem`.
+
+#### Scenario: Batch add merges with existing lines
+
+- **WHEN** the cart already contains product slug `bic-cristal-azul` with quantity 2
+- **AND** batch add includes the same product with quantity 12
+- **THEN** the line quantity becomes 14
+
+#### Scenario: Batch add opens minicart feedback
+
+- **WHEN** purchase history repeat returns two valid additions and the UI invokes batch add
+- **THEN** the minicart MAY open to confirm items were added
+- **AND** line prices are refreshed via existing batch pricing hooks
+
+### Requirement: Solicitar presupuesto CTA on full cart page US-05 CA1
+
+The full `/cart` page SHALL show an enabled **Solicitar presupuesto** secondary button when the cart has lines and quotes are enabled via configuration. The button SHALL navigate to `/presupuesto` and SHALL NOT remain disabled with a "coming soon" message.
+
+#### Scenario: Cart shows enabled presupuesto button
+
+- **WHEN** a user opens `/cart` with at least one line and quotes are enabled
+- **THEN** **Solicitar presupuesto** is clickable
+- **AND** clicking it navigates to `/presupuesto`
+
+#### Scenario: Presupuesto hidden when quotes disabled
+
+- **WHEN** quotes feature flag is off
+- **THEN** the presupuesto CTA is hidden or disabled with neutral copy
+
+#### Scenario: Presupuesto unavailable on empty cart
+
+- **WHEN** the cart has no lines
+- **THEN** the presupuesto CTA is not offered on `/cart`

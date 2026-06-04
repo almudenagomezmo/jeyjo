@@ -77,6 +77,7 @@ export interface Config {
     categories: Category;
     suppliers: Supplier;
     media: Media;
+    quotes: Quote;
     forms: Form;
     'form-submissions': FormSubmission;
     addresses: Address;
@@ -111,6 +112,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    quotes: QuotesSelect<false> | QuotesSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
@@ -238,6 +240,8 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Bandeja operativa OMS: /admin/oms
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders".
  */
@@ -1222,6 +1226,58 @@ export interface Address {
   createdAt: string;
 }
 /**
+ * Bandeja operativa: /admin/quotes
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quotes".
+ */
+export interface Quote {
+  id: number;
+  quoteNumber?: string | null;
+  status?: ('requested' | 'in_review' | 'sent' | 'accepted' | 'ordered' | 'cancelled') | null;
+  segment?: ('b2c' | 'b2b') | null;
+  customerRef?: string | null;
+  guestEmail?: string | null;
+  amount?: number | null;
+  subtotal?: number | null;
+  shippingCost?: number | null;
+  deliveryMethod?: ('home' | 'alternate_address' | 'pickup_alfaro' | 'pickup_rincon') | null;
+  pickupStoreLabel?: string | null;
+  shippingAddressSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  billingAddressSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  customerNotes?: string | null;
+  lineSnapshots?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  validUntil?: string | null;
+  emailSentAt?: string | null;
+  convertedOrderRef?: (number | null) | Order;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
@@ -1281,6 +1337,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'quotes';
+        value: number | Quote;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1612,6 +1672,31 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quotes_select".
+ */
+export interface QuotesSelect<T extends boolean = true> {
+  quoteNumber?: T;
+  status?: T;
+  segment?: T;
+  customerRef?: T;
+  guestEmail?: T;
+  amount?: T;
+  subtotal?: T;
+  shippingCost?: T;
+  deliveryMethod?: T;
+  pickupStoreLabel?: T;
+  shippingAddressSnapshot?: T;
+  billingAddressSnapshot?: T;
+  customerNotes?: T;
+  lineSnapshots?: T;
+  validUntil?: T;
+  emailSentAt?: T;
+  convertedOrderRef?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

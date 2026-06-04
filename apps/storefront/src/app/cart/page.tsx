@@ -14,6 +14,7 @@ import { CartIcon, ChevronLeftIcon, ShieldIcon, TrashIcon, TruckIcon } from "@/c
 import { cartSnapshotToGlyphProduct } from "@/lib/cart/to-glyph-product";
 import { formatMoney } from "@/lib/utils/format";
 import { CHECKOUT_COUPON_STORAGE_KEY } from "@/lib/checkout/coupon";
+import { isQuotesEnabledClient } from "@/lib/quotes/enabled";
 import { useCartSummary } from "@/lib/hooks/useCartSummary";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
@@ -262,12 +263,18 @@ export default function CartPage() {
               <Link href="/checkout">Tramitar pedido</Link>
             </Button>
 
-            <Button variant="secondary" block className="mt-2" disabled>
-              Solicitar presupuesto
+            <Button variant="secondary" block className="mt-2" asChild={isQuotesEnabledClient() && lines.length > 0} disabled={!isQuotesEnabledClient() || lines.length === 0}>
+              {isQuotesEnabledClient() && lines.length > 0 ? (
+                <Link href="/presupuesto">Solicitar presupuesto</Link>
+              ) : (
+                <span>Solicitar presupuesto</span>
+              )}
             </Button>
-            <p className="mt-1 text-center text-[11px] text-text-tertiary">
-              Presupuesto B2B disponible próximamente
-            </p>
+            {!isQuotesEnabledClient() && (
+              <p className="mt-1 text-center text-[11px] text-text-tertiary">
+                Presupuesto B2B disponible próximamente
+              </p>
+            )}
 
             <p className="mt-4 flex items-center gap-2 text-xs text-text-secondary">
               <ShieldIcon size={14} className="text-text-brand" /> Pago seguro con cifrado TLS 1.3

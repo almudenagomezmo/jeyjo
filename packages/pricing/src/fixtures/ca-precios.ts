@@ -7,6 +7,8 @@ export const CA_PRECIOS_FIXTURES: InMemoryPricingData = {
     { sku: 'REF-002', p1Price: 12, p2Price: 10, vatRate: 21 },
     { sku: 'REF-003', p1Price: 12, p2Price: 10, vatRate: 21 },
     { sku: 'REF-004', p1Price: 10, p2Price: 8, vatRate: 21 },
+    /** CA-B2B-004: P2 6.11 − 10% B2B discount ≈ 5.50 net */
+    { sku: 'REF-010', p1Price: 7, p2Price: 6.111111, vatRate: 21 },
   ],
   customers: [
     {

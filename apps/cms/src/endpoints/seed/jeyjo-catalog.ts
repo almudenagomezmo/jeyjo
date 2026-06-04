@@ -58,6 +58,17 @@ const REF_FIXTURES: RefFixture[] = [
     vatRate: 21,
     erpStock: 20,
   },
+  {
+    skuErp: 'REF-010',
+    title: 'Fixture CA-B2B-004',
+    slug: 'ref-010',
+    shortDescription: 'Producto fixture historial de compras (REF-010).',
+    p1Price: 7,
+    p2Price: 6.111111,
+    vatRate: 21,
+    erpStock: 30,
+    mainWholesaleRef: 'WH-REF-010',
+  },
 ]
 
 export async function seedJeyjoCatalog({

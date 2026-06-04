@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import { IntranetScaffoldPage } from "@/components/intranet/IntranetScaffoldPage";
-import { getScaffoldForPath } from "@/lib/intranet/navigation";
+import { PurchaseHistoryPanel } from "@/components/intranet/PurchaseHistoryPanel";
 
-const PATH = "/intranet/pedidos";
-const scaffold = getScaffoldForPath(PATH)!;
-
-export const metadata: Metadata = { title: scaffold.title };
+export const metadata: Metadata = { title: "Histórico de pedidos" };
 
 export default function PedidosPage() {
-  return <IntranetScaffoldPage pathname={PATH} />;
+  return <PurchaseHistoryPanel />;
 }
