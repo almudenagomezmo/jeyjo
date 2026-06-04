@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { canReadCollection } from '@/access/staffRoles'
+import { canReadCollection, type StaffUserLike } from '@/access/staffRoles'
 
 /**
  * CA-BACKEND-006: catalog-only staff must not read orders.
@@ -8,7 +8,7 @@ import { canReadCollection } from '@/access/staffRoles'
  */
 describe('backoffice security acceptance', () => {
   it('catalog role is denied orders (CA-BACKEND-006)', () => {
-    const catalogUser = { staffRoles: ['catalogo'] as const }
+    const catalogUser: StaffUserLike = { staffRoles: ['catalogo'] }
     expect(canReadCollection(catalogUser, 'orders')).toBe(false)
     expect(canReadCollection(catalogUser, 'products')).toBe(true)
   })

@@ -189,9 +189,15 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   name?: string | null;
+  /**
+   * Al menos un rol staff es necesario para acceder al backoffice.
+   */
   staffRoles?: ('superadmin' | 'administracion' | 'catalogo' | 'personalizacion' | 'mantenimiento')[] | null;
   twoFactorEnabled?: boolean | null;
   totpSecret?: string | null;
+  /**
+   * Legacy template — usar staffRoles para backoffice.
+   */
   roles?: ('admin' | 'customer')[] | null;
   orders?: {
     docs?: (number | Order)[];
@@ -328,6 +334,11 @@ export interface Product {
    */
   erpStock?: number | null;
   syncErpAt?: string | null;
+  distrisantiagoStock?: number | null;
+  arnoiaStock?: number | null;
+  stockIndicator?: ('available' | 'low' | 'limited') | null;
+  syncDistrisantiagoAt?: string | null;
+  syncArnoiaAt?: string | null;
   description?: {
     root: {
       type: string;
@@ -404,6 +415,7 @@ export interface Media {
     };
     [k: string]: unknown;
   } | null;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -1475,6 +1487,7 @@ export interface SuppliersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1726,6 +1739,11 @@ export interface ProductsSelect<T extends boolean = true> {
   allowOrderWithoutStock?: T;
   erpStock?: T;
   syncErpAt?: T;
+  distrisantiagoStock?: T;
+  arnoiaStock?: T;
+  stockIndicator?: T;
+  syncDistrisantiagoAt?: T;
+  syncArnoiaAt?: T;
   description?: T;
   gallery?:
     | T

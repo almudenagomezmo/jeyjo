@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, JetBrains_Mono } from "next/font/google";
-import { Header } from "@/components/layout/Header";
 import { TopBar } from "@/components/layout/TopBar";
-import { Footer } from "@/components/layout/Footer";
+import { NavigationShell } from "@/components/layout/NavigationShell";
 import { MiniCart } from "@/components/cart/MiniCart";
 import { themeInitScript } from "@/components/layout/ThemeToggle";
 import "./globals.css";
@@ -39,9 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased">
         <TopBar />
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <NavigationShell>{children}</NavigationShell>
         <MiniCart />
       </body>
     </html>

@@ -109,6 +109,39 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_sync_runs: {
+        Row: {
+          arnoia_status: string
+          distrisantiago_status: string
+          error_summary: string | null
+          finished_at: string | null
+          id: string
+          products_updated: number
+          started_at: string
+          status: string
+        }
+        Insert: {
+          arnoia_status?: string
+          distrisantiago_status?: string
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          products_updated?: number
+          started_at?: string
+          status: string
+        }
+        Update: {
+          arnoia_status?: string
+          distrisantiago_status?: string
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          products_updated?: number
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           billing_series: string | null

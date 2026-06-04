@@ -1,0 +1,19 @@
+{
+  "name": "@jeyjo/stock-ports",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wholesale stock integration ports, semaphore resolver, and stub adapters for Jeyjo",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "4.0.18"
+  }
+}

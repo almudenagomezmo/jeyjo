@@ -1,3 +1,5 @@
+import type { StockIndicatorLevel } from '@jeyjo/stock-ports'
+
 export type CmsProductSnapshot = {
   skuErp?: string | null
   p1Price?: number | null
@@ -5,6 +7,10 @@ export type CmsProductSnapshot = {
   vatRate?: number | null
   isWildcard?: boolean | null
   _status?: string | null
+  stockIndicator?: StockIndicatorLevel | null
+  allowOrderWithoutStock?: boolean | null
+  syncDistrisantiagoAt?: string | null
+  syncArnoiaAt?: string | null
 }
 
 /** RF-006: exclude wildcard and non-published products from public catalog reads. */

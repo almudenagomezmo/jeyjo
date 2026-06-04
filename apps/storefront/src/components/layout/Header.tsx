@@ -4,17 +4,24 @@ import Link from "next/link";
 import { useState } from "react";
 import { Container } from "@/components/layout/Container";
 import { MegaMenu } from "@/components/layout/MegaMenu";
+import { MobileNav } from "@/components/layout/MobileNav";
 import { SearchBar } from "@/components/layout/SearchBar";
 import { PriceModeToggle } from "@/components/layout/PriceModeToggle";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Logo } from "@/components/ui/Logo";
 import { CartIcon, ChevronDownIcon, MenuIcon, UserIcon } from "@/components/ui/icons";
+import type { NavNode } from "@/lib/catalog/fetch-navigation-tree";
 import { selectCartCount, useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 
-export function Header() {
+interface HeaderProps {
+  tree: NavNode[];
+}
+
+export function Header({ tree }: HeaderProps) {
   const [megaOpen, setMegaOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const hydrated = useHydrated();
   const count = useCartStore(selectCartCount);
   const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
@@ -28,7 +35,20 @@ export function Header() {
 
         <button
           type="button"
+          onClick={() => setMobileOpen((o) => !o)}
+          className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-sm font-semibold hover:bg-surface-muted md:hidden"
+          aria-expanded={mobileOpen}
+          aria-label="Abrir menú de categorías"
+        >
+          <MenuIcon size={20} />
+        </button>
+
+        <button
+          type="button"
           onClick={() => setMegaOpen((o) => !o)}
+          onMouseEnter={() => {
+            if (window.matchMedia("(min-width: 1024px)").matches) setMegaOpen(true);
+          }}
           className="hidden items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold hover:bg-surface-muted md:inline-flex"
           aria-expanded={megaOpen}
         >
@@ -67,7 +87,8 @@ export function Header() {
         </div>
       </Container>
 
-      <MegaMenu open={megaOpen} onClose={() => setMegaOpen(false)} />
+      <MegaMenu open={megaOpen} tree={tree} onClose={() => setMegaOpen(false)} />
+      <MobileNav open={mobileOpen} tree={tree} onClose={() => setMobileOpen(false)} />
     </header>
   );
 }

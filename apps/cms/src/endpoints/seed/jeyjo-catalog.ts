@@ -1,5 +1,7 @@
 import type { Payload, PayloadRequest } from 'payload'
 
+import { seedStorefrontNavigationCategories } from './storefront-navigation'
+
 type RefFixture = {
   skuErp: string
   title: string
@@ -9,6 +11,7 @@ type RefFixture = {
   p2Price: number
   vatRate: number
   erpStock: number
+  mainWholesaleRef?: string
 }
 
 const REF_FIXTURES: RefFixture[] = [
@@ -21,6 +24,7 @@ const REF_FIXTURES: RefFixture[] = [
     p2Price: 0.9,
     vatRate: 21,
     erpStock: 100,
+    mainWholesaleRef: 'WH-REF-001',
   },
   {
     skuErp: 'REF-002',
@@ -30,7 +34,8 @@ const REF_FIXTURES: RefFixture[] = [
     p1Price: 12,
     p2Price: 10,
     vatRate: 21,
-    erpStock: 50,
+    erpStock: 2,
+    mainWholesaleRef: 'WH-REF-002',
   },
   {
     skuErp: 'REF-003',
@@ -40,7 +45,8 @@ const REF_FIXTURES: RefFixture[] = [
     p1Price: 12,
     p2Price: 10,
     vatRate: 21,
-    erpStock: 30,
+    erpStock: 0,
+    mainWholesaleRef: 'WH-REF-003',
   },
   {
     skuErp: 'REF-004',
@@ -63,6 +69,8 @@ export async function seedJeyjoCatalog({
 }): Promise<void> {
   payload.logger.info('— Seeding Jeyjo catalog (supplier, categories, products)...')
 
+  await seedStorefrontNavigationCategories({ payload, req })
+
   const supplier = await payload.create({
     collection: 'suppliers',
     data: {
@@ -74,26 +82,26 @@ export async function seedJeyjoCatalog({
     req,
   })
 
-  const parentCategory = await payload.create({
+  const escrituraCategory = await payload.find({
     collection: 'categories',
-    data: {
-      title: 'Fontanería',
-      slug: 'fontaneria',
-      sortOrder: 1,
-    },
-    req,
+    where: { slug: { equals: 'escritura' } },
+    limit: 1,
+    depth: 0,
   })
 
-  const childCategory = await payload.create({
+  const boligrafosCategory = await payload.find({
     collection: 'categories',
-    data: {
-      title: 'Grifería',
-      slug: 'griferia',
-      parent: parentCategory.id,
-      sortOrder: 2,
-    },
-    req,
+    where: { slug: { equals: 'boligrafos' } },
+    limit: 1,
+    depth: 0,
   })
+
+  const parentCategory = escrituraCategory.docs[0]
+  const childCategory = boligrafosCategory.docs[0]
+
+  if (!parentCategory || !childCategory) {
+    throw new Error('Storefront navigation categories missing after seed')
+  }
 
   await payload.create({
     collection: 'products',
@@ -172,6 +180,7 @@ export async function seedJeyjoCatalog({
         supplier: supplier.id,
         categories: [parentCategory.id],
         skuErp: ref.skuErp,
+        ...(ref.mainWholesaleRef ? { mainWholesaleRef: ref.mainWholesaleRef } : {}),
         shortDescription: ref.shortDescription,
         p1Price: ref.p1Price,
         p2Price: ref.p2Price,

@@ -23,6 +23,8 @@ import { DefaultDocumentIDType, Where } from 'payload'
 import { enrichmentFields } from '@/collections/Products/enrichmentFields'
 import { erpFields } from '@/collections/Products/erpFields'
 import { erpProductBeforeChange } from '@/collections/Products/erpHooks'
+import { stockFields } from '@/collections/Products/stockFields'
+import { stockProductBeforeChange } from '@/collections/Products/stockHooks'
 import { productSlugHooks } from '@/collections/Products/hooks'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
 import {
@@ -87,6 +89,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
       ...(defaultCollection?.hooks?.beforeChange ?? []),
       ...productAuditHooks.beforeChange,
       erpProductBeforeChange,
+      stockProductBeforeChange,
       ({ data }) => {
         if (data) {
           data.enableVariants = false
@@ -122,6 +125,10 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
         {
           label: 'Datos ERP',
           fields: erpFields,
+        },
+        {
+          label: 'Stock multisource',
+          fields: stockFields,
         },
         {
           fields: [

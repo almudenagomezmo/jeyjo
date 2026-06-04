@@ -16,6 +16,7 @@
   "dependencies": {
     "@jeyjo/database-types": "workspace:*",
     "@jeyjo/pricing": "workspace:*",
+    "@jeyjo/stock-ports": "workspace:*",
     "@supabase/supabase-js": "^2.49.8",
     "next": "15.3.3",
     "react": "19.1.0",

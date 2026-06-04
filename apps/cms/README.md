@@ -114,6 +114,24 @@ pnpm --filter @jeyjo/erp-ports test
 pnpm test:int   # erp-sync, erp-orchestrator
 ```
 
+## Sync stock multisource (`stock-multisource-adapters`, ROADMAP #8)
+
+- **Paquete:** `@jeyjo/stock-ports` — puertos Distrisantiago/Arnoia, stubs, `resolveStockIndicator` (RF-005).
+- **Orquestador:** `src/stock/StockSyncOrchestrator.ts` — pull mayoristas → campos internos Payload → semáforo `stockIndicator`.
+- **Manual (dev):** `POST /next/sync-stock-from-stub` (admin, deshabilitado en producción).
+- **Cron:** `GET /api/cron/stock-sync` con el mismo `CRON_SECRET` (Vercel cada 15 min).
+- **Tras sync ERP:** `runCatalogSyncRead` recalcula indicador para SKUs actualizados sin re-pull mayoristas.
+- **Campos Payload (pestaña Stock multisource):** `distrisantiagoStock`, `arnoiaStock`, `stockIndicator`, `syncDistrisantiagoAt`, `syncArnoiaAt` — solo escritura con `req.context.stockSync`.
+- **Metadatos:** tabla `stock_sync_runs`; `audit_log` action `SYNC_STOCK_READ`.
+- **Env:** `STOCK_DISTRI_ADAPTER`, `STOCK_ARNOIA_ADAPTER`, `STOCK_LOW_THRESHOLD` (default 5).
+
+```bash
+curl -X POST http://localhost:3001/next/sync-stock-from-stub -H "Cookie: ..."   # admin session
+curl http://localhost:3001/api/cron/stock-sync -H "Authorization: Bearer $CRON_SECRET"
+pnpm --filter @jeyjo/stock-ports test
+pnpm test:int stock
+```
+
 ## Scripts
 
 ```bash

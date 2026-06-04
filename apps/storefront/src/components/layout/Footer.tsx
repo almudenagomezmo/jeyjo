@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { Logo } from "@/components/ui/Logo";
-import { CATEGORIES } from "@/lib/data/categories";
+import type { NavNode } from "@/lib/catalog/fetch-navigation-tree";
 
-const columns = [
-  {
-    title: "Catálogo",
-    links: CATEGORIES.map((c) => ({ label: c.name, href: `/c/${c.id}` })),
-  },
+interface FooterProps {
+  tree: NavNode[];
+}
+
+const staticColumns = [
   {
     title: "Comprar en Jeyjo",
     links: [
@@ -23,14 +23,19 @@ const columns = [
     links: [
       { label: "Centro de ayuda", href: "#" },
       { label: "Contacto", href: "#" },
-      { label: "Mi cuenta", href: "#" },
+      { label: "Mi cuenta", href: "/cuenta" },
+      { label: "Buscar", href: "/search" },
       { label: "Seguimiento de pedido", href: "#" },
       { label: "Privacidad y cookies", href: "#" },
     ],
   },
-];
+] as const;
 
-export function Footer() {
+export function Footer({ tree }: FooterProps) {
+  const catalogLinks = tree.map((cat) => ({ label: cat.title, href: `/c/${cat.slug}` }));
+
+  const columns = [{ title: "Catálogo", links: catalogLinks }, ...staticColumns];
+
   return (
     <footer className="mt-20 bg-ink pt-14 text-neutral-200">
       <Container>

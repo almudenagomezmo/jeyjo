@@ -18,6 +18,11 @@
   --amber: #ffb83d;
   --info: #0d7aa8;
 
+  /* Stock semaphore (RF-005 — UI in change #11) */
+  --stock-available: var(--brand);
+  --stock-low: var(--info);
+  --stock-limited: var(--amber);
+
   /* Green tonal scale */
   --green-50: #ecfbf3;
   --green-100: #d2f6e2;

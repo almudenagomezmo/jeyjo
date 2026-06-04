@@ -4,6 +4,7 @@ import type { Payload, PayloadRequest } from 'payload'
 import { ErpCatalogSyncService, type ErpCatalogSyncResult } from '@/erp/ErpCatalogSyncService'
 import { ErpPricingSyncService } from '@/erp/ErpPricingSyncService'
 import { getErpAdapters } from '@/erp/registry'
+import { recalculateStockIndicatorsForSkus } from '@/stock/recalculateIndicators'
 import { getSupabaseServerClient, writeAuditLog } from '@/lib/supabase-server'
 
 export type ErpSyncOrchestratorResult = ErpCatalogSyncResult & {
@@ -45,6 +46,7 @@ export async function runCatalogSyncRead({
   const empty: ErpSyncOrchestratorResult = {
     productsUpdated: 0,
     suppliersUpdated: 0,
+    updatedSkus: [],
     pricingRowsUpserted: 0,
     errors: [],
     syncRunId,
@@ -83,6 +85,17 @@ export async function runCatalogSyncRead({
       pricingRowsUpserted,
       syncRunId,
       status,
+    }
+
+    if (catalogResult.updatedSkus.length > 0) {
+      const indicatorResult = await recalculateStockIndicatorsForSkus({
+        payload,
+        req,
+        skus: catalogResult.updatedSkus,
+      })
+      if (indicatorResult.errors.length > 0) {
+        result.errors.push(...indicatorResult.errors)
+      }
     }
 
     await finalizeSyncRun({

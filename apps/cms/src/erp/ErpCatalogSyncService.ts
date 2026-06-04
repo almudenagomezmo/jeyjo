@@ -8,6 +8,7 @@ import type { Product } from '@/payload-types'
 export type ErpCatalogSyncResult = {
   productsUpdated: number
   suppliersUpdated: number
+  updatedSkus: string[]
   errors: string[]
 }
 
@@ -21,6 +22,7 @@ export class ErpCatalogSyncService {
     const result: ErpCatalogSyncResult = {
       productsUpdated: 0,
       suppliersUpdated: 0,
+      updatedSkus: [],
       errors: [],
     }
 
@@ -46,6 +48,7 @@ export class ErpCatalogSyncService {
           const applied = await this.applyProduct(dto, req)
           if (applied) {
             result.productsUpdated += 1
+            result.updatedSkus.push(dto.skuErp)
           }
         } catch (e) {
           result.errors.push(`product ${dto.skuErp}: ${formatError(e)}`)
