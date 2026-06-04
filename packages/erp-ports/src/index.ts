@@ -6,6 +6,7 @@ export type {
   ErpSupplierType,
   ErpUpsertConfirmation,
 } from './types/dtos.js'
+export type { ErpSpecialPriceDto, ErpGroupOfferDto } from './types/pricing-dtos.js'
 export type { ErpPageOptions, ErpPageResult } from './types/pagination.js'
 
 export type { ErpCatalogReader } from './ports/catalog-reader.js'
@@ -15,6 +16,7 @@ export type {
   ErpInvoiceListItem,
   ErpDeliveryNoteListItem,
 } from './ports/documents-reader.js'
+export type { ErpPricingReader } from './ports/pricing-reader.js'
 
 export {
   createStubAdapterBundle,
@@ -26,5 +28,8 @@ export {
   getStubSimulateUnavailable,
   STUB_SAMPLE_PRODUCTS,
   STUB_SAMPLE_SUPPLIERS,
+  STUB_SPECIAL_PRICES,
+  STUB_GROUP_OFFERS,
+  createStubPricingReader,
   type StubAdapterBundle,
 } from './adapters/stub/index.js'

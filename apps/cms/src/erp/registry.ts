@@ -4,6 +4,7 @@ import {
   type ErpCatalogReader,
   type ErpCatalogWriter,
   type ErpDocumentsReader,
+  type ErpPricingReader,
 } from '@jeyjo/erp-ports'
 
 export type ErpAdapterKind = 'stub' | 'excel' | 'api'
@@ -13,6 +14,7 @@ export type ErpAdapterBundle = {
   catalogReader: ErpCatalogReader
   catalogWriter: ErpCatalogWriter
   documentsReader: ErpDocumentsReader
+  pricingReader: ErpPricingReader
 }
 
 const SUPPORTED: ErpAdapterKind[] = ['stub', 'excel', 'api']

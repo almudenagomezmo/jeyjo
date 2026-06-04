@@ -127,6 +127,80 @@ export type Database = {
         }
         Relationships: []
       }
+      group_offers: {
+        Row: {
+          active: boolean
+          created_at: string
+          customer_group: number | null
+          id: string
+          offer_net_price: number
+          sku_erp: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          customer_group?: number | null
+          id?: string
+          offer_net_price: number
+          sku_erp: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          customer_group?: number | null
+          id?: string
+          offer_net_price?: number
+          sku_erp?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: []
+      }
+      special_prices: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          net_price: number
+          product_sku: string
+          updated_at: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          net_price: number
+          product_sku: string
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          net_price?: number
+          product_sku?: string
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "special_prices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       search_events: {
         Row: {
           action: string

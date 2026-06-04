@@ -79,6 +79,12 @@ jobs:
       - name: ERP ports tests
         run: pnpm --filter @jeyjo/erp-ports test
 
+      - name: Pricing engine typecheck
+        run: pnpm --filter @jeyjo/pricing typecheck
+
+      - name: Pricing engine tests
+        run: pnpm --filter @jeyjo/pricing test
+
       - name: Lint
         run: pnpm --filter @jeyjo/cms lint
         continue-on-error: true

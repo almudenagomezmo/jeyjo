@@ -22,12 +22,17 @@ The CMS SHALL expose an `orders` collection (via ecommerce plugin override) with
 
 ### Requirement: Order line items support IVA snapshot field
 
-Each order line item SHALL include an `ivaRateSnapshot` numeric field prepared for immutable tax recording at order confirmation (RF-007 preparation).
+Each order line item SHALL include an `ivaRateSnapshot` numeric field. The field MUST be populated automatically when the parent order reaches confirmed status, recording the VAT rate in effect at confirmation (RF-007). Before confirmation, the field MAY be empty.
 
-#### Scenario: Line item stores IVA snapshot
+#### Scenario: Line item stores IVA snapshot on confirm
 
-- **WHEN** an order line is saved with a product VAT rate of 21
-- **THEN** `ivaRateSnapshot` on the line reflects 21 regardless of later product VAT changes
+- **WHEN** an order transitions to confirmed with a line for a product at VAT rate 21
+- **THEN** `ivaRateSnapshot` on that line is 21
+
+#### Scenario: Historical order unchanged after product VAT edit
+
+- **WHEN** a confirmed order line has `ivaRateSnapshot` 21 and the product VAT is later updated to 10
+- **THEN** the line `ivaRateSnapshot` remains 21
 
 ### Requirement: Orders reference external customer identity
 

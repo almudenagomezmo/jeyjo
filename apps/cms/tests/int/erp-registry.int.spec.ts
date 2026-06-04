@@ -17,6 +17,7 @@ describe('ERP adapter registry', () => {
     expect(bundle.kind).toBe('stub')
     expect(bundle.catalogReader).toBeDefined()
     expect(bundle.catalogWriter).toBeDefined()
+    expect(bundle.pricingReader).toBeDefined()
   })
 
   it('throws for unknown ERP_ADAPTER', () => {

@@ -84,6 +84,19 @@ Audit console: `http://localhost:3001/admin/audit-log`
 - Tablas `products`, `orders`, `suppliers`, etc. → schema Payload (postgres adapter).
 - No ejecutar `DROP` manual de tablas core desde Payload.
 
+## Motor de precios (`price-engine-core`)
+
+- Paquete compartido `@jeyjo/pricing` (`resolvePrice`, reglas RF-007).
+- CMS: `src/pricing/` (Supabase + Payload `p1Price`/`p2Price`/`vatRate`).
+- Pedidos: al pasar `jeyjoStatus` → `confirmed`, se rellena `ivaRateSnapshot` en líneas (rechazo si falta IVA en producto).
+- Tablas Supabase: `special_prices`, `group_offers` (seed CA-PRECIOS en `supabase/seed.sql`).
+- Puertos ERP: `ErpPricingReader` en `@jeyjo/erp-ports` (stub REF-001..004).
+
+```bash
+pnpm --filter @jeyjo/pricing test
+pnpm test:int   # incluye pricing-engine + order-iva-snapshot
+```
+
 ## Scripts
 
 ```bash
@@ -92,7 +105,7 @@ pnpm build          # requiere DATABASE_URL
 pnpm lint
 pnpm typecheck
 pnpm generate:types # regenera payload-types.ts tras cambios en colecciones
-pnpm test:int       # supabase-server, staff roles, MFA helpers
+pnpm test:int       # supabase-server, staff roles, MFA helpers, pricing
 ```
 
 ## CI

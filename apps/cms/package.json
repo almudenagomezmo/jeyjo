@@ -26,6 +26,7 @@
   "dependencies": {
     "@jeyjo/database-types": "workspace:*",
     "@jeyjo/erp-ports": "workspace:*",
+    "@jeyjo/pricing": "workspace:*",
     "@payloadcms/admin-bar": "3.85.0",
     "@payloadcms/db-postgres": "3.85.0",
     "@payloadcms/email-nodemailer": "3.85.0",

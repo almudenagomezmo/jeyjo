@@ -1,6 +1,12 @@
 import type { Field } from 'payload'
 import { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 
+import {
+  applyIvaSnapshotToOrderLines,
+  isOrderConfirming,
+  mergeOrderItemIvaSnapshotField,
+  type OrderLineForIva,
+} from '@/collections/Orders/iva-snapshot'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
 import {
   staffCreateAccess,
@@ -86,40 +92,6 @@ const jeyjoOrderFields: Field[] = [
   },
 ]
 
-async function snapshotIvaOnLineItems({
-  data,
-  req,
-}: {
-  data: Record<string, unknown>
-  req: { payload: import('payload').Payload }
-}) {
-  const items = data.items as
-    | Array<{ product?: number | { id: number } | null; ivaRateSnapshot?: number | null }>
-    | undefined
-
-  if (!items?.length) return data
-
-  for (const item of items) {
-    if (item.ivaRateSnapshot != null || !item.product) continue
-
-    const productId = typeof item.product === 'object' ? item.product.id : item.product
-    try {
-      const product = await req.payload.findByID({
-        collection: 'products',
-        id: productId,
-        depth: 0,
-      })
-      if (product && 'vatRate' in product && product.vatRate != null) {
-        item.ivaRateSnapshot = product.vatRate as number
-      }
-    } catch {
-      // product lookup optional during partial saves
-    }
-  }
-
-  return data
-}
-
 const orderAuditHooks = createAuditHooks({ collection: 'orders' })
 
 export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection }) => ({
@@ -156,9 +128,21 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
     ],
     beforeChange: [
       ...(defaultCollection?.hooks?.beforeChange ?? []),
-      async ({ data, req }) => {
+      async ({ data, originalDoc, req }) => {
         if (!data) return data
-        return snapshotIvaOnLineItems({ data: data as Record<string, unknown>, req })
+        const nextStatus = (data.jeyjoStatus as string | undefined) ?? originalDoc?.jeyjoStatus
+        const prevStatus = originalDoc?.jeyjoStatus
+        const items = data.items as OrderLineForIva[] | undefined
+
+        if (isOrderConfirming(nextStatus, prevStatus)) {
+          await applyIvaSnapshotToOrderLines({
+            items,
+            payload: req.payload,
+            requireAll: true,
+          })
+        }
+
+        return data
       },
     ],
     afterChange: [
@@ -170,5 +154,8 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
       ...orderAuditHooks.afterDelete,
     ],
   },
-  fields: [...jeyjoOrderFields, ...defaultCollection.fields],
+  fields: [
+    ...jeyjoOrderFields,
+    ...mergeOrderItemIvaSnapshotField(defaultCollection.fields),
+  ],
 })

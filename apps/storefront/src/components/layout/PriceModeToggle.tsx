@@ -2,6 +2,7 @@
 
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { useUiStore } from "@/lib/store/ui-store";
+import { headerPriceModeLabel } from "@/lib/utils/price";
 
 /**
  * Toggles between B2C (VAT-inclusive emphasis) and B2B (ex-VAT emphasis)
@@ -25,7 +26,7 @@ export function PriceModeToggle() {
         className="h-1.5 w-1.5 rounded-full"
         style={{ background: mode === "b2c" ? "var(--green-400)" : "var(--navy)" }}
       />
-      Precios {mode === "b2c" ? "con IVA" : "sin IVA (B2B)"}
+      {headerPriceModeLabel(mode)}
     </button>
   );
 }

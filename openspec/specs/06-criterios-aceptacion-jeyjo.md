@@ -773,10 +773,10 @@ Tipo: Seguridad
 | CA-AUTH-003        | Autenticación           | Seguridad       | Equipo dev           | Staging  | Pendiente |
 | CA-AUTH-004        | Autenticación           | Seguridad       | Equipo dev           | Staging  | Pendiente |
 | CA-AUTH-005        | Autenticación / MFA     | Seguridad       | Equipo dev           | Staging  | Pendiente |
-| CA-PRECIOS-001     | Motor de Precios        | Funcional       | Equipo dev           | Staging  | Pendiente |
-| CA-PRECIOS-002     | Motor de Precios        | Funcional       | Equipo dev           | Staging  | Pendiente |
-| CA-PRECIOS-003     | Motor de Precios        | Funcional CRÍTICO| Equipo dev + Dirección | Staging  | Pendiente |
-| CA-PRECIOS-004     | Motor de Precios        | Funcional CRÍTICO| Equipo dev + Dirección | Staging  | Pendiente |
+| CA-PRECIOS-001     | Motor de Precios        | Funcional       | Equipo dev           | Staging  | Listo dev — pendiente QA staging |
+| CA-PRECIOS-002     | Motor de Precios        | Funcional       | Equipo dev           | Staging  | Listo dev — pendiente QA staging |
+| CA-PRECIOS-003     | Motor de Precios        | Funcional CRÍTICO| Equipo dev + Dirección | Staging  | Listo dev — pendiente QA staging |
+| CA-PRECIOS-004     | Motor de Precios        | Funcional CRÍTICO| Equipo dev + Dirección | Staging  | Listo dev — pendiente QA staging |
 | CA-PRECIOS-005     | Catálogo / Carrito      | Funcional       | Equipo dev           | Staging  | Pendiente |
 | CA-SEARCH-001      | Buscador                | Funcional + Rend.| Equipo dev           | Staging  | Pendiente |
 | CA-SEARCH-002      | Buscador                | Funcional       | Equipo dev           | Staging  | Pendiente |
