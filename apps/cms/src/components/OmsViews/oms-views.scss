@@ -1,0 +1,78 @@
+.oms-view {
+  padding: 2rem;
+  max-width: 72rem;
+
+  &__hint {
+    color: var(--theme-elevation-500);
+    margin-bottom: 1.5rem;
+  }
+
+  &__error {
+    color: var(--theme-error-500);
+    margin-bottom: 1rem;
+  }
+
+  &__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    align-items: flex-end;
+  }
+
+  &__toolbar label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  &__toolbar input,
+  &__toolbar select {
+    min-width: 10rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  &__table th,
+  &__table td {
+    border-bottom: 1px solid var(--theme-elevation-150);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  &__badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    background: var(--theme-warning-100);
+    color: var(--theme-warning-700);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  &__actions button {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+  }
+
+  &__nav {
+    margin-bottom: 1rem;
+  }
+
+  &__nav a {
+    margin-right: 1rem;
+  }
+}

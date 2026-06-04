@@ -262,6 +262,9 @@ export interface Order {
    */
   customerRef?: string | null;
   validatedEva?: boolean | null;
+  stockValidationPending?: boolean | null;
+  exportedToErpAt?: string | null;
+  evaRejectionReason?: string | null;
   deliveryMethod?: ('home' | 'alternate_address' | 'pickup_alfaro' | 'pickup_rincon') | null;
   shippingCost?: number | null;
   pickupStoreLabel?: string | null;
@@ -1934,6 +1937,9 @@ export interface OrdersSelect<T extends boolean = true> {
   jeyjoStatus?: T;
   customerRef?: T;
   validatedEva?: T;
+  stockValidationPending?: T;
+  exportedToErpAt?: T;
+  evaRejectionReason?: T;
   deliveryMethod?: T;
   shippingCost?: T;
   pickupStoreLabel?: T;

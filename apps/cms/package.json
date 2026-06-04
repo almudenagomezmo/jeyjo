@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@jeyjo/catalog-images": "workspace:*",
+    "@jeyjo/order-export": "workspace:*",
     "@jeyjo/database-types": "workspace:*",
     "@jeyjo/erp-ports": "workspace:*",
     "@jeyjo/pricing": "workspace:*",

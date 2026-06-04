@@ -5,6 +5,7 @@ import { contactPageData } from './contact-page'
 import { seedJeyjoCatalog } from './jeyjo-catalog'
 import { seedHomeMerchandising } from './home-merchandising'
 import { seedStaffUsers } from './staff-users'
+import { seedEvaPendingOrder } from './eva-order'
 import { productHatData } from './product-hat'
 import { productTshirtData, productTshirtVariant } from './product-tshirt'
 import { homePageData } from './home'
@@ -593,6 +594,7 @@ export const seed = async ({
   await seedJeyjoCatalog({ payload, req })
   await seedHomeMerchandising({ payload, req, heroMediaId: imageHero.id })
   await seedStaffUsers(payload)
+  await seedEvaPendingOrder({ payload, req })
 
   payload.logger.info('Seeded database successfully!')
 }

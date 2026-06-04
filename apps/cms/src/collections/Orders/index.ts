@@ -7,6 +7,11 @@ import {
   mergeOrderItemIvaSnapshotField,
   type OrderLineForIva,
 } from '@/collections/Orders/iva-snapshot'
+import {
+  assertAllowedStatusTransition,
+  isJeyjoOrderStatus,
+  type JeyjoOrderStatus,
+} from '@/collections/Orders/status-transitions'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
 import {
   staffCreateAccess,
@@ -88,6 +93,31 @@ const jeyjoOrderFields: Field[] = [
     label: 'Validado EVA',
     defaultValue: false,
     admin: { position: 'sidebar' },
+  },
+  {
+    name: 'stockValidationPending',
+    type: 'checkbox',
+    label: 'Validación de stock pendiente',
+    defaultValue: false,
+    admin: { position: 'sidebar' },
+  },
+  {
+    name: 'exportedToErpAt',
+    type: 'date',
+    label: 'Exportado a ERP',
+    admin: {
+      position: 'sidebar',
+      date: { pickerAppearance: 'dayAndTime' },
+      readOnly: true,
+    },
+  },
+  {
+    name: 'evaRejectionReason',
+    type: 'textarea',
+    label: 'Motivo rechazo EVA',
+    admin: {
+      condition: (data) => data?.origin === 'eva',
+    },
   },
   {
     name: 'deliveryMethod',
@@ -247,14 +277,18 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
       return staffCreateAccess('orders')({ req })
     },
     read: staffReadAccess('orders'),
-    update: staffUpdateAccess('orders'),
+    update: async ({ req }) => {
+      if (isStorefrontOrderApiKey(req)) return true
+      return staffUpdateAccess('orders')({ req })
+    },
     delete: staffDeleteAccess('orders'),
   },
   admin: {
     ...defaultCollection?.admin,
     group: 'Pedidos',
     hidden: ({ user }) => isCollectionHidden(user, 'orders'),
-    defaultColumns: ['orderNumber', 'createdAt', 'origin', 'jeyjoStatus', 'total'],
+    defaultColumns: ['orderNumber', 'createdAt', 'origin', 'jeyjoStatus', 'amount'],
+    description: 'Bandeja operativa OMS: /admin/oms',
   },
   hooks: {
     ...defaultCollection?.hooks,
@@ -271,11 +305,27 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
     ],
     beforeChange: [
       ...(defaultCollection?.hooks?.beforeChange ?? []),
-      async ({ data, originalDoc, req }) => {
+      async ({ data, originalDoc, req, operation }) => {
         if (!data) return data
         const nextStatus = (data.jeyjoStatus as string | undefined) ?? originalDoc?.jeyjoStatus
-        const prevStatus = originalDoc?.jeyjoStatus
+        const prevStatus = originalDoc?.jeyjoStatus as JeyjoOrderStatus | undefined
         const items = data.items as OrderLineForIva[] | undefined
+
+        if (operation === 'update' && nextStatus && nextStatus !== prevStatus) {
+          assertAllowedStatusTransition(prevStatus ?? null, nextStatus, {
+            storefrontApi: isStorefrontOrderApiKey(req),
+          })
+        }
+
+        if (
+          operation === 'create' &&
+          data.jeyjoStatus &&
+          isJeyjoOrderStatus(String(data.jeyjoStatus))
+        ) {
+          assertAllowedStatusTransition(null, data.jeyjoStatus as JeyjoOrderStatus, {
+            storefrontApi: isStorefrontOrderApiKey(req),
+          })
+        }
 
         if (isOrderConfirming(nextStatus, prevStatus)) {
           await applyIvaSnapshotToOrderLines({

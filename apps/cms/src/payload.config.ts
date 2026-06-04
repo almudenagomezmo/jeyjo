@@ -28,6 +28,7 @@ import { auditLogEndpoint } from '@/endpoints/audit-log'
 import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
 import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
 import { pimHealthEndpoint } from '@/endpoints/pim-health'
+import { ordersOmsEndpoints } from '@/endpoints/orders-oms'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
 import { qdrantCollections } from '@/lib/qdrant-collections'
@@ -91,6 +92,14 @@ export default buildConfig({
           Component: '@/components/BulkSeoTemplateView#BulkSeoTemplateView',
           path: '/bulk-seo-template',
         },
+        omsInbox: {
+          Component: '@/components/OmsInboxView#OmsInboxView',
+          path: '/oms',
+        },
+        omsEva: {
+          Component: '@/components/EvaOrdersQueueView#EvaOrdersQueueView',
+          path: '/oms/eva',
+        },
       },
     },
     user: Users.slug,
@@ -151,6 +160,7 @@ export default buildConfig({
     pendingCustomersEndpoint,
     bulkSeoTemplateEndpoint,
     pimHealthEndpoint,
+    ...ordersOmsEndpoints,
   ],
   globals: [Header, Footer, Home, PaymentSettings],
   plugins,

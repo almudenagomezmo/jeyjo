@@ -94,6 +94,10 @@ export function canAccessAuditConsole(user: StaffUserLike | null | undefined): b
   return hasStaffRole(user, ['superadmin', 'mantenimiento'])
 }
 
+export function canAccessOms(user: StaffUserLike | null | undefined): boolean {
+  return hasStaffRole(user, ['superadmin', 'administracion'])
+}
+
 export function isCollectionHidden(user: StaffUserLike | null | undefined, collection: string): boolean {
   if (!isStaff(user)) return true
   return !canReadCollection(user, collection)
