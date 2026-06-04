@@ -22,6 +22,7 @@ import { Suppliers } from '@/collections/Suppliers'
 import { Users } from '@/collections/Users'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
+import { auditLogEndpoint } from '@/endpoints/audit-log'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
 import { qdrantCollections } from '@/lib/qdrant-collections'
@@ -67,7 +68,13 @@ export default buildConfig({
   admin: {
     components: {
       beforeLogin: ['@/components/BeforeLogin#BeforeLogin'],
-      beforeDashboard: ['@/components/BeforeDashboard#BeforeDashboard'],
+      beforeDashboard: ['@/components/MfaGate#MfaGate'],
+      views: {
+        auditLog: {
+          Component: '@/components/AuditLogView#AuditLogView',
+          path: '/audit-log',
+        },
+      },
     },
     user: Users.slug,
   },
@@ -122,7 +129,7 @@ export default buildConfig({
     defaultFromName: process.env.RESEND_FROM_NAME || 'Jeyjo',
     defaultFromAddress: process.env.RESEND_FROM_EMAIL || 'noreply@tudominio.com',
   }),
-  endpoints: [],
+  endpoints: [auditLogEndpoint],
   globals: [Header, Footer],
   plugins,
   secret: process.env.PAYLOAD_SECRET || '',

@@ -1,9 +1,13 @@
 import type { Access } from 'payload'
 
-import { checkRole } from '@/access/utilities'
+import { hasStaffRole, isStaff } from '@/access/staffRoles'
 
 export const adminOnly: Access = ({ req: { user } }) => {
-  if (user) return checkRole(['admin'], user)
+  return isStaff(user) && hasStaffRole(user, ['superadmin'])
+}
 
-  return false
+/** @deprecated Use staffAccess helpers — kept for template field access compatibility */
+export const adminOnlyLegacy: Access = ({ req: { user } }) => {
+  if (user?.roles?.includes('admin')) return true
+  return isStaff(user)
 }

@@ -3,6 +3,7 @@ import type { CollectionSlug, GlobalSlug, Payload, PayloadRequest, File } from '
 import { contactFormData } from './contact-form'
 import { contactPageData } from './contact-page'
 import { seedJeyjoCatalog } from './jeyjo-catalog'
+import { seedStaffUsers } from './staff-users'
 import { productHatData } from './product-hat'
 import { productTshirtData, productTshirtVariant } from './product-tshirt'
 import { homePageData } from './home'
@@ -581,6 +582,7 @@ export const seed = async ({
   ])
 
   await seedJeyjoCatalog({ payload, req })
+  await seedStaffUsers(payload)
 
   payload.logger.info('Seeded database successfully!')
 }

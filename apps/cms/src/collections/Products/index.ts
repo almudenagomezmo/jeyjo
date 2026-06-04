@@ -22,9 +22,18 @@ import { DefaultDocumentIDType, Where } from 'payload'
 
 import { enrichmentFields } from '@/collections/Products/enrichmentFields'
 import { erpFields } from '@/collections/Products/erpFields'
+import { erpProductBeforeChange } from '@/collections/Products/erpHooks'
 import { productSlugHooks } from '@/collections/Products/hooks'
-import { auditLogHooksForCollection } from '@/hooks/auditLogHooks'
+import { createAuditHooks } from '@/hooks/auditLogHooks'
+import {
+  staffCreateAccess,
+  staffDeleteAccess,
+  staffUpdateAccess,
+} from '@/access/staffAccess'
+import { isCollectionHidden } from '@/access/staffRoles'
 import { productSearchEventHooks } from '@/hooks/searchEventHooks'
+
+const productAuditHooks = createAuditHooks({ collection: 'products' })
 
 export const ProductsCollection: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
@@ -32,9 +41,17 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     singular: 'Producto',
     plural: 'Productos',
   },
+  access: {
+    ...defaultCollection?.access,
+    create: staffCreateAccess('products'),
+    read: defaultCollection?.access?.read,
+    update: staffUpdateAccess('products'),
+    delete: staffDeleteAccess('products'),
+  },
   admin: {
     ...defaultCollection?.admin,
     group: 'Catálogo',
+    hidden: ({ user }) => isCollectionHidden(user, 'products'),
     defaultColumns: ['title', 'skuErp', 'supplier', '_status'],
     livePreview: {
       url: ({ data, req }) =>
@@ -68,6 +85,8 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     beforeValidate: [...(defaultCollection?.hooks?.beforeValidate ?? []), ...productSlugHooks],
     beforeChange: [
       ...(defaultCollection?.hooks?.beforeChange ?? []),
+      ...productAuditHooks.beforeChange,
+      erpProductBeforeChange,
       ({ data }) => {
         if (data) {
           data.enableVariants = false
@@ -78,12 +97,12 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     afterChange: [
       ...(defaultCollection?.hooks?.afterChange ?? []),
       ...productSearchEventHooks.afterChange,
-      ...auditLogHooksForCollection('products').afterChange,
+      ...productAuditHooks.afterChange,
     ],
     afterDelete: [
       ...(defaultCollection?.hooks?.afterDelete ?? []),
       ...productSearchEventHooks.afterDelete,
-      ...auditLogHooksForCollection('products').afterDelete,
+      ...productAuditHooks.afterDelete,
     ],
   },
   fields: [

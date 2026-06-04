@@ -8,21 +8,35 @@ import {
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import { adminOnly } from '@/access/adminOnly'
+import {
+  staffCreateAccess,
+  staffDeleteAccess,
+  staffUpdateAccess,
+} from '@/access/staffAccess'
+import { isCollectionHidden } from '@/access/staffRoles'
+import { createAuditHooks } from '@/hooks/auditLogHooks'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const auditHooks = createAuditHooks({ collection: 'media' })
+
 export const Media: CollectionConfig = {
   admin: {
     group: 'Contenido',
+    hidden: ({ user }) => isCollectionHidden(user, 'media'),
   },
   slug: 'media',
   access: {
-    create: adminOnly,
-    delete: adminOnly,
+    create: staffCreateAccess('media'),
+    delete: staffDeleteAccess('media'),
     read: () => true,
-    update: adminOnly,
+    update: staffUpdateAccess('media'),
+  },
+  hooks: {
+    beforeChange: auditHooks.beforeChange,
+    afterChange: auditHooks.afterChange,
+    afterDelete: auditHooks.afterDelete,
   },
   fields: [
     {

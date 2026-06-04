@@ -1,0 +1,26 @@
+.audit-log-view {
+  padding: 2rem;
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      border: 1px solid var(--theme-elevation-150);
+      padding: 0.5rem;
+      text-align: left;
+    }
+  }
+
+  &__error {
+    color: var(--theme-error-500);
+  }
+}

@@ -1,16 +1,15 @@
 import type { Access } from 'payload'
 
-import { checkRole } from '@/access/utilities'
+import { isStaff } from '@/access/staffRoles'
 
 /**
- * Atomic access checker that verifies if the user has the admin role.
- *
- * @returns true if user is an admin, false otherwise
+ * Staff-aware admin check (replaces legacy admin role for backoffice).
  */
-export const isAdmin: Access = ({ req }) => {
-  if (req.user) {
-    return checkRole(['admin'], req.user)
-  }
+export const isAdmin: Access = ({ req: { user } }) => {
+  return isStaff(user)
+}
 
-  return false
+export const isLegacyAdmin: Access = ({ req: { user } }) => {
+  if (user?.roles?.includes('admin')) return true
+  return isStaff(user)
 }

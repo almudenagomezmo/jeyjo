@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Json } from '@jeyjo/database-types'
 
 import { payloadIdToUuid } from '@/lib/entity-uuid'
+import { extractSourceIp } from '@/lib/request-ip'
 
 export type SearchEntityType = 'producto' | 'categoria'
 export type SearchEventAction = 'create' | 'update' | 'delete'
@@ -22,6 +23,25 @@ export type WriteAuditLogInput = {
   action: string
   metadata?: Record<string, unknown> | null
   previousValue?: Record<string, unknown> | null
+  sourceIp?: string | null
+}
+
+export type SecurityAuditAction =
+  | 'ACCESS_DENIED'
+  | 'LOGIN_FAILED'
+  | 'MFA_ENROLLED'
+  | 'MFA_RESET'
+  | 'ROLE_CHANGED'
+  | 'PASSWORD_CHANGED'
+
+export type WriteSecurityAuditInput = {
+  action: SecurityAuditAction
+  actorId?: string | number | null
+  actorName?: string | null
+  entityId?: string | number | null
+  metadata?: Record<string, unknown> | null
+  previousValue?: Record<string, unknown> | null
+  sourceIp?: string | null
 }
 
 let client: SupabaseClient<Database> | null = null
@@ -90,6 +110,7 @@ export async function writeAuditLog(input: WriteAuditLogInput): Promise<void> {
     entity_id: entityId,
     new_value: (input.metadata ?? null) as Json,
     previous_value: (input.previousValue ?? null) as Json,
+    source_ip: input.sourceIp ?? null,
   }
 
   const { error } = await supabase.from('audit_log').insert(row)
@@ -98,3 +119,97 @@ export async function writeAuditLog(input: WriteAuditLogInput): Promise<void> {
     throw new Error(`audit_log insert failed: ${error.message}`)
   }
 }
+
+export async function writeSecurityAudit(input: WriteSecurityAuditInput): Promise<void> {
+  await writeAuditLog({
+    actorId: input.actorId,
+    actorName: input.actorName,
+    entityType: 'security',
+    entityId: input.entityId,
+    action: input.action,
+    metadata: input.metadata ?? null,
+    previousValue: input.previousValue ?? null,
+    sourceIp: input.sourceIp ?? null,
+  })
+}
+
+export function sourceIpFromHeaders(headers: Headers): string | null {
+  return extractSourceIp(headers)
+}
+
+export type AuditLogQuery = {
+  actor?: string
+  entityType?: string
+  action?: string
+  from?: string
+  to?: string
+  page?: number
+  limit?: number
+}
+
+export async function queryAuditLog(query: AuditLogQuery) {
+  const supabase = getSupabaseServerClient()
+  if (!supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  const page = Math.max(1, query.page ?? 1)
+  const limit = Math.min(100, Math.max(1, query.limit ?? 25))
+  const from = (page - 1) * limit
+  const to = from + limit - 1
+
+  let builder = supabase
+    .from('audit_log')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (query.actor) {
+    builder = builder.ilike('actor_name', `%${query.actor}%`)
+  }
+  if (query.entityType) {
+    builder = builder.eq('entity_type', query.entityType)
+  }
+  if (query.action) {
+    builder = builder.eq('action', query.action)
+  }
+  if (query.from) {
+    builder = builder.gte('created_at', query.from)
+  }
+  if (query.to) {
+    builder = builder.lte('created_at', query.to)
+  }
+
+  const { data, error, count } = await builder
+
+  if (error) {
+    throw new Error(`audit_log query failed: ${error.message}`)
+  }
+
+  return { docs: data ?? [], totalDocs: count ?? 0, page, limit }
+}
+
+export async function queryAuditLogForExport(query: Omit<AuditLogQuery, 'page' | 'limit'>, maxRows = 10_000) {
+  const supabase = getSupabaseServerClient()
+  if (!supabase) {
+    throw new Error('Supabase not configured')
+  }
+
+  let builder = supabase
+    .from('audit_log')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(maxRows)
+
+  if (query.actor) builder = builder.ilike('actor_name', `%${query.actor}%`)
+  if (query.entityType) builder = builder.eq('entity_type', query.entityType)
+  if (query.action) builder = builder.eq('action', query.action)
+  if (query.from) builder = builder.gte('created_at', query.from)
+  if (query.to) builder = builder.lte('created_at', query.to)
+
+  const { data, error } = await builder
+  if (error) throw new Error(`audit_log export failed: ${error.message}`)
+  return data ?? []
+}
+
+export { extractSourceIp }

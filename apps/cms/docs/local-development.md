@@ -36,12 +36,15 @@ QDRANT_URL=http://localhost:6333
 
 Stripe puede dejarse con placeholders (`sk_test_`) — el CMS arranca sin pasarela activa.
 
-Para hooks de `search_events` / `audit_log`:
+Para hooks de `search_events` / `audit_log` y consola de auditoría:
 
 ```bash
 SUPABASE_URL=https://xxxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=tu_service_role
+MFA_GRACE_DAYS=0
 ```
+
+Usuarios staff de prueba (seed): ver [`../README.md`](../README.md#usuarios-de-prueba-seed).
 
 Con monorepo Supabase CLI (recomendado):
 

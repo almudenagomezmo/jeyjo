@@ -1,9 +1,17 @@
 import { slugField } from 'payload'
 import type { CollectionConfig } from 'payload'
 
-import { adminOnly } from '@/access/adminOnly'
-import { auditLogHooksForCollection } from '@/hooks/auditLogHooks'
+import {
+  staffCreateAccess,
+  staffDeleteAccess,
+  staffReadAccess,
+  staffUpdateAccess,
+} from '@/access/staffAccess'
+import { isCollectionHidden } from '@/access/staffRoles'
+import { createAuditHooks } from '@/hooks/auditLogHooks'
 import { categorySearchEventHooks } from '@/hooks/searchEventHooks'
+
+const auditHooks = createAuditHooks({ collection: 'categories' })
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -12,24 +20,26 @@ export const Categories: CollectionConfig = {
     plural: 'Categorías',
   },
   access: {
-    create: adminOnly,
-    delete: adminOnly,
+    create: staffCreateAccess('categories'),
+    delete: staffDeleteAccess('categories'),
     read: () => true,
-    update: adminOnly,
+    update: staffUpdateAccess('categories'),
   },
   admin: {
     useAsTitle: 'title',
     group: 'Catálogo',
     defaultColumns: ['title', 'parent', 'slug'],
+    hidden: ({ user }) => isCollectionHidden(user, 'categories'),
   },
   hooks: {
+    beforeChange: auditHooks.beforeChange,
     afterChange: [
       ...categorySearchEventHooks.afterChange,
-      ...auditLogHooksForCollection('categories').afterChange,
+      ...auditHooks.afterChange,
     ],
     afterDelete: [
       ...categorySearchEventHooks.afterDelete,
-      ...auditLogHooksForCollection('categories').afterDelete,
+      ...auditHooks.afterDelete,
     ],
     beforeValidate: [
       async ({ data, operation, req, originalDoc }) => {

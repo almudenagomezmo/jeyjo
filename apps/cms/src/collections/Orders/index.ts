@@ -1,7 +1,14 @@
 import type { Field } from 'payload'
 import { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 
-import { auditLogHooksForCollection } from '@/hooks/auditLogHooks'
+import { createAuditHooks } from '@/hooks/auditLogHooks'
+import {
+  staffCreateAccess,
+  staffDeleteAccess,
+  staffReadAccess,
+  staffUpdateAccess,
+} from '@/access/staffAccess'
+import { isCollectionHidden } from '@/access/staffRoles'
 
 const JEYJO_ORDER_STATUSES = [
   { label: 'Pendiente', value: 'pending' },
@@ -113,15 +120,25 @@ async function snapshotIvaOnLineItems({
   return data
 }
 
+const orderAuditHooks = createAuditHooks({ collection: 'orders' })
+
 export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
   labels: {
     singular: 'Pedido',
     plural: 'Pedidos',
   },
+  access: {
+    ...defaultCollection?.access,
+    create: staffCreateAccess('orders'),
+    read: staffReadAccess('orders'),
+    update: staffUpdateAccess('orders'),
+    delete: staffDeleteAccess('orders'),
+  },
   admin: {
     ...defaultCollection?.admin,
     group: 'Pedidos',
+    hidden: ({ user }) => isCollectionHidden(user, 'orders'),
     defaultColumns: ['orderNumber', 'createdAt', 'origin', 'jeyjoStatus', 'total'],
   },
   hooks: {
@@ -146,11 +163,11 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
     ],
     afterChange: [
       ...(defaultCollection?.hooks?.afterChange ?? []),
-      ...auditLogHooksForCollection('orders').afterChange,
+      ...orderAuditHooks.afterChange,
     ],
     afterDelete: [
       ...(defaultCollection?.hooks?.afterDelete ?? []),
-      ...auditLogHooksForCollection('orders').afterDelete,
+      ...orderAuditHooks.afterDelete,
     ],
   },
   fields: [...jeyjoOrderFields, ...defaultCollection.fields],

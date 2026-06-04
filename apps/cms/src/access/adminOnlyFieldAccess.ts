@@ -1,9 +1,11 @@
 import type { FieldAccess } from 'payload'
 
-import { checkRole } from '@/access/utilities'
+import { hasStaffRole, isStaff } from '@/access/staffRoles'
 
 export const adminOnlyFieldAccess: FieldAccess = ({ req: { user } }) => {
-  if (user) return checkRole(['admin'], user)
+  return isStaff(user)
+}
 
-  return false
+export const superadminFieldAccess: FieldAccess = ({ req: { user } }) => {
+  return hasStaffRole(user, ['superadmin'])
 }

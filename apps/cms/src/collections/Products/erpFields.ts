@@ -2,6 +2,13 @@ import type { Field } from 'payload'
 
 import { erpReadOnlyFieldAccess } from '@/access/erpReadOnlyFieldAccess'
 
+/**
+ * ERP-sourced product fields. Dual protection:
+ * - Admin UI: `erpReadOnlyFieldAccess` (update denied for staff)
+ * - Server: `erpProductBeforeChange` strips ERP fields unless `req.context.erpSync === true`
+ * DTO shape: `@jeyjo/erp-ports` `ErpProductDto` via `mapErpProductDtoToPayload`.
+ */
+
 export const erpFields: Field[] = [
   {
     name: 'skuErp',

@@ -1,30 +1,68 @@
 import type { CollectionConfig } from 'payload'
 
-import { adminOnly } from '@/access/adminOnly'
-import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
-import { publicAccess } from '@/access/publicAccess'
+import { hasStaffRole, isStaff } from '@/access/staffRoles'
+import {
+  staffCreateAccess,
+  staffDeleteAccess,
+  staffReadAccess,
+  staffUpdateAccess,
+} from '@/access/staffAccess'
 import { adminOrSelf } from '@/access/adminOrSelf'
-import { checkRole } from '@/access/utilities'
+import { createAuditHooks } from '@/hooks/auditLogHooks'
+import { loginFailedAfterError, staffSecurityAfterChange, staffSecurityBeforeChange } from '@/hooks/securityAuditHooks'
+import { mfaEndpoints } from '@/endpoints/mfa'
 
-import { ensureFirstUserIsAdmin } from './hooks/ensureFirstUserIsAdmin'
+import {
+  ensureFirstUserIsSuperadmin,
+  staffRoleOptions,
+} from './hooks/ensureFirstUserIsAdmin'
+import {
+  staffUsersBaseFilter,
+  superadminOnlyStaffRolesField,
+  validateStaffPassword,
+} from './hooks/staffSecurity'
+
+const userAuditHooks = createAuditHooks({ collection: 'users' })
 
 export const Users: CollectionConfig = {
   slug: 'users',
   access: {
-    admin: ({ req: { user } }) => checkRole(['admin'], user),
-    create: publicAccess,
-    delete: adminOnly,
-    read: adminOrSelf,
-    unlock: adminOnly,
-    update: adminOrSelf,
+    admin: ({ req: { user } }) => isStaff(user),
+    create: staffCreateAccess('users'),
+    delete: staffDeleteAccess('users'),
+    read: (args) => {
+      const { user } = args.req
+      if (user && (hasStaffRole(user, ['superadmin']) || hasStaffRole(user, ['mantenimiento']))) {
+        return staffReadAccess('users')(args)
+      }
+      return adminOrSelf(args)
+    },
+    unlock: ({ req: { user } }) => Boolean(user && hasStaffRole(user, ['superadmin'])),
+    update: (args) => {
+      const { user } = args.req
+      if (user && hasStaffRole(user, ['superadmin'])) return true
+      return adminOrSelf(args)
+    },
   },
   admin: {
-    group: 'Users',
-    defaultColumns: ['name', 'email', 'roles'],
+    group: 'Mantenimiento',
+    defaultColumns: ['name', 'email', 'staffRoles', 'twoFactorEnabled'],
     useAsTitle: 'name',
+    baseListFilter: staffUsersBaseFilter,
+    hidden: ({ user }) => !isStaff(user),
   },
   auth: {
     tokenExpiration: 1209600,
+    maxLoginAttempts: 5,
+    lockTime: 900000,
+  },
+  endpoints: mfaEndpoints,
+  hooks: {
+    beforeValidate: [validateStaffPassword],
+    beforeChange: [...userAuditHooks.beforeChange, staffSecurityBeforeChange],
+    afterChange: [...userAuditHooks.afterChange, staffSecurityAfterChange],
+    afterDelete: userAuditHooks.afterDelete,
+    afterError: [loginFailedAfterError],
   },
   fields: [
     {
@@ -32,28 +70,69 @@ export const Users: CollectionConfig = {
       type: 'text',
     },
     {
+      name: 'staffRoles',
+      type: 'select',
+      label: 'Roles staff',
+      hasMany: true,
+      saveToJWT: true,
+      options: staffRoleOptions,
+      access: {
+        create: ({ req: { user } }) => hasStaffRole(user, ['superadmin']),
+        read: ({ req: { user } }) => isStaff(user) || hasStaffRole(user, ['superadmin']),
+        update: ({ req: { user } }) => hasStaffRole(user, ['superadmin']),
+      },
+      hooks: {
+        beforeChange: [ensureFirstUserIsSuperadmin, superadminOnlyStaffRolesField],
+      },
+      admin: {
+        description: 'Al menos un rol staff es necesario para acceder al backoffice.',
+      },
+    },
+    {
+      name: 'twoFactorEnabled',
+      type: 'checkbox',
+      label: 'MFA TOTP activo',
+      defaultValue: false,
+      saveToJWT: true,
+      access: {
+        read: ({ req: { user } }) => isStaff(user),
+        update: () => false,
+      },
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'totpSecret',
+      type: 'text',
+      access: {
+        read: () => false,
+        update: () => false,
+        create: () => false,
+      },
+      admin: {
+        hidden: true,
+      },
+    },
+    {
       name: 'roles',
       type: 'select',
       access: {
-        create: adminOnlyFieldAccess,
-        read: adminOnlyFieldAccess,
-        update: adminOnlyFieldAccess,
+        create: ({ req: { user } }) => hasStaffRole(user, ['superadmin']),
+        read: ({ req: { user } }) => hasStaffRole(user, ['superadmin']),
+        update: ({ req: { user } }) => hasStaffRole(user, ['superadmin']),
       },
       defaultValue: ['customer'],
       hasMany: true,
-      hooks: {
-        beforeChange: [ensureFirstUserIsAdmin],
-      },
       options: [
-        {
-          label: 'admin',
-          value: 'admin',
-        },
-        {
-          label: 'customer',
-          value: 'customer',
-        },
+        { label: 'admin', value: 'admin' },
+        { label: 'customer', value: 'customer' },
       ],
+      admin: {
+        condition: () => false,
+        description: 'Legacy template — usar staffRoles para backoffice.',
+      },
     },
     {
       name: 'orders',
@@ -63,6 +142,7 @@ export const Users: CollectionConfig = {
       admin: {
         allowCreate: false,
         defaultColumns: ['id', 'createdAt', 'total', 'currency', 'items'],
+        condition: (data) => !data?.staffRoles?.length,
       },
     },
     {
@@ -73,6 +153,7 @@ export const Users: CollectionConfig = {
       admin: {
         allowCreate: false,
         defaultColumns: ['id', 'createdAt', 'total', 'currency', 'items'],
+        condition: (data) => !data?.staffRoles?.length,
       },
     },
     {
@@ -83,6 +164,7 @@ export const Users: CollectionConfig = {
       admin: {
         allowCreate: false,
         defaultColumns: ['id'],
+        condition: (data) => !data?.staffRoles?.length,
       },
     },
   ],

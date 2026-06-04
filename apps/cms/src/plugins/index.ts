@@ -13,6 +13,13 @@ import { OrdersCollectionOverride } from '@/collections/Orders'
 import { ProductsCollection } from '@/collections/Products'
 import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
 import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
+import {
+  staffCreateAccess,
+  staffDeleteAccess,
+  staffReadAccess,
+  staffUpdateAccess,
+} from '@/access/staffAccess'
+import { isCollectionHidden } from '@/access/staffRoles'
 import { customerOnlyFieldAccess } from '@/access/customerOnlyFieldAccess'
 import { isAdmin } from '@/access/isAdmin'
 import { isDocumentOwner } from '@/access/isDocumentOwner'
@@ -56,23 +63,25 @@ export const plugins: Plugin[] = [
     },
     formSubmissionOverrides: {
       access: {
-        delete: isAdmin,
-        read: isAdmin,
-        update: isAdmin,
+        delete: staffDeleteAccess('form-submissions'),
+        read: staffReadAccess('form-submissions'),
+        update: staffUpdateAccess('form-submissions'),
       },
       admin: {
         group: 'Contenido',
+        hidden: ({ user }) => isCollectionHidden(user, 'form-submissions'),
       },
     },
     formOverrides: {
       access: {
-        delete: isAdmin,
-        read: isAdmin,
-        update: isAdmin,
-        create: isAdmin,
+        delete: staffDeleteAccess('forms'),
+        read: staffReadAccess('forms'),
+        update: staffUpdateAccess('forms'),
+        create: staffCreateAccess('forms'),
       },
       admin: {
         group: 'Contenido',
+        hidden: ({ user }) => isCollectionHidden(user, 'forms'),
       },
       fields: ({ defaultFields }) => {
         return defaultFields.map((field) => {

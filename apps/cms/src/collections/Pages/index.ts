@@ -4,7 +4,14 @@ import { Banner } from '@/blocks/Banner/config'
 import { Carousel } from '@/blocks/Carousel/config'
 import { ThreeItemGrid } from '@/blocks/ThreeItemGrid/config'
 import { generatePreviewPath } from '@/utilities/generatePreviewPath'
-import { adminOnly } from '@/access/adminOnly'
+import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
+import {
+  staffCreateAccess,
+  staffDeleteAccess,
+  staffUpdateAccess,
+} from '@/access/staffAccess'
+import { isCollectionHidden } from '@/access/staffRoles'
+import { createAuditHooks } from '@/hooks/auditLogHooks'
 import { Archive } from '@/blocks/ArchiveBlock/config'
 import { CallToAction } from '@/blocks/CallToAction/config'
 import { Content } from '@/blocks/Content/config'
@@ -12,7 +19,6 @@ import { FormBlock } from '@/blocks/Form/config'
 import { MediaBlock } from '@/blocks/MediaBlock/config'
 import { hero } from '@/fields/hero'
 import { slugField } from 'payload'
-import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
 import {
   MetaDescriptionField,
   MetaImageField,
@@ -22,16 +28,19 @@ import {
 } from '@payloadcms/plugin-seo/fields'
 import { revalidatePage, revalidateDelete } from './hooks/revalidatePage'
 
+const pageAuditHooks = createAuditHooks({ collection: 'pages' })
+
 export const Pages: CollectionConfig = {
   slug: 'pages',
   access: {
-    create: adminOnly,
-    delete: adminOnly,
+    create: staffCreateAccess('pages'),
+    delete: staffDeleteAccess('pages'),
     read: adminOrPublishedStatus,
-    update: adminOnly,
+    update: staffUpdateAccess('pages'),
   },
   admin: {
     group: 'Contenido',
+    hidden: ({ user }) => isCollectionHidden(user, 'pages'),
     defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data, req }) =>
@@ -134,8 +143,9 @@ export const Pages: CollectionConfig = {
     slugField(),
   ],
   hooks: {
-    afterChange: [revalidatePage],
-    afterDelete: [revalidateDelete],
+    beforeChange: pageAuditHooks.beforeChange,
+    afterChange: [revalidatePage, ...pageAuditHooks.afterChange],
+    afterDelete: [revalidateDelete, ...pageAuditHooks.afterDelete],
   },
   versions: {
     drafts: {

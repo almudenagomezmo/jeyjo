@@ -73,6 +73,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: ERP ports typecheck
+        run: pnpm --filter @jeyjo/erp-ports typecheck
+
+      - name: ERP ports tests
+        run: pnpm --filter @jeyjo/erp-ports test
+
       - name: Lint
         run: pnpm --filter @jeyjo/cms lint
         continue-on-error: true

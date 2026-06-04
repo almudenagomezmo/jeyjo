@@ -189,6 +189,9 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   name?: string | null;
+  staffRoles?: ('superadmin' | 'administracion' | 'catalogo' | 'personalizacion' | 'mantenimiento')[] | null;
+  twoFactorEnabled?: boolean | null;
+  totpSecret?: string | null;
   roles?: ('admin' | 'customer')[] | null;
   orders?: {
     docs?: (number | Order)[];
@@ -1243,6 +1246,9 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  staffRoles?: T;
+  twoFactorEnabled?: T;
+  totpSecret?: T;
   roles?: T;
   orders?: T;
   cart?: T;

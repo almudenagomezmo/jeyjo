@@ -64,6 +64,8 @@ describe('supabase-server', () => {
       entityId: 99,
       action: 'create',
       metadata: { title: 'Grifo' },
+      sourceIp: '203.0.113.5',
+      previousValue: { p1Price: 10 },
     })
 
     expect(mockInsert).toHaveBeenCalledOnce()
@@ -74,6 +76,25 @@ describe('supabase-server', () => {
     expect(row.entity_id).toBe(payloadIdToUuid('product', 99))
     expect(row.action).toBe('create')
     expect(row.new_value).toEqual({ title: 'Grifo' })
+    expect(row.previous_value).toEqual({ p1Price: 10 })
+    expect(row.source_ip).toBe('203.0.113.5')
+  })
+
+  it('writeSecurityAudit maps to security entity type', async () => {
+    const { writeSecurityAudit } = await import('@/lib/supabase-server')
+
+    await writeSecurityAudit({
+      action: 'ACCESS_DENIED',
+      actorId: 2,
+      actorName: 'catalog@jeyjo.local',
+      metadata: { collection: 'orders' },
+      sourceIp: '10.0.0.1',
+    })
+
+    const row = mockInsert.mock.calls[0][0]
+    expect(row.entity_type).toBe('security')
+    expect(row.action).toBe('ACCESS_DENIED')
+    expect(row.source_ip).toBe('10.0.0.1')
   })
 })
 

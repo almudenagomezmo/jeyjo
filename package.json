@@ -13,7 +13,7 @@
     "build:cms": "pnpm --filter @jeyjo/cms build",
     "lint": "pnpm --filter @jeyjo/storefront lint",
     "lint:all": "pnpm -r lint",
-    "typecheck": "pnpm --filter @jeyjo/database-types typecheck && pnpm --filter @jeyjo/storefront typecheck && pnpm --filter @jeyjo/cms typecheck",
+    "typecheck": "pnpm --filter @jeyjo/database-types typecheck && pnpm --filter @jeyjo/erp-ports typecheck && pnpm --filter @jeyjo/storefront typecheck && pnpm --filter @jeyjo/cms typecheck",
     "format": "pnpm --filter @jeyjo/storefront format",
     "db:start": "npx supabase start",
     "db:stop": "npx supabase stop",
