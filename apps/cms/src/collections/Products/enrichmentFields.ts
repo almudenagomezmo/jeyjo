@@ -62,4 +62,29 @@ export const enrichmentFields: Field[] = [
       description: 'Subida a catalog-media. Prioridad sobre URL de proveedor.',
     },
   },
+  {
+    name: 'facetColor',
+    type: 'text',
+    label: 'Color (faceta PLP)',
+    admin: {
+      description: 'Valor mostrado en filtros del listado de productos (RF-010).',
+    },
+  },
+  {
+    name: 'facetMaterial',
+    type: 'text',
+    label: 'Material (faceta PLP)',
+    admin: {
+      description: 'Tipo de material para filtros del listado (RF-010).',
+    },
+  },
+  {
+    name: 'ecoLabel',
+    type: 'checkbox',
+    label: 'ECO / Sostenible',
+    defaultValue: false,
+    admin: {
+      description: 'Producto con etiqueta ecológica en PLP.',
+    },
+  },
 ]

@@ -1,35 +1,82 @@
 "use client";
 
 import Link from "next/link";
+import type { PriceQuote } from "@jeyjo/pricing";
+
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { ProductImage } from "@/components/ui/ProductImage";
-import { StockBadge } from "@/components/ui/StockBadge";
+import { StockBadge, StockIndicatorBadge } from "@/components/ui/StockBadge";
 import { HeartIcon, PlusIcon, StarIcon } from "@/components/ui/icons";
 import { formatMoney } from "@/lib/utils/format";
-import { getDualPrice, getPriceView, discountPercent } from "@/lib/utils/price";
+import {
+  discountPercent,
+  getDualPrice,
+  getPriceView,
+  getPriceViewFromQuote,
+} from "@/lib/utils/price";
+import { plpRowToProduct } from "@/lib/plp/row-to-product";
+import type { PlpProductRow } from "@/lib/plp/types";
 import { cn } from "@/lib/utils/cn";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
 import { useHydrated } from "@/lib/hooks/useHydrated";
+import type { PublicStockIndicator } from "@/lib/stock/types";
 import type { Product } from "@/lib/types";
 
-interface ProductCardProps {
-  product: Product;
+interface ProductCardBaseProps {
+  onQuickView?: () => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+interface LegacyProductCardProps extends ProductCardBaseProps {
+  product: Product;
+  row?: never;
+  quote?: never;
+  stock?: never;
+}
+
+interface PlpProductCardProps extends ProductCardBaseProps {
+  row: PlpProductRow;
+  quote?: PriceQuote;
+  stock?: PublicStockIndicator;
+  product?: never;
+}
+
+export type ProductCardProps = LegacyProductCardProps | PlpProductCardProps;
+
+export function ProductCard(props: ProductCardProps) {
   const hydrated = useHydrated();
   const priceMode = useUiStore((s) => s.priceMode);
   const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
   const addItem = useCartStore((s) => s.addItem);
-  const wishlisted = useWishlistStore((s) => s.ids.includes(product.id));
+  const wishlistId = props.row?.sku ?? props.product?.id ?? "";
+  const wishlisted = useWishlistStore((s) => s.ids.includes(wishlistId));
   const toggleWishlist = useWishlistStore((s) => s.toggle);
 
+  const product =
+    props.product ?? (props.row ? plpRowToProduct(props.row, props.quote) : null);
+  if (!product) return null;
+
   const mode = hydrated ? priceMode : "b2c";
-  const dual = getDualPrice(getPriceView(product), mode);
-  const discount = discountPercent(product);
+  const priceView = props.quote
+    ? getPriceViewFromQuote(props.quote)
+    : getPriceView(product);
+  const dual = getDualPrice(priceView, mode);
+  const discount = props.quote
+    ? props.quote.listUnit != null && props.quote.listUnit > props.quote.netUnit
+      ? Math.round((1 - props.quote.netUnit / props.quote.listUnit) * 100)
+      : null
+    : discountPercent(product);
+
+  const canAddCart =
+    props.stock != null
+      ? props.stock.level === "available" ||
+        props.stock.level === "low" ||
+        props.stock.allowOrderWithoutStock
+      : product.stock > 0;
+
+  const packUnit = props.row?.packUnit ?? product.packSize;
 
   return (
     <Card className="group relative flex flex-col overflow-hidden transition-[border-color,transform] hover:-translate-y-0.5 hover:border-border-strong">
@@ -38,7 +85,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <ProductImage product={product} glyphSize={120} />
         </Link>
         <div className="absolute left-6 top-6 flex flex-col gap-1">
-          {discount != null && (
+          {discount != null && discount > 0 && (
             <Badge tone="danger" size="sm">
               -{discount}%
             </Badge>
@@ -51,7 +98,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
         <button
           type="button"
-          onClick={() => toggleWishlist(product.id)}
+          onClick={() => toggleWishlist(wishlistId)}
           aria-label="Añadir a favoritos"
           aria-pressed={wishlisted}
           className={cn(
@@ -61,6 +108,15 @@ export function ProductCard({ product }: ProductCardProps) {
         >
           <HeartIcon size={14} fill={hydrated && wishlisted ? "currentColor" : "none"} />
         </button>
+        {props.onQuickView && (
+          <button
+            type="button"
+            onClick={props.onQuickView}
+            className="absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-md bg-ink/80 px-2 py-1 text-[10px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100"
+          >
+            Vista rápida
+          </button>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-1.5 p-4">
@@ -84,7 +140,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <span
               className={cn(
                 "text-lg font-extrabold tracking-tight",
-                discount != null ? "text-danger-text" : "text-text",
+                discount != null && discount > 0 ? "text-danger-text" : "text-text",
               )}
             >
               {formatMoney(dual.primary)}
@@ -95,17 +151,21 @@ export function ProductCard({ product }: ProductCardProps) {
           </p>
         </div>
 
-        <div className="mt-1.5 flex items-center justify-between">
-          <StockBadge stock={product.stock} packSize={product.packSize} />
+        <div className="mt-1.5 flex items-center justify-between gap-1">
+          {props.stock ? (
+            <StockIndicatorBadge indicator={props.stock} packSize={packUnit} />
+          ) : (
+            <StockBadge stock={product.stock} packSize={packUnit} />
+          )}
           <button
             type="button"
-            disabled={product.stock === 0}
+            disabled={!canAddCart}
             onClick={() => {
-              addItem(product.id, product.packSize);
+              addItem(product.id, packUnit);
               setMiniCartOpen(true);
             }}
             aria-label="Añadir al carrito"
-            className="grid h-8 w-8 place-items-center rounded-md bg-primary text-on-primary disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-tertiary"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-on-primary disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-tertiary"
           >
             <PlusIcon size={16} strokeWidth={2.5} />
           </button>

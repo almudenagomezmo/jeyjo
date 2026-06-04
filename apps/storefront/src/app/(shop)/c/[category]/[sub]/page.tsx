@@ -4,48 +4,46 @@ import { Container } from "@/components/layout/Container";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ProductCatalog } from "@/components/product/ProductCatalog";
 import { buildBreadcrumbsFromPath } from "@/lib/catalog/build-breadcrumbs";
+import { findNavNodeBySlug } from "@/lib/catalog/find-nav-by-slug";
 import { getNavigationTree } from "@/lib/catalog/fetch-navigation-tree";
-import { CATEGORIES, getCategory } from "@/lib/data/categories";
-import { getProductsByCategory } from "@/lib/data/products";
+import { loadPlpPageFromCategory } from "@/lib/plp/load-plp-page";
 
 interface PageProps {
   params: Promise<{ category: string; sub: string }>;
-}
-
-export function generateStaticParams() {
-  return CATEGORIES.flatMap((c) =>
-    c.subcategories.map((s) => ({ category: c.id, sub: s.id })),
-  );
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category, sub } = await params;
-  const cat = getCategory(category);
-  const subcat = cat?.subcategories.find((s) => s.id === sub);
-  return { title: subcat ? `${subcat.name} · ${cat?.name}` : "Categoría" };
+  const tree = await getNavigationTree();
+  const parent = findNavNodeBySlug(tree, category);
+  const child = parent ? findNavNodeBySlug(parent.children, sub) : null;
+  return { title: child ? `${child.title} · ${parent?.title}` : "Categoría" };
 }
 
-export default async function SubcategoryPage({ params }: PageProps) {
+export default async function SubcategoryPage({ params, searchParams }: PageProps) {
   const { category, sub } = await params;
-  const cat = getCategory(category);
-  const subcat = cat?.subcategories.find((s) => s.id === sub);
-  if (!cat || !subcat) notFound();
-
-  const products = getProductsByCategory(cat.id, subcat.id);
+  const sp = await searchParams;
   const tree = await getNavigationTree();
+  const parent = findNavNodeBySlug(tree, category);
+  const child = parent ? findNavNodeBySlug(parent.children, sub) : null;
+  if (!parent || !child) notFound();
+
+  const data = await loadPlpPageFromCategory([category, sub], sp);
   const crumbs = buildBreadcrumbsFromPath(tree, `/c/${category}/${sub}`);
 
   return (
     <Container className="pt-6">
       <Breadcrumb items={crumbs} />
       <header className="mb-6 mt-4">
-        <h1 className="text-3xl font-extrabold tracking-tight">{subcat.name}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">{child.title}</h1>
         <p className="mt-1 text-sm text-text-tertiary">
-          {products.length} {products.length === 1 ? "producto" : "productos"} en {cat.name.toLowerCase()}
+          {data.totalFiltered} {data.totalFiltered === 1 ? "producto" : "productos"} en{" "}
+          {parent.title.toLowerCase()}
         </p>
       </header>
-      {products.length > 0 ? (
-        <ProductCatalog products={products} />
+      {data.totalFiltered > 0 || Object.values(sp).some(Boolean) ? (
+        <ProductCatalog data={data} basePath={`/c/${category}/${sub}`} />
       ) : (
         <div className="rounded-lg border border-dashed border-border-strong p-12 text-center">
           <p className="font-bold">Aún no hay productos en esta subcategoría</p>
