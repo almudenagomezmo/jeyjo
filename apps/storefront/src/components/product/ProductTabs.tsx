@@ -2,28 +2,28 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
-import type { Product } from "@/lib/types";
+import type { PdpAttachment, PdpSpecRow } from "@/lib/pdp/types";
 
-type Tab = "descripcion" | "especificaciones" | "envio";
+type Tab = "descripcion" | "especificaciones" | "adjuntos" | "envio";
 
-export function ProductTabs({ product, categoryName }: { product: Product; categoryName: string }) {
-  const [tab, setTab] = useState<Tab>("descripcion");
-
+export function ProductTabs({
+  longDescriptionHtml,
+  specRows,
+  attachments,
+}: {
+  longDescriptionHtml: string | null;
+  specRows: PdpSpecRow[];
+  attachments: PdpAttachment[];
+}) {
+  const hasAttachments = attachments.length > 0;
   const tabs: { id: Tab; label: string }[] = [
     { id: "descripcion", label: "Descripción" },
     { id: "especificaciones", label: "Especificaciones técnicas" },
+    ...(hasAttachments ? [{ id: "adjuntos" as Tab, label: "Descargas" }] : []),
     { id: "envio", label: "Envío y devoluciones" },
   ];
 
-  const specs: [string, string][] = [
-    ["Marca", product.brand],
-    ["Referencia Jeyjo", product.ref],
-    ["Referencia fabricante (OEM)", product.oem ?? "—"],
-    ["Código EAN", product.ean],
-    ["Envase de venta", `${product.packSize} ${product.packSize === 1 ? "unidad" : "unidades"}`],
-    ["IVA aplicable", `${product.vat}%`],
-    ["Categoría", categoryName],
-  ];
+  const [tab, setTab] = useState<Tab>("descripcion");
 
   return (
     <div className="mt-14">
@@ -47,20 +47,21 @@ export function ProductTabs({ product, categoryName }: { product: Product; categ
       <div className="max-w-3xl py-6">
         {tab === "descripcion" && (
           <div className="space-y-4 leading-relaxed text-text-secondary">
-            <p className="text-[17px] text-text">{product.description}</p>
-            <ul className="list-disc space-y-1 pl-5 text-sm">
-              <li>Apto para uso profesional intensivo.</li>
-              <li>Compatible con los principales accesorios del mercado.</li>
-              <li>Servicio postventa y soporte humano.</li>
-              {product.eco && <li>Materiales reciclables o de bajo impacto ambiental.</li>}
-            </ul>
+            {longDescriptionHtml ? (
+              <div
+                className="prose-pdp text-[17px] text-text [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mt-4 [&_h3]:font-bold [&_li]:text-sm [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5"
+                dangerouslySetInnerHTML={{ __html: longDescriptionHtml }}
+              />
+            ) : (
+              <p className="text-sm text-text-tertiary">Sin descripción ampliada.</p>
+            )}
           </div>
         )}
 
         {tab === "especificaciones" && (
           <table className="w-full border-collapse">
             <tbody>
-              {specs.map(([k, v]) => (
+              {specRows.map(([k, v]) => (
                 <tr key={k} className="border-b border-border-subtle">
                   <td className="w-60 py-3 text-sm text-text-secondary">{k}</td>
                   <td
@@ -75,6 +76,23 @@ export function ProductTabs({ product, categoryName }: { product: Product; categ
               ))}
             </tbody>
           </table>
+        )}
+
+        {tab === "adjuntos" && hasAttachments && (
+          <ul className="space-y-3">
+            {attachments.map((a) => (
+              <li key={a.url}>
+                <a
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-primary hover:underline"
+                >
+                  {a.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         )}
 
         {tab === "envio" && (

@@ -50,7 +50,7 @@ function categorySlugs(categories: CmsProductListDoc['categories']): string[] {
     .filter((s): s is string => Boolean(s))
 }
 
-function mapDocToRow(doc: CmsProductListDoc): PlpProductRow | null {
+export function mapDocToRow(doc: CmsProductListDoc): PlpProductRow | null {
   const sku = doc.skuErp?.trim()
   if (!sku) return null
 

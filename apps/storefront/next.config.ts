@@ -11,9 +11,13 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
-  // Product imagery in this scaffold is rendered as inline SVG (see ProductGlyph),
-  // so no remote image domains are configured. Add `images.remotePatterns` here
-  // when you wire a real DAM / CDN.
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "example.com", pathname: "/**" },
+      { protocol: "http", hostname: "localhost", pathname: "/**" },
+      { protocol: "http", hostname: "127.0.0.1", pathname: "/**" },
+    ],
+  },
 };
 
 export default nextConfig;

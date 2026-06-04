@@ -12,6 +12,8 @@ interface AddToCartButtonProps extends Omit<ButtonProps, "onClick"> {
   qty?: number;
   label?: string;
   openCart?: boolean;
+  disabled?: boolean;
+  onAdded?: () => void;
 }
 
 export function AddToCartButton({
@@ -19,23 +21,27 @@ export function AddToCartButton({
   qty,
   label = "Añadir al carrito",
   openCart = true,
+  disabled: disabledProp,
+  onAdded,
   ...buttonProps
 }: AddToCartButtonProps) {
   const addItem = useCartStore((s) => s.addItem);
   const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
   const outOfStock = product.stock === 0;
+  const disabled = disabledProp ?? outOfStock;
 
   return (
     <Button
       iconStart={<CartIcon size={16} />}
-      disabled={outOfStock}
+      disabled={disabled}
       onClick={() => {
         addItem(product.id, qty ?? product.packSize);
+        onAdded?.();
         if (openCart) setMiniCartOpen(true);
       }}
       {...buttonProps}
     >
-      {outOfStock ? "Sin stock" : label}
+      {disabled && (label?.startsWith("Sin stock") || outOfStock) ? "Sin stock" : label}
     </Button>
   );
 }

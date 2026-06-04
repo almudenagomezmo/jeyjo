@@ -205,5 +205,123 @@ export async function seedJeyjoCatalog({
     })
   }
 
+  const toner = await payload.create({
+    collection: 'products',
+    data: {
+      title: 'Tóner negro HP 85A',
+      slug: 'toner-negro-hp-85a',
+      _status: 'published',
+      supplier: supplier.id,
+      categories: [parentCategory.id],
+      skuErp: 'ERP-TNR-085',
+      oemRef: 'CE285A',
+      ean: '0886112750001',
+      shortDescription: 'Cartucho de tóner negro compatible HP LaserJet Pro.',
+      p1Price: 42.5,
+      p2Price: 38,
+      vatRate: 21,
+      packUnit: 1,
+      erpStock: 80,
+      syncErpAt: new Date().toISOString(),
+      longDescription: {
+        root: {
+          type: 'root',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'text',
+                  text: 'Tóner de alto rendimiento para impresoras láser HP. Rendimiento aproximado 1.600 páginas.',
+                  version: 1,
+                },
+              ],
+              direction: 'ltr',
+              format: '',
+              indent: 0,
+              version: 1,
+            },
+          ],
+          direction: 'ltr',
+          format: '',
+          indent: 0,
+          version: 1,
+        },
+      },
+      metaDescription: 'Tóner negro HP 85A — compra online en Jeyjo.',
+      facetColor: 'Negro',
+      facetMaterial: 'Polímero',
+      ecoLabel: false,
+      providerImageUrl: 'https://example.com/distrisantiago/toner-85a.jpg',
+      enableVariants: false,
+      priceInUSDEnabled: false,
+    },
+    req,
+  })
+
+  await payload.create({
+    collection: 'products',
+    data: {
+      title: 'Impresora láser HP Pro M404',
+      slug: 'impresora-laser-hp-pro-m404',
+      _status: 'published',
+      supplier: supplier.id,
+      categories: [parentCategory.id],
+      skuErp: 'ERP-PRT-M404',
+      oemRef: 'W1A52A',
+      ean: '0886112750100',
+      shortDescription: 'Impresora láser monocromo A4 para oficina.',
+      p1Price: 189,
+      p2Price: 175,
+      vatRate: 21,
+      packUnit: 1,
+      erpStock: 15,
+      syncErpAt: new Date().toISOString(),
+      relatedProducts: [toner.id],
+      longDescription: {
+        root: {
+          type: 'root',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'text',
+                  text: 'Impresora láser compacta con conectividad Ethernet y Wi-Fi. Ideal para equipos de 3-10 usuarios.',
+                  version: 1,
+                },
+              ],
+              direction: 'ltr',
+              format: '',
+              indent: 0,
+              version: 1,
+            },
+            {
+              type: 'heading',
+              tag: 'h2',
+              children: [{ type: 'text', text: 'Consumibles recomendados', version: 1 }],
+              direction: 'ltr',
+              format: '',
+              indent: 0,
+              version: 1,
+            },
+          ],
+          direction: 'ltr',
+          format: '',
+          indent: 0,
+          version: 1,
+        },
+      },
+      metaDescription: 'Impresora láser HP Pro M404 — compra online en Jeyjo.',
+      facetColor: 'Blanco',
+      facetMaterial: 'Plástico',
+      ecoLabel: false,
+      providerImageUrl: 'https://example.com/distrisantiago/printer-m404.jpg',
+      enableVariants: false,
+      priceInUSDEnabled: false,
+    },
+    req,
+  })
+
   payload.logger.info('— Jeyjo catalog seed complete')
 }

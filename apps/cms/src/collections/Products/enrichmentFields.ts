@@ -87,4 +87,27 @@ export const enrichmentFields: Field[] = [
       description: 'Producto con etiqueta ecológica en PLP.',
     },
   },
+  {
+    name: 'attachments',
+    type: 'array',
+    label: 'Adjuntos descargables',
+    fields: [
+      {
+        name: 'label',
+        type: 'text',
+        label: 'Etiqueta',
+        required: true,
+      },
+      {
+        name: 'file',
+        type: 'upload',
+        relationTo: 'media',
+        label: 'Archivo',
+        required: true,
+      },
+    ],
+    admin: {
+      description: 'Manuales y fichas técnicas visibles en la ficha de producto (RF-012).',
+    },
+  },
 ]

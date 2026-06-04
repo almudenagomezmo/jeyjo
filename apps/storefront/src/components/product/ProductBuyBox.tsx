@@ -1,31 +1,59 @@
 "use client";
 
 import { useState } from "react";
+import type { PriceQuote } from "@jeyjo/pricing";
+
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PriceTag } from "@/components/ui/PriceTag";
-import { StockBadge } from "@/components/ui/StockBadge";
-import { QtyStepper } from "@/components/ui/QtyStepper";
+import { StockIndicatorBadge } from "@/components/ui/StockBadge";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { PackQtyStepper } from "@/components/product/PackQtyStepper";
 import { BoxIcon, HeartIcon } from "@/components/ui/icons";
-import { getDualPrice, getPriceView } from "@/lib/utils/price";
+import { getDualPrice, getPriceViewFromQuote } from "@/lib/utils/price";
 import { formatMoney } from "@/lib/utils/format";
 import { useUiStore } from "@/lib/store/ui-store";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
 import { useHydrated } from "@/lib/hooks/useHydrated";
-import type { Product } from "@/lib/types";
+import type { PublicStockIndicator } from "@/lib/stock/types";
 
-export function ProductBuyBox({ product }: { product: Product }) {
+const BACKORDER_MESSAGE =
+  "El pedido queda pendiente de validación por comprobación de stock de la referencia";
+
+export function ProductBuyBox({
+  sku,
+  refLabel,
+  packUnit,
+  quote,
+  stock,
+  vatRate,
+}: {
+  sku: string;
+  refLabel: string;
+  packUnit: number;
+  quote: PriceQuote;
+  stock: PublicStockIndicator;
+  vatRate: number;
+}) {
   const hydrated = useHydrated();
   const priceMode = useUiStore((s) => s.priceMode);
-  const wishlisted = useWishlistStore((s) => s.ids.includes(product.id));
+  const wishlisted = useWishlistStore((s) => s.ids.includes(sku));
   const toggleWishlist = useWishlistStore((s) => s.toggle);
-  const [qty, setQty] = useState(product.packSize);
+  const [qty, setQty] = useState(packUnit > 0 ? packUnit : 1);
+  const [backorderNotice, setBackorderNotice] = useState(false);
 
   const mode = hydrated ? priceMode : "b2c";
-  const view = getPriceView(product);
+  const view = getPriceViewFromQuote(quote);
   const dual = getDualPrice(view, mode);
-  const onOffer = Boolean(product.offer);
+  const onOffer =
+    quote.listUnit != null && quote.listUnit > quote.netUnit;
+
+  const canAdd =
+    stock.level === "available" ||
+    stock.level === "low" ||
+    stock.allowOrderWithoutStock;
+
+  const cartStock = canAdd ? 100 : 0;
 
   return (
     <div>
@@ -38,31 +66,47 @@ export function ProductBuyBox({ product }: { product: Product }) {
             Oferta limitada
           </Badge>
         )}
-        <PriceTag view={view} mode={mode} vat={product.vat} size="xl" />
-        {product.packSize > 1 && (
+        <PriceTag view={view} mode={mode} vat={vatRate} size="xl" />
+        {packUnit > 1 && (
           <p className="mt-2.5 inline-flex items-center gap-1.5 rounded bg-surface px-2.5 py-1.5 text-xs text-text-secondary">
             <BoxIcon size={13} /> Envase cerrado: se vende en cajas de{" "}
-            <strong>{product.packSize} unidades</strong>.
+            <strong>{packUnit} unidades</strong>.
           </p>
         )}
       </Card>
 
       <div className="mt-5">
-        <StockBadge stock={product.stock} packSize={product.packSize} />
+        <StockIndicatorBadge indicator={stock} packSize={packUnit} />
       </div>
 
+      {backorderNotice && (
+        <p className="mt-3 rounded-md bg-surface-subtle px-3 py-2 text-xs text-text-secondary" role="status">
+          {BACKORDER_MESSAGE} {refLabel}.
+        </p>
+      )}
+
       <div className="mt-4 flex items-center gap-3">
-        <QtyStepper value={qty} onChange={setQty} step={product.packSize} min={product.packSize} />
+        <PackQtyStepper packUnit={packUnit} value={qty} onChange={setQty} />
         <AddToCartButton
-          product={product}
+          product={{ id: sku, packSize: packUnit, stock: cartStock }}
           qty={qty}
           size="lg"
           className="flex-1"
-          label={`Añadir · ${formatMoney(dual.primary * qty)}`}
+          disabled={!canAdd}
+          label={
+            !canAdd
+              ? "Sin stock"
+              : `Añadir · ${formatMoney(dual.primary * qty)}`
+          }
+          onAdded={() => {
+            if (stock.level === "limited" && stock.allowOrderWithoutStock) {
+              setBackorderNotice(true);
+            }
+          }}
         />
         <button
           type="button"
-          onClick={() => toggleWishlist(product.id)}
+          onClick={() => toggleWishlist(sku)}
           aria-label="Añadir a favoritos"
           aria-pressed={wishlisted}
           className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-border text-text-secondary"

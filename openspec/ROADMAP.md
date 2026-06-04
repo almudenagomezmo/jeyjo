@@ -18,7 +18,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 8 | `stock-multisource-adapters` | 7 | RF-005, RI-003, RI-004 | Completado | 2026-06-04 |
 | 9 | `storefront-shell-navigation` | 1, 7 | Alcance §1.2–4, US-01 | Completado | 2026-06-04 |
 | 10 | `plp-faceted-listing` | 6, 7, 9 | RF-010, RF-011, US-01, US-02 | Completado | 2026-06-04 |
-| 11 | `pdp-product-detail` | 6, 8, 10 | RF-012, RF-008, US-03 | Pendiente | — |
+| 11 | `pdp-product-detail` | 6, 8, 10 | RF-012, RF-008, US-03 | Completado | 2026-06-04 |
 | 12 | `cart-minicart-client` | 6, 11 | US-03, alcance carrito | Pendiente | — |
 | 13 | `search-events-qdrant-worker` | 2, 7 | RF-009 | Pendiente | — |
 | 14 | `predictive-search-ui` | 9, 13 | RF-009, US-01 | Pendiente | — |
@@ -52,6 +52,6 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 42 | `system-config-backoffice` | 5, 30 | Alcance §1.36 | Pendiente | — |
 | 43 | `seo-technical-auditor` | 21, 34 | Alcance auditor SEO | Pendiente | — |
 
-**Siguiente cambio recomendado:** #11 `pdp-product-detail` (dependencias #6, #8, #10 completadas).
+**Siguiente cambio recomendado:** #12 `cart-minicart-client` (dependencias #6, #11 completadas).
 
 Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live.
