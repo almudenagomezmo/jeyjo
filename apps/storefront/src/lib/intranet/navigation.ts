@@ -89,11 +89,6 @@ export const INTRANET_PRIMARY_NAV: IntranetNavItem[] = [
   {
     href: '/intranet/pedido-rapido',
     label: 'Pedido rápido',
-    scaffold: {
-      title: 'Pedido rápido',
-      description: 'Introduce referencias manualmente o importa un Excel para reabastecer tu stock en minutos.',
-      roadmapRef: '#24 quick-order-excel',
-    },
   },
   {
     href: '/intranet/precios',

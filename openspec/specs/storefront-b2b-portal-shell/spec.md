@@ -77,6 +77,12 @@ Non-implemented intranet sections SHALL render a structured scaffold with busine
 - **THEN** the purchase history list with filters and repeat-to-cart actions is shown
 - **AND** the scaffold empty state and "Próximamente" badge are not shown
 
+#### Scenario: Pedido rápido production view
+
+- **WHEN** a validated B2B user opens `/intranet/pedido-rapido` after quick order is implemented
+- **THEN** the quick order form, Excel import, and non-catalog request UI are shown per `storefront-b2b-quick-order`
+- **AND** the scaffold empty state and "Próximamente" badge are not shown
+
 #### Scenario: Financial scaffold does not expose documents
 
 - **WHEN** a user opens `/intranet/contabilidad/facturas`

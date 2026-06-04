@@ -41,7 +41,7 @@ describe('intranet navigation config', () => {
 
   it('provides scaffolds for pending leaf routes', () => {
     expect(getScaffoldForPath('/intranet/pedidos')).toBeFalsy()
-    expect(getScaffoldForPath('/intranet/pedido-rapido')?.roadmapRef).toContain('#24')
+    expect(getScaffoldForPath('/intranet/pedido-rapido')).toBeFalsy()
     expect(getScaffoldForPath('/intranet/contabilidad/facturas')?.roadmapRef).toContain('#37')
   })
 })

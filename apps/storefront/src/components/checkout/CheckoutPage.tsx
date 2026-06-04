@@ -22,6 +22,11 @@ import type { PaymentSettings } from "@/lib/payments/settings";
 import { formatMoney } from "@/lib/utils/format";
 import { WalletPayButtons } from "@/components/checkout/WalletPayButtons";
 import { isQuotesEnabledClient } from "@/lib/quotes/enabled";
+import {
+  clearNonCatalogRequests,
+  mergeObservationsWithNonCatalog,
+  readNonCatalogRequests,
+} from "@/lib/intranet/non-catalog-requests";
 
 const PAYMENT_LABELS: Record<string, string> = {
   card: "Tarjeta",
@@ -61,6 +66,14 @@ export function CheckoutPage({
   const { summary, loading } = useCartSummary();
 
   const initialDraft = loadCheckoutDraft();
+  const initialNotesState = (() => {
+    const base = initialDraft?.customerNotes ?? "";
+    if (typeof window === "undefined") return { text: base, truncated: false };
+    const pending = readNonCatalogRequests();
+    if (pending.length === 0) return { text: base, truncated: false };
+    return mergeObservationsWithNonCatalog(base, pending);
+  })();
+
   const [step, setStep] = useState<CheckoutDraft["step"]>(initialDraft?.step ?? "delivery");
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>(
     initialDraft?.deliveryMethod ?? "home",
@@ -69,7 +82,8 @@ export function CheckoutPage({
     initialDraft?.alternateAddressId ?? null,
   );
   const [guestEmail, setGuestEmail] = useState(initialDraft?.guestEmail ?? "");
-  const [customerNotes, setCustomerNotes] = useState(initialDraft?.customerNotes ?? "");
+  const [customerNotes, setCustomerNotes] = useState(initialNotesState.text);
+  const [notesTruncated, setNotesTruncated] = useState(initialNotesState.truncated);
   const [paymentMethodCode, setPaymentMethodCode] = useState(
     initialDraft?.paymentMethodCode ?? "card",
   );
@@ -240,6 +254,7 @@ export function CheckoutPage({
       };
       if (!res.ok) throw new Error(body.error ?? "Error al confirmar");
       clearCart();
+      clearNonCatalogRequests();
       sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
       sessionStorage.removeItem("jeyjo-checkout-draft");
 
@@ -395,9 +410,16 @@ export function CheckoutPage({
                   value={customerNotes}
                   onChange={(e) => {
                     setCustomerNotes(e.target.value);
+                    setNotesTruncated(e.target.value.length >= 500);
                     persistDraft({ customerNotes: e.target.value });
                   }}
                 />
+                {notesTruncated && (
+                  <p className="mt-1 text-sm text-danger-text">
+                    El texto supera 500 caracteres. Acorta las observaciones o quita solicitudes no
+                    catalogadas en pedido rápido.
+                  </p>
+                )}
               </div>
               {prepareError && <p className="text-sm text-danger-text">{prepareError}</p>}
               <Button size="lg" onClick={() => void goToReview()}>

@@ -159,6 +159,22 @@ The cart store SHALL expose an action to add multiple products by CMS `productId
 - **THEN** the minicart MAY open to confirm items were added
 - **AND** line prices are refreshed via existing batch pricing hooks
 
+### Requirement: Cart supports batch add from quick order
+
+The cart store `addItems` action SHALL be invoked after a successful `POST /api/intranet/quick-order/add-to-cart` response, with the same merge-by-product semantics as purchase history repeat. Non-catalog quick order requests SHALL NOT invoke `addItems`.
+
+#### Scenario: Quick order Excel batch merges quantities
+
+- **WHEN** the cart contains product slug `ref-a` with quantity 2
+- **AND** quick order add-to-cart returns `{ productId: ref-a, qty: 10 }`
+- **THEN** the line quantity becomes 12
+
+#### Scenario: Quick order opens minicart feedback
+
+- **WHEN** quick order add-to-cart returns at least one addition
+- **THEN** the minicart MAY open
+- **AND** line prices refresh via existing batch pricing hooks
+
 ### Requirement: Solicitar presupuesto CTA on full cart page US-05 CA1
 
 The full `/cart` page SHALL show an enabled **Solicitar presupuesto** secondary button when the cart has lines and quotes are enabled via configuration. The button SHALL navigate to `/presupuesto` and SHALL NOT remain disabled with a "coming soon" message.

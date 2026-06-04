@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { IntranetScaffoldPage } from "@/components/intranet/IntranetScaffoldPage";
-import { getScaffoldForPath } from "@/lib/intranet/navigation";
+import { QuickOrderPanel } from "@/components/intranet/QuickOrderPanel";
+import { PortalSectionScaffold } from "@/components/intranet/PortalSectionScaffold";
+import { isQuickOrderEnabled } from "@/lib/intranet/quick-order/enabled";
 
-const PATH = "/intranet/pedido-rapido";
-const scaffold = getScaffoldForPath(PATH)!;
-
-export const metadata: Metadata = { title: scaffold.title };
+export const metadata: Metadata = { title: "Pedido rápido" };
 
 export default function PedidoRapidoPage() {
-  return <IntranetScaffoldPage pathname={PATH} />;
+  if (!isQuickOrderEnabled()) {
+    return (
+      <PortalSectionScaffold
+        title="Pedido rápido"
+        description="Introduce referencias manualmente o importa un Excel para reabastecer tu stock en minutos."
+        roadmapRef="#24 quick-order-excel"
+      />
+    );
+  }
+  return <QuickOrderPanel />;
 }
