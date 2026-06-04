@@ -1,20 +1,28 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Proyecto: Jeyjo Digital Platform (e-commerce B2C/B2B + backoffice).
+  Stack fijo: Next.js (tienda y área cliente), Payload CMS (solo equipo Jeyjo), Supabase (PostgreSQL, Auth, Storage), Qdrant (búsqueda), Vercel.
+  Lenguaje: TypeScript estricto en todo el stack.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Estructura de código (roadmap cambio #1):
+  - Monorepo pnpm: apps/storefront (UI desde especificaciones_inicio/diseño/jeyjo-next), apps/cms (Payload desde jeyjo_back).
+  - Design tokens: única fuente en apps/storefront/src/app/globals.css (:root, .dark, @theme inline). No hardcodear hex en componentes.
+  - ERP Avansuite: integrar solo vía interfaces (ErpCatalogReader/Writer, ErpDocumentsReader); stub/mock y Excel hasta tener documentación API.
+  - Área documental (facturas, albaranes, 347): fase final — ver openspec/ROADMAP.md.
+  - Specs de dominio: openspec/specs/01–06 (alcance, user stories, arquitectura, requisitos, criterios aceptación).
+  - Orden de cambios: openspec/ROADMAP.md (43 cambios incrementales).
+
+rules:
+  proposal:
+    - Referenciar user stories (03) y requisitos RF/RNF (05) cuando aplique
+    - Marcar explícitamente non-goals para evitar scope creep
+    - Alinear con openspec/ROADMAP.md para dependencias entre cambios
+  design:
+    - Respetar arquitectura en openspec/specs/04-arquitectura-jeyjo.md
+    - Usar adaptadores para integraciones externas (ERP, FTP, EVA)
+    - Referenciar ruta de design tokens jeyjo-next para decisiones UI
+  tasks:
+    - Tareas completables en una sesión; máximo ~2h por ítem
+    - Incluir verificación explícita (comando, escenario, criterio 06)
+    - Primer paso de UI siempre tokens/globals.css antes de nuevos componentes

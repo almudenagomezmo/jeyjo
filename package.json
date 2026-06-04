@@ -1,0 +1,22 @@
+{
+  "name": "jeyjo-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "description": "Jeyjo Digital Platform — monorepo (storefront + Payload CMS)",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @jeyjo/storefront --filter @jeyjo/cms dev",
+    "dev:storefront": "pnpm --filter @jeyjo/storefront dev",
+    "dev:cms": "pnpm --filter @jeyjo/cms dev",
+    "build": "pnpm -r build",
+    "build:storefront": "pnpm --filter @jeyjo/storefront build",
+    "build:cms": "pnpm --filter @jeyjo/cms build",
+    "lint": "pnpm --filter @jeyjo/storefront lint",
+    "lint:all": "pnpm -r lint",
+    "typecheck": "pnpm --filter @jeyjo/storefront typecheck && pnpm --filter @jeyjo/cms typecheck",
+    "format": "pnpm --filter @jeyjo/storefront format"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

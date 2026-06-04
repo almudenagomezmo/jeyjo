@@ -1,0 +1,49 @@
+import type { Metadata } from "next";
+import { Manrope, JetBrains_Mono } from "next/font/google";
+import { Header } from "@/components/layout/Header";
+import { TopBar } from "@/components/layout/TopBar";
+import { Footer } from "@/components/layout/Footer";
+import { MiniCart } from "@/components/cart/MiniCart";
+import { themeInitScript } from "@/components/layout/ThemeToggle";
+import "./globals.css";
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-jetbrains",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: "Jeyjo · Material de oficina y reciclaje",
+    template: "%s · Jeyjo",
+  },
+  description:
+    "Más de 30.000 referencias de material de oficina y reciclaje para particulares y empresas. Envío en 24-48 h y tarifas personalizadas B2B.",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="es" className={`${manrope.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Apply persisted theme before paint to avoid a flash. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="antialiased">
+        <TopBar />
+        <Header />
+        <main>{children}</main>
+        <Footer />
+        <MiniCart />
+      </body>
+    </html>
+  );
+}

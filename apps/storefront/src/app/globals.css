@@ -1,0 +1,255 @@
+@import "tailwindcss";
+
+/* ============================================================
+   JEYJO — Design tokens
+   Light is the default; `.dark` on <html> swaps the semantic set.
+   Brand palette derived from the corporate Pantone manual.
+   ============================================================ */
+
+:root {
+  /* Brand (literal) */
+  --brand: #22ce7a; /* PANTONE 7479C */
+  --brand-hover: #1fb66c;
+  --brand-active: #18935a;
+  --ink: #1c1b17; /* PANTONE Black C */
+  --navy: #3c4658; /* PANTONE 2379C */
+  --forest: #255b4d; /* PANTONE 626C */
+  --danger: #ef4e4b;
+  --amber: #ffb83d;
+  --info: #0d7aa8;
+
+  /* Green tonal scale */
+  --green-50: #ecfbf3;
+  --green-100: #d2f6e2;
+  --green-200: #a8edc6;
+  --green-300: #6fe0a3;
+  --green-400: #22ce7a;
+  --green-500: #1fb66c;
+  --green-600: #18935a;
+  --green-700: #126e45;
+  --green-800: #0d4f32;
+
+  /* Neutrals (green-tinted) */
+  --neutral-0: #ffffff;
+  --neutral-25: #fafbfa;
+  --neutral-50: #f4f6f4;
+  --neutral-100: #eaedea;
+  --neutral-200: #d8ddd8;
+  --neutral-300: #bdc4bd;
+  --neutral-400: #8b948b;
+  --neutral-500: #5e6660;
+  --neutral-600: #424843;
+  --neutral-700: #2c302d;
+  --neutral-800: #1f2220;
+  --neutral-900: #1c1b17;
+
+  /* Semantic — light */
+  --background: var(--neutral-25);
+  --surface: var(--neutral-0);
+  --surface-subtle: var(--neutral-50);
+  --surface-muted: var(--neutral-100);
+  --surface-hover: var(--neutral-50);
+
+  --border: var(--neutral-200);
+  --border-strong: var(--neutral-300);
+  --border-subtle: var(--neutral-100);
+
+  --text: var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+  --text-tertiary: var(--neutral-500);
+  --text-muted: var(--neutral-400);
+  --text-inverse: var(--neutral-0);
+  --text-brand: var(--green-700);
+
+  --primary: var(--green-400);
+  --primary-hover: var(--green-500);
+  --on-primary: var(--neutral-900);
+  --primary-soft: var(--green-50);
+
+  --accent: var(--navy);
+  --accent-soft: #edeff3;
+
+  --success: var(--green-500);
+  --success-soft: var(--green-50);
+  --success-text: var(--green-700);
+  --warning: var(--amber);
+  --warning-soft: #fff4dd;
+  --warning-text: #8a5a00;
+  --danger-soft: #fce8e7;
+  --danger-text: #b92f2d;
+  --info-soft: #dceef8;
+  --info-text: #08577a;
+
+  /* Radius + shadow + motion */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow-sm: 0 1px 2px rgba(28, 27, 23, 0.05), 0 1px 3px rgba(28, 27, 23, 0.05);
+  --shadow-md: 0 4px 8px -2px rgba(28, 27, 23, 0.06), 0 2px 4px -1px rgba(28, 27, 23, 0.04);
+  --shadow-lg: 0 12px 24px -8px rgba(28, 27, 23, 0.1), 0 4px 10px -2px rgba(28, 27, 23, 0.04);
+  --shadow-xl: 0 24px 48px -12px rgba(28, 27, 23, 0.14), 0 8px 16px -4px rgba(28, 27, 23, 0.06);
+}
+
+.dark {
+  --background: #0e110f;
+  --surface: #161a18;
+  --surface-subtle: #1a1f1c;
+  --surface-muted: #232825;
+  --surface-hover: #1e2320;
+
+  --border: #2a312d;
+  --border-strong: #3a423d;
+  --border-subtle: #232825;
+
+  --text: #eceeec;
+  --text-secondary: #b9bfb9;
+  --text-tertiary: #898f8b;
+  --text-muted: #5e6660;
+  --text-inverse: var(--neutral-900);
+  --text-brand: var(--green-300);
+
+  --primary: var(--green-400);
+  --primary-hover: var(--green-300);
+  --on-primary: #0e110f;
+  --primary-soft: rgba(34, 206, 122, 0.12);
+
+  --accent: #8fa1b8;
+  --accent-soft: rgba(60, 70, 88, 0.3);
+
+  --success-soft: rgba(34, 206, 122, 0.14);
+  --success-text: var(--green-300);
+  --warning-soft: rgba(255, 184, 61, 0.14);
+  --warning-text: #ffd588;
+  --danger-soft: rgba(239, 78, 75, 0.14);
+  --danger-text: #ff8c8a;
+  --info-soft: rgba(13, 122, 168, 0.18);
+  --info-text: #75c2e3;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 24px -8px rgba(0, 0, 0, 0.5), 0 4px 10px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   Map tokens into Tailwind's theme so utilities like
+   `bg-surface`, `text-brand`, `rounded-md`, `shadow-md` work
+   and react to dark mode automatically.
+   ============================================================ */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-brand: var(--text-brand);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ink: var(--ink);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-text: var(--success-text);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-text: var(--warning-text);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-text: var(--danger-text);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-text: var(--info-text);
+
+  --color-green-50: var(--green-50);
+  --color-green-100: var(--green-100);
+  --color-green-200: var(--green-200);
+  --color-green-300: var(--green-300);
+  --color-green-400: var(--green-400);
+  --color-green-500: var(--green-500);
+  --color-green-700: var(--green-700);
+  --color-green-800: var(--green-800);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+
+  --font-sans:
+    var(--font-manrope), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial,
+    sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: var(--background);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01";
+  }
+  ::selection {
+    background: var(--green-200);
+    color: var(--neutral-900);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+    border: 2px solid var(--background);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
