@@ -32,6 +32,30 @@ Variables: ver `.env.example` (`PRICING_ENGINE_ENABLED`, `SUPABASE_*`).
 
 Variables CMS para navegación: `CMS_URL` (preferida), `CMS_INTERNAL_URL` o `NEXT_PUBLIC_PAYLOAD_URL` — ver `.env.example`.
 
+## Búsqueda predictiva (RF-009 / US-01)
+
+- `POST /api/search/suggest` — body `{ "q": "boli" }` (mínimo 3 caracteres). Embebe con `@jeyjo/search-embedding`, consulta Qdrant (`products`, `categories`) y hidrata desde Payload + precios batch.
+- Cabecera: `SearchBar` con debounce 250 ms, panel predictivo desde la 3.ª letra, Enter → `/search?q=`.
+- `/search?q=` usa candidatos vectoriales (top 200) + facetas PLP existentes cuando `PREDICTIVE_SEARCH_ENABLED=true` (defecto).
+
+Variables (server-only, ver `.env.example` junto a `CMS_URL`):
+
+| Variable | Descripción |
+|---|---|
+| `QDRANT_URL` | URL REST de Qdrant (local: `http://localhost:6333`) |
+| `QDRANT_API_KEY` | API key (Qdrant Cloud; vacío en local) |
+| `PREDICTIVE_SEARCH_ENABLED` | `false` restaura filtro texto CMS en `/search` |
+
+### Staging warm-up y latencia
+
+Tras deploy, el primer suggest puede tardar (cold start del modelo ~100 MB). Comprobar p95 &lt;150 ms:
+
+```bash
+node apps/storefront/scripts/suggest-latency-check.mjs https://<staging-storefront> boli
+```
+
+Verificación manual (**CA-SEARCH-002**): tras warm-up, `"boligrafo vic"` debe mostrar bolígrafo BIC en el desplegable. **CA-SEARCH-003**: EAN completo `3086123519963` debe priorizar el SKU indexado.
+
 ## Autenticación y área de cliente (RF-001 / RF-004)
 
 - Rutas: `/login`, `/registro`, `/cuenta` (B2C), `/intranet` (B2B validado). Alias `/mi-cuenta` → `/cuenta`.

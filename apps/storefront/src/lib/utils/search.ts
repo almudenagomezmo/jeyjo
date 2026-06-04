@@ -1,5 +1,6 @@
 import { CATEGORIES } from "@/lib/data/categories";
 import { PRODUCTS } from "@/lib/data/products";
+import { isPlpDemoFallback } from "@/lib/plp/demo-fallback";
 import type { Product } from "@/lib/types";
 
 const normalize = (s: string): string =>
@@ -16,6 +17,7 @@ const singular = (w: string): string => w.replace(/(es|s)$/i, "");
  * Typesense); the UI only depends on this function's signature.
  */
 export function searchProducts(query: string, limit = 100): Product[] {
+  if (!isPlpDemoFallback()) return [];
   const tokens = normalize(query)
     .split(/\s+/)
     .map(singular)
@@ -44,6 +46,7 @@ export interface CategorySuggestion {
 }
 
 export function searchCategories(query: string, limit = 4): CategorySuggestion[] {
+  if (!isPlpDemoFallback()) return [];
   const q = normalize(query);
   if (q.length < 2) return [];
   const out: CategorySuggestion[] = [];

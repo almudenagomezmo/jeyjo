@@ -21,10 +21,10 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 11 | `pdp-product-detail` | 6, 8, 10 | RF-012, RF-008, US-03 | Completado | 2026-06-04 |
 | 12 | `cart-minicart-client` | 6, 11 | US-03, alcance carrito | Completado | 2026-06-04 |
 | 13 | `search-events-qdrant-worker` | 2, 7 | RF-009 | Completado | 2026-06-04 |
-| 14 | `predictive-search-ui` | 9, 13 | RF-009, US-01 | Pendiente | — |
+| 14 | `predictive-search-ui` | 9, 13 | RF-009, US-01 | Completado | 2026-06-04 |
 | 15 | `home-segmented-banners` | 9, 10 | Alcance §1.6, US-02 | Completado | 2026-06-04 |
 | 16 | `auth-registration-area-cliente` | 2, 3 | RF-001, RF-004, US-04, US-07 | Completado | 2026-06-04 |
-| 17 | `checkout-shipping-b2c-b2b` | 12, 16 | RF-013, RF-014, US-04 | Pendiente | — |
+| 17 | `checkout-shipping-b2c-b2b` | 12, 16 | RF-013, RF-014, US-04 | Completado | 2026-06-04 |
 | 18 | `payments-redsys-wallets` | 17 | RF-014, US-04, RI-006 | Pendiente | — |
 | 19 | `quotes-presupuesto-flow` | 17, 20 | RF-015, US-05 | Pendiente | — |
 | 20 | `oms-pedidos-web` | 3, 17 | RF-025, US-17 | Pendiente | — |
@@ -52,6 +52,6 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 42 | `system-config-backoffice` | 5, 30 | Alcance §1.36 | Pendiente | — |
 | 43 | `seo-technical-auditor` | 21, 34 | Alcance auditor SEO | Pendiente | — |
 
-**Siguiente cambio recomendado:** #14 `predictive-search-ui` (dependencias #9 y #13 completadas).
+**Siguiente cambio recomendado:** #18 `payments-redsys-wallets` (dependencia #17 completada). Alternativa en paralelo si se prioriza backoffice: #20 `oms-pedidos-web` (dependencias #3 y #17 completadas).
 
 Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live.

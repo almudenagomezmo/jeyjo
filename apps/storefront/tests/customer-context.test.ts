@@ -19,6 +19,7 @@ const base: CustomerContext = {
   billingCity: null,
   billingPostalCode: null,
   billingCountry: 'ES',
+  defaultPaymentMethod: null,
 }
 
 describe('pricingCustomerGroup', () => {

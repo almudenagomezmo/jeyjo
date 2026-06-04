@@ -13,6 +13,7 @@ import { PackQtyStepper } from "@/components/product/PackQtyStepper";
 import { CartIcon, ChevronLeftIcon, ShieldIcon, TrashIcon, TruckIcon } from "@/components/ui/icons";
 import { cartSnapshotToGlyphProduct } from "@/lib/cart/to-glyph-product";
 import { formatMoney } from "@/lib/utils/format";
+import { CHECKOUT_COUPON_STORAGE_KEY } from "@/lib/checkout/coupon";
 import { useCartSummary } from "@/lib/hooks/useCartSummary";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
@@ -50,11 +51,14 @@ export default function CartPage() {
   const applyCoupon = () => {
     const found = COUPONS[couponInput.trim().toUpperCase()];
     if (found) {
-      setCoupon({ code: couponInput.trim().toUpperCase(), percent: found.percent });
+      const code = couponInput.trim().toUpperCase();
+      setCoupon({ code, percent: found.percent });
       setCouponError(false);
+      sessionStorage.setItem(CHECKOUT_COUPON_STORAGE_KEY, code);
     } else {
       setCoupon(null);
       setCouponError(true);
+      sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
     }
   };
 
@@ -254,8 +258,8 @@ export default function CartPage() {
               </span>
             </div>
 
-            <Button size="lg" block className="mt-4" disabled title="Checkout próximamente">
-              Tramitar pedido
+            <Button size="lg" block className="mt-4" asChild>
+              <Link href="/checkout">Tramitar pedido</Link>
             </Button>
 
             <Button variant="secondary" block className="mt-2" disabled>

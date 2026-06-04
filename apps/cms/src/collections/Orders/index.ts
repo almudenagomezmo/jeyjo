@@ -18,12 +18,31 @@ import { isCollectionHidden } from '@/access/staffRoles'
 
 const JEYJO_ORDER_STATUSES = [
   { label: 'Pendiente', value: 'pending' },
+  { label: 'Pendiente de pago', value: 'pending_payment' },
+  { label: 'Pendiente de confirmación', value: 'pending_confirmation' },
   { label: 'Confirmado', value: 'confirmed' },
   { label: 'En preparación', value: 'preparing' },
   { label: 'Enviado', value: 'shipped' },
   { label: 'Entregado', value: 'delivered' },
   { label: 'Cancelado', value: 'cancelled' },
 ]
+
+const DELIVERY_METHOD_OPTIONS = [
+  { label: 'Envío a domicilio (facturación)', value: 'home' },
+  { label: 'Envío a dirección guardada', value: 'alternate_address' },
+  { label: 'Recogida Alfaro', value: 'pickup_alfaro' },
+  { label: 'Recogida Rincón de Soto', value: 'pickup_rincon' },
+]
+
+function isStorefrontOrderApiKey(req: { headers: Headers }): boolean {
+  const expected = process.env.STOREFRONT_PAYLOAD_API_KEY
+  if (!expected) return false
+  const auth = req.headers.get('authorization')
+  if (auth?.startsWith('Bearer ')) {
+    return auth.slice(7) === expected
+  }
+  return req.headers.get('x-jeyjo-storefront-key') === expected
+}
 
 const jeyjoOrderFields: Field[] = [
   {
@@ -71,6 +90,71 @@ const jeyjoOrderFields: Field[] = [
     admin: { position: 'sidebar' },
   },
   {
+    name: 'deliveryMethod',
+    type: 'select',
+    label: 'Método de entrega',
+    options: DELIVERY_METHOD_OPTIONS,
+    admin: { position: 'sidebar' },
+  },
+  {
+    name: 'shippingCost',
+    type: 'number',
+    label: 'Coste de envío',
+    admin: { position: 'sidebar' },
+  },
+  {
+    name: 'pickupStoreLabel',
+    type: 'text',
+    label: 'Tienda de recogida',
+    admin: { position: 'sidebar' },
+  },
+  {
+    name: 'shippingAddressSnapshot',
+    type: 'json',
+    label: 'Dirección de envío (snapshot)',
+  },
+  {
+    name: 'billingAddressSnapshot',
+    type: 'json',
+    label: 'Dirección de facturación (snapshot)',
+  },
+  {
+    name: 'couponCode',
+    type: 'text',
+    label: 'Cupón',
+    admin: { position: 'sidebar' },
+  },
+  {
+    name: 'customerNotes',
+    type: 'textarea',
+    label: 'Observaciones del cliente',
+    maxLength: 500,
+  },
+  {
+    name: 'guestEmail',
+    type: 'email',
+    label: 'Email invitado',
+    admin: { position: 'sidebar' },
+  },
+  {
+    name: 'paymentMethodCode',
+    type: 'text',
+    label: 'Código forma de pago',
+    admin: { position: 'sidebar' },
+  },
+  {
+    name: 'paymentMethodLabel',
+    type: 'text',
+    label: 'Forma de pago',
+    admin: { position: 'sidebar' },
+  },
+  {
+    name: 'orderLineSnapshots',
+    type: 'json',
+    label: 'Líneas (snapshot checkout)',
+    admin: { description: 'SKU, cantidades y precios al confirmar desde storefront' },
+  },
+  {
     name: 'accessToken',
     type: 'text',
     unique: true,
@@ -102,7 +186,10 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
   },
   access: {
     ...defaultCollection?.access,
-    create: staffCreateAccess('orders'),
+    create: async ({ req }) => {
+      if (isStorefrontOrderApiKey(req)) return true
+      return staffCreateAccess('orders')({ req })
+    },
     read: staffReadAccess('orders'),
     update: staffUpdateAccess('orders'),
     delete: staffDeleteAccess('orders'),

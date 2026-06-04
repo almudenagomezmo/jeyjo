@@ -207,7 +207,7 @@ export function MiniCart() {
                     </Link>
                   </Button>
                   <Button asChild>
-                    <Link href="/cart" onClick={() => setOpen(false)}>
+                    <Link href="/checkout" onClick={() => setOpen(false)}>
                       Tramitar
                     </Link>
                   </Button>

@@ -27,6 +27,7 @@
     "@jeyjo/database-types": "workspace:*",
     "@jeyjo/erp-ports": "workspace:*",
     "@jeyjo/pricing": "workspace:*",
+    "@jeyjo/search-embedding": "workspace:*",
     "@jeyjo/stock-ports": "workspace:*",
     "@payloadcms/admin-bar": "3.85.0",
     "@payloadcms/db-postgres": "3.85.0",

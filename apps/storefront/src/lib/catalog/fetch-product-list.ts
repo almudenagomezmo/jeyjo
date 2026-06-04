@@ -1,12 +1,18 @@
 import { unstable_cache } from 'next/cache'
 
 import {
+  fetchPublicProductsBySkus,
+} from '@/lib/catalog/fetch-public-products-by-skus'
+import {
   isPublicCatalogProduct,
   type CmsProductSnapshot,
 } from '@/lib/catalog/public-product-filter'
-import { PLP_AGGREGATION_LIMIT } from '@/lib/plp/types'
-import type { PlpProductRow } from '@/lib/plp/types'
+import { PLP_AGGREGATION_LIMIT, type PlpProductRow } from '@/lib/plp/types'
 import type { StockIndicatorLevel } from '@jeyjo/stock-ports'
+import {
+  isPredictiveSearchEnabled,
+  vectorSearchProductSkuList,
+} from '@/lib/search/vector-search'
 
 import { demoRowsForCategory, demoRowsForSearch, isPlpDemoFallback } from '@/lib/plp/demo-fallback'
 
@@ -189,7 +195,7 @@ export async function listPublicProductsByIds(ids: string[]): Promise<PlpProduct
   return rows
 }
 
-export async function searchPublicProducts(q: string): Promise<PlpProductRow[]> {
+async function searchPublicProductsText(q: string): Promise<PlpProductRow[]> {
   const trimmed = q.trim()
   if (!trimmed) return []
 
@@ -199,4 +205,34 @@ export async function searchPublicProducts(q: string): Promise<PlpProductRow[]> 
   if (filtered.length > 0 || !isPlpDemoFallback()) return filtered
 
   return demoRowsForSearch(trimmed)
+}
+
+async function searchPublicProductsVector(q: string): Promise<PlpProductRow[]> {
+  const trimmed = q.trim()
+  if (!trimmed) return []
+
+  try {
+    const skus = await vectorSearchProductSkuList(trimmed, { limit: 200 })
+    if (skus.length === 0) {
+      return isPlpDemoFallback() ? demoRowsForSearch(trimmed) : []
+    }
+
+    const docs = await fetchPublicProductsBySkus(skus)
+    const rows: PlpProductRow[] = []
+    for (const doc of docs) {
+      const row = mapDocToRow(doc as CmsProductListDoc)
+      if (row) rows.push(row)
+    }
+    return rows
+  } catch {
+    if (isPlpDemoFallback()) return demoRowsForSearch(trimmed)
+    return []
+  }
+}
+
+export async function searchPublicProducts(q: string): Promise<PlpProductRow[]> {
+  if (isPredictiveSearchEnabled()) {
+    return searchPublicProductsVector(q)
+  }
+  return searchPublicProductsText(q)
 }

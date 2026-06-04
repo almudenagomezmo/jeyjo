@@ -1,43 +1,104 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+
 import { Input } from "@/components/ui/Input";
-import { ProductImage } from "@/components/ui/ProductImage";
 import { SearchIcon } from "@/components/ui/icons";
-import { formatMoney } from "@/lib/utils/format";
-import { getPriceView, getDualPrice } from "@/lib/utils/price";
-import { searchCategories, searchProducts } from "@/lib/utils/search";
+import {
+  countSuggestOptions,
+  SearchSuggestPanel,
+} from "@/components/layout/SearchSuggestPanel";
+import { MIN_QUERY_LENGTH, usePredictiveSearch } from "@/lib/hooks/usePredictiveSearch";
 import { useUiStore } from "@/lib/store/ui-store";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 
 export function SearchBar() {
   const router = useRouter();
+  const listboxId = useId();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const hydrated = useHydrated();
   const priceMode = useUiStore((s) => s.priceMode);
   const mode = hydrated ? priceMode : "b2c";
 
-  const products = query.length >= 2 ? searchProducts(query, 6) : [];
-  const categories = query.length >= 2 ? searchCategories(query, 4) : [];
-  const showResults = open && query.length >= 2;
+  const trimmed = query.trim();
+  const showResults = open && trimmed.length >= MIN_QUERY_LENGTH;
+  const { loading, error, data } = usePredictiveSearch(query);
+
+  const products = data?.products ?? [];
+  const categories = data?.categories ?? [];
+  const optionCount = countSuggestOptions(products, categories);
+
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [query, products.length, categories.length]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
   const submit = () => {
-    if (!query.trim()) return;
-    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    if (!trimmed) return;
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
     setOpen(false);
   };
+
+  const navigateActive = () => {
+    if (activeIndex < 0 || !data) return;
+    let i = 0;
+    for (const c of categories) {
+      if (i === activeIndex) {
+        router.push(c.href);
+        setOpen(false);
+        return;
+      }
+      i += 1;
+    }
+    for (const p of products) {
+      if (i === activeIndex) {
+        router.push(p.href);
+        setOpen(false);
+        return;
+      }
+      i += 1;
+    }
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      if (activeIndex >= 0 && showResults) {
+        e.preventDefault();
+        navigateActive();
+      } else {
+        submit();
+      }
+      return;
+    }
+
+    if (!showResults || optionCount === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1) % optionCount);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev <= 0 ? optionCount - 1 : prev - 1));
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  const activeDescendant =
+    activeIndex >= 0 ? `${listboxId}-opt-${activeIndex}` : undefined;
 
   return (
     <div ref={containerRef} className="relative w-full max-w-2xl">
@@ -48,78 +109,35 @@ export function SearchBar() {
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        onKeyDown={(e) => e.key === "Enter" && submit()}
+        onKeyDown={onKeyDown}
         placeholder="Busca por nombre, referencia o EAN…"
         iconStart={<SearchIcon size={16} />}
         className="h-11"
+        role="combobox"
+        aria-expanded={showResults}
+        aria-controls={showResults ? listboxId : undefined}
+        aria-activedescendant={activeDescendant}
+        aria-autocomplete="list"
         aria-label="Buscar productos"
       />
 
       {showResults && (
-        <div className="animate-fade-up absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[70vh] overflow-auto rounded-lg border border-border bg-surface shadow-xl">
-          {products.length === 0 && categories.length === 0 ? (
-            <div className="p-6 text-center text-sm text-text-tertiary">
-              No hay resultados para «{query}». Prueba con otra palabra.
-            </div>
-          ) : (
-            <>
-              {categories.length > 0 && (
-                <div className="px-4 pb-1 pt-3">
-                  <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-text-tertiary">
-                    Categorías sugeridas
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {categories.map((c) => (
-                      <Link
-                        key={c.href}
-                        href={c.href}
-                        onClick={() => setOpen(false)}
-                        className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium hover:bg-surface-hover"
-                      >
-                        {c.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {products.length > 0 && (
-                <div className="p-2">
-                  <p className="px-2 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wide text-text-tertiary">
-                    Productos
-                  </p>
-                  {products.map((p) => {
-                    const dual = getDualPrice(getPriceView(p), mode);
-                    return (
-                      <Link
-                        key={p.id}
-                        href={`/p/${p.id}`}
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 rounded-md p-2 hover:bg-surface-muted"
-                      >
-                        <ProductImage product={p} glyphSize={28} className="h-11 w-11" showEco={false} />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[13px] font-semibold">{p.name}</p>
-                          <p className="font-mono text-[11px] text-text-tertiary">
-                            {p.ref} · {p.brand}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold">{formatMoney(dual.primary)}</p>
-                          <p className="text-[10px] text-text-tertiary">{dual.primaryLabel}</p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                  <button
-                    onClick={submit}
-                    className="mt-1 block w-full border-t border-border-subtle px-2 py-2.5 text-left text-xs font-semibold text-text-brand"
-                  >
-                    Ver todos los resultados para «{query}» →
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+        <div
+          id={listboxId}
+          className="animate-fade-up absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[70vh] overflow-auto rounded-lg border border-border bg-surface shadow-xl"
+        >
+          <SearchSuggestPanel
+            query={trimmed}
+            products={products}
+            categories={categories}
+            loading={loading}
+            error={error}
+            priceMode={mode}
+            activeIndex={activeIndex}
+            onSelect={() => setOpen(false)}
+            onViewAll={submit}
+            optionIdPrefix={listboxId}
+          />
         </div>
       )}
     </div>
