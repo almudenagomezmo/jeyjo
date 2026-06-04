@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { isB2BCustomerGroup, resolvePrice } from '@jeyjo/pricing'
 
+import { getCustomerContext, pricingCustomerId } from '@/lib/auth/customer-context'
 import { getStorefrontPricingRepository } from '@/lib/pricing/repository'
 import { getProductPriceBase } from '@/lib/pricing/product-catalog'
 
@@ -28,13 +29,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const repo = getStorefrontPricingRepository()
-    const quote = await resolvePrice(
-      { sku, customerId: body.customerId ?? null },
-      repo,
-    )
+    const sessionCtx = await getCustomerContext()
+    const effectiveCustomerId = pricingCustomerId(sessionCtx) ?? body.customerId ?? null
 
-    const customer = await repo.getCustomerContext(body.customerId ?? null)
+    const repo = getStorefrontPricingRepository()
+    const quote = await resolvePrice({ sku, customerId: effectiveCustomerId }, repo)
+
+    const customer = await repo.getCustomerContext(effectiveCustomerId)
     const customerGroup = customer?.customerGroup ?? 1
     const priceMode = isB2BCustomerGroup(customerGroup) ? 'b2b' : 'b2c'
 

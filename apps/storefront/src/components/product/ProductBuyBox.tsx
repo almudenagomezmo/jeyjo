@@ -21,6 +21,7 @@ const BACKORDER_MESSAGE =
   "El pedido queda pendiente de validación por comprobación de stock de la referencia";
 
 export function ProductBuyBox({
+  productId,
   sku,
   refLabel,
   packUnit,
@@ -28,6 +29,8 @@ export function ProductBuyBox({
   stock,
   vatRate,
 }: {
+  /** Canonical slug stored in cart lines. */
+  productId: string;
   sku: string;
   refLabel: string;
   packUnit: number;
@@ -88,7 +91,7 @@ export function ProductBuyBox({
       <div className="mt-4 flex items-center gap-3">
         <PackQtyStepper packUnit={packUnit} value={qty} onChange={setQty} />
         <AddToCartButton
-          product={{ id: sku, packSize: packUnit, stock: cartStock }}
+          product={{ id: productId, packSize: packUnit, stock: cartStock }}
           qty={qty}
           size="lg"
           className="flex-1"

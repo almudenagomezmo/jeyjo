@@ -45,7 +45,7 @@ The storefront SHALL expose the same navigation tree in a desktop mega menu pane
 
 ### Requirement: Sticky header integrates search account and cart
 
-The sticky header SHALL keep logo, category navigation, centered search submitting to `/search`, account link to `/cuenta`, price mode toggle, theme toggle, and mini-cart trigger with item count badge when hydrated.
+The sticky header SHALL keep logo, category navigation, centered search submitting to `/search`, account control reflecting session state (login link when anonymous, account menu or label with `commercial_name` when authenticated), price mode toggle per session rules from price-resolution spec, theme toggle, and mini-cart trigger with item count badge when hydrated.
 
 #### Scenario: Search submits to search route
 
@@ -56,6 +56,21 @@ The sticky header SHALL keep logo, category navigation, centered search submitti
 
 - **WHEN** the cart store has items and the client has hydrated
 - **THEN** the cart icon displays a numeric badge with the item count
+
+#### Scenario: Anonymous account link goes to login
+
+- **WHEN** no customer session exists
+- **THEN** the account control links to `/login`
+
+#### Scenario: Authenticated account link goes to correct home
+
+- **WHEN** a validated B2B session exists (`customer_group` 2–4)
+- **THEN** the account control links to `/intranet`
+
+#### Scenario: Authenticated B2C account link goes to cuenta
+
+- **WHEN** a B2C or pending session exists (`customer_group` 1 or pending validation)
+- **THEN** the account control links to `/cuenta`
 
 ### Requirement: Skip link and keyboard accessibility for shell navigation
 
@@ -101,3 +116,21 @@ The App Router SHALL use route groups `(shop)` and `(account)` so catalog and ac
 
 - **WHEN** a user opens `/cuenta`
 - **THEN** TopBar, Header, and Footer from the root layout remain visible and the account segment layout wraps page content
+
+### Requirement: Minicart mounted globally in root layout
+
+The storefront root layout SHALL mount the minicart panel component once so it is available on every public page without per-route duplication.
+
+#### Scenario: Minicart available on home
+
+- **WHEN** a user loads the home page and opens the cart from the header
+- **THEN** the minicart panel renders without navigating away from `/`
+
+### Requirement: Header cart control opens minicart panel
+
+The header cart button SHALL open the minicart slide-over panel via client UI state rather than navigating directly to `/cart`.
+
+#### Scenario: Cart icon opens panel
+
+- **WHEN** a user activates the cart icon in the sticky header
+- **THEN** the minicart panel opens as a dialog overlay

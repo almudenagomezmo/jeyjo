@@ -32,6 +32,16 @@ Variables: ver `.env.example` (`PRICING_ENGINE_ENABLED`, `SUPABASE_*`).
 
 Variables CMS para navegación: `CMS_URL` (preferida), `CMS_INTERNAL_URL` o `NEXT_PUBLIC_PAYLOAD_URL` — ver `.env.example`.
 
+## Autenticación y área de cliente (RF-001 / RF-004)
+
+- Rutas: `/login`, `/registro`, `/cuenta` (B2C), `/intranet` (B2B validado). Alias `/mi-cuenta` → `/cuenta`.
+- Variables Supabase en `.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+- Tras `supabase db reset`, crea usuarios en **Supabase Studio → Authentication** y enlaza `web_profiles` (ver comentarios en `supabase/seed.sql`):
+  - **CA-AUTH-001 (B2C):** email `b2c-demo@jeyjo.local`, customer `a0000002-…0002`, `role=b2c`.
+  - **CA-AUTH-002 (B2B):** email `b2b-demo@jeyjo.local`, customer `a0000001-…0001`, `role=b2b_superadmin`, `customer_group=2`.
+- Confirmación de email: configurable en el proyecto Supabase; redirect recomendado `/login?confirmed=1`.
+- Validación de altas pendientes: CMS admin → **Clientes pendientes** (`/admin/pending-customers`).
+
 ## Scripts
 
 ```bash

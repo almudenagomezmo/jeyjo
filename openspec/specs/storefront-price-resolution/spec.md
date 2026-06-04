@@ -8,7 +8,7 @@ Server-side price resolution API and RF-011 dual-price presentation wired to `@j
 
 ### Requirement: Server-side price resolution endpoint
 
-The storefront SHALL expose a server-only API that resolves `PriceQuote` for a given product SKU using the shared pricing engine and the caller session (anonymous, B2C, or B2B).
+The storefront SHALL expose a server-only API that resolves `PriceQuote` for a given product SKU using the shared pricing engine and the caller session (anonymous, pending registration, validated B2C, or validated B2B).
 
 #### Scenario: Anonymous request resolves P1
 
@@ -18,8 +18,13 @@ The storefront SHALL expose a server-only API that resolves `PriceQuote` for a g
 
 #### Scenario: B2B session resolves discounted P2
 
-- **WHEN** an authenticated B2B session calls the pricing API for SKU REF-002
+- **WHEN** an authenticated validated B2B session (`customer_group` 2–4, `validated_at` set) calls the pricing API for SKU REF-002
 - **THEN** the response `netUnit` reflects CA-PRECIOS-002 (9.00 for the fixture)
+
+#### Scenario: Pending registration resolves P1 only
+
+- **WHEN** an authenticated user has `validated_at` IS NULL
+- **THEN** pricing calls resolve as anonymous B2C (P1) regardless of requested B2B toggle
 
 ### Requirement: Latency budget RNF-003
 
@@ -41,12 +46,23 @@ The pricing API SHALL complete within 200 ms at p95 in staging under nominal loa
 
 ### Requirement: Price mode header indicator
 
-The storefront header SHALL display the active price mode label ("Precios sin IVA" or "Precios con IVA") based on customer segment per RF-011.
+The storefront header SHALL display the active price mode label ("Precios sin IVA" or "Precios con IVA") based on authenticated customer segment per RF-011; anonymous visitors MAY still use the manual toggle cookie until session exists.
 
 #### Scenario: Anonymous header label (CA-PRECIOS-001)
 
 - **WHEN** no B2B customer is authenticated
 - **THEN** the header indicator reads "Precios sin IVA"
+
+#### Scenario: Validated B2B header uses B2B mode
+
+- **WHEN** a validated B2B customer session is active
+- **THEN** the header indicator reflects B2B net pricing mode
+- **AND** the manual B2B toggle does not override session segment
+
+#### Scenario: Authenticated B2C header uses B2C dual display rules
+
+- **WHEN** a validated B2C customer session is active
+- **THEN** the header indicator follows B2C dual-price presentation rules from RF-011
 
 ### Requirement: Batch price resolution for PLP
 
@@ -107,3 +123,26 @@ The storefront SHALL resolve `PriceQuote` for the PDP primary SKU server-side du
 
 - **WHEN** a quote includes `listUnit` greater than `netUnit`
 - **THEN** the buy box may show the limited-offer badge consistent with PLP card behavior
+
+### Requirement: Batch price resolution for home carousels
+
+The storefront batch pricing endpoint or function SHALL resolve `PriceQuote` for all SKUs displayed on the home page carousels in one request, using the same session and P1/P2 rules as PLP batch resolution.
+
+#### Scenario: Home batch anonymous quotes use P1 only
+
+- **WHEN** an unauthenticated home page requests batch quotes for SKUs in the B2C top-sales carousel
+- **THEN** each quote uses `p1_retail` and the response does not include P2 fields
+
+#### Scenario: Home batch honors B2B display mode
+
+- **WHEN** the active price mode is B2B (manual toggle) and the home requests batch quotes for B2B carousel SKUs
+- **THEN** quotes follow the same B2B presentation rules as PLP for that mode
+
+### Requirement: Home product cards use PriceQuote not stub prices
+
+`ProductCard` on home carousel sections SHALL render dual prices from `PriceQuote` via `getDualPrice` / `getPriceView` helpers, not from hardcoded demo product prices.
+
+#### Scenario: Home card shows dual price from quote
+
+- **WHEN** a home carousel card receives a quote with net 1.00 and gross 1.21 for an anonymous visitor in B2C display mode
+- **THEN** the card primary and secondary prices match RF-011 presentation for that mode

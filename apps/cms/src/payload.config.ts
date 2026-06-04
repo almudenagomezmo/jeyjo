@@ -22,7 +22,9 @@ import { Suppliers } from '@/collections/Suppliers'
 import { Users } from '@/collections/Users'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
+import { Home } from '@/globals/Home'
 import { auditLogEndpoint } from '@/endpoints/audit-log'
+import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
 import { qdrantCollections } from '@/lib/qdrant-collections'
@@ -73,6 +75,10 @@ export default buildConfig({
         auditLog: {
           Component: '@/components/AuditLogView#AuditLogView',
           path: '/audit-log',
+        },
+        pendingCustomers: {
+          Component: '@/components/PendingCustomersView#PendingCustomersView',
+          path: '/pending-customers',
         },
       },
     },
@@ -129,8 +135,8 @@ export default buildConfig({
     defaultFromName: process.env.RESEND_FROM_NAME || 'Jeyjo',
     defaultFromAddress: process.env.RESEND_FROM_EMAIL || 'noreply@tudominio.com',
   }),
-  endpoints: [auditLogEndpoint],
-  globals: [Header, Footer],
+  endpoints: [auditLogEndpoint, pendingCustomersEndpoint],
+  globals: [Header, Footer, Home],
   plugins,
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL,

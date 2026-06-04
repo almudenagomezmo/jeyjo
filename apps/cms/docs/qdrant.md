@@ -22,7 +22,18 @@ Definidas en `src/lib/qdrant-collections.ts`:
 | Colección | Vector Size | Uso |
 |---|---|---|
 | `products` | 384 | Búsqueda semántica de productos |
+| `categories` | 384 | Búsqueda semántica de categorías |
 | `pages` | 384 | Búsqueda semántica de páginas |
+
+## Modelo de embeddings (search indexer)
+
+El worker `src/search-indexer/` usa **Transformers.js** (`@xenova/transformers`) con el modelo [`Xenova/multilingual-e5-small`](https://huggingface.co/Xenova/multilingual-e5-small) (384 dimensiones, alineado con `vectorSize` de las colecciones).
+
+- **Primera ejecución:** descarga el modelo (~100 MB) desde Hugging Face; puede tardar varios minutos en cold start (Vercel incluido).
+- **Dev local:** tras `pnpm dev`, ejecuta `POST /next/process-search-events` (admin) o `GET /api/cron/search-indexer` con `Authorization: Bearer $CRON_SECRET`.
+- **Producción:** cron Vercel cada minuto (`vercel.json` → `/api/cron/search-indexer`).
+
+No se requiere API key externa para embeddings en desarrollo.
 
 ### Añadir una colección nueva
 

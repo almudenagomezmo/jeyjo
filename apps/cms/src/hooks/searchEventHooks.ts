@@ -7,13 +7,20 @@ const SEARCH_INDEXED: Partial<Record<CollectionSlug, SearchEntityType>> = {
   categories: 'categoria',
 }
 
-function buildSearchPayload(doc: Record<string, unknown>): Record<string, unknown> {
+export function buildSearchPayload(doc: Record<string, unknown>): Record<string, unknown> {
   return {
     title: doc.title,
     slug: doc.slug,
     metaDescription: doc.metaDescription,
     keywords: doc.keywords,
     shortDescription: doc.shortDescription,
+    skuErp: doc.skuErp,
+    mainWholesaleRef: doc.mainWholesaleRef,
+    oemRef: doc.oemRef,
+    ean: doc.ean,
+    isWildcard: doc.isWildcard,
+    _status: doc._status,
+    payloadEntityId: doc.id,
   }
 }
 

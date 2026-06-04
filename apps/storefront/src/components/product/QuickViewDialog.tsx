@@ -121,7 +121,7 @@ export function QuickViewDialog({ row, quote, stock, onClose }: QuickViewDialogP
             className="flex-1"
             disabled={!canAdd}
             onClick={() => {
-              addItem(row.sku, qty);
+              addItem(row.slug, qty);
               setMiniCartOpen(true);
               onClose();
             }}
@@ -129,7 +129,7 @@ export function QuickViewDialog({ row, quote, stock, onClose }: QuickViewDialogP
             Añadir al carrito
           </Button>
           <Button variant="secondary" className="flex-1" asChild>
-            <Link href={`/p/${row.sku}`} onClick={onClose}>
+            <Link href={`/p/${row.slug}`} onClick={onClose}>
               Ver ficha
             </Link>
           </Button>

@@ -139,6 +139,56 @@ export async function listPublicProducts(options: {
   return demoRowsForCategory(slugs)
 }
 
+async function fetchProductsByIdsRaw(ids: string[]): Promise<CmsProductListDoc[]> {
+  const base = cmsBaseUrl()
+  if (!base || ids.length === 0) return []
+
+  const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))]
+  const params = new URLSearchParams({
+    limit: String(unique.length),
+    depth: '1',
+  })
+  unique.forEach((id, index) => {
+    params.append(`where[id][in][${index}]`, id)
+  })
+
+  const res = await fetch(`${base.replace(/\/$/, '')}/api/products?${params.toString()}`, {
+    headers: { Accept: 'application/json' },
+    next: { revalidate: 120 },
+  })
+
+  if (!res.ok) return []
+
+  const body = (await res.json()) as { docs?: CmsProductListDoc[] }
+  return body.docs ?? []
+}
+
+/**
+ * Resolves published, non-wildcard products by CMS document id, preserving caller order.
+ */
+export async function listPublicProductsByIds(ids: string[]): Promise<PlpProductRow[]> {
+  const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))]
+  if (unique.length === 0) return []
+
+  const docs = await fetchProductsByIdsRaw(unique)
+  const byId = new Map<string, PlpProductRow>()
+
+  for (const doc of docs) {
+    if (!isPublicCatalogProduct(doc)) continue
+    const row = mapDocToRow(doc)
+    if (!row) continue
+    const docId = String((doc as { id?: string | number }).id ?? '')
+    if (docId) byId.set(docId, row)
+  }
+
+  const rows: PlpProductRow[] = []
+  for (const id of ids) {
+    const row = byId.get(id.trim())
+    if (row) rows.push(row)
+  }
+  return rows
+}
+
 export async function searchPublicProducts(q: string): Promise<PlpProductRow[]> {
   const trimmed = q.trim()
   if (!trimmed) return []

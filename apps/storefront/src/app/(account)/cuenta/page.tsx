@@ -1,33 +1,62 @@
-import Link from "next/link";
 import type { Metadata } from "next";
-import { Container } from "@/components/layout/Container";
+import { redirect } from "next/navigation";
+import { ForbiddenBanner } from "@/components/account/ForbiddenBanner";
+import { LogoutButton } from "@/components/account/LogoutButton";
+import { PendingValidationBanner } from "@/components/account/PendingValidationBanner";
 import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { ShieldIcon } from "@/components/ui/icons";
+import { getCustomerContext } from "@/lib/auth/customer-context";
 
 export const metadata: Metadata = { title: "Área de cliente" };
 
-/**
- * Placeholder for the customer area. The full B2B portal (dashboard, orders,
- * quick-order, pricing, sub-users, RMA…) lives outside this storefront-core
- * scaffold — see the README roadmap.
- */
-export default function AccountPage() {
+type PageProps = {
+  searchParams: Promise<{ error?: string }>;
+};
+
+export default async function AccountDashboardPage({ searchParams }: PageProps) {
+  const ctx = await getCustomerContext();
+  if (!ctx) redirect("/login?next=/cuenta");
+
+  const params = await searchParams;
+  const groupLabel = !ctx.validatedAt
+    ? "Pendiente de validación"
+    : ctx.customerGroup === 1
+      ? "Particular (B2C)"
+      : `Empresa (grupo ${ctx.customerGroup})`;
+
   return (
-    <Container className="grid min-h-[60vh] place-items-center py-12">
-      <Card className="max-w-lg p-10 text-center">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary-soft text-text-brand">
-          <ShieldIcon size={26} />
-        </span>
-        <h1 className="mt-4 text-2xl font-extrabold tracking-tight">Área de cliente</h1>
-        <p className="mt-2 text-text-secondary">
-          El portal B2B (pedidos, pedido rápido, tarifas pactadas, subusuarios y RMA) forma parte de
-          la siguiente fase del proyecto. Este scaffold cubre el núcleo de la tienda B2C.
-        </p>
-        <Button className="mt-6" asChild>
-          <Link href="/">Volver a la tienda</Link>
-        </Button>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight">{ctx.commercialName}</h1>
+          <p className="mt-1 text-sm text-text-secondary">{ctx.email}</p>
+        </div>
+        <LogoutButton />
+      </div>
+
+      {params.error === "forbidden" && <ForbiddenBanner />}
+      {!ctx.validatedAt && <PendingValidationBanner />}
+
+      <Card className="p-6">
+        <h2 className="text-lg font-bold">Resumen</h2>
+        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-text-tertiary">Estado</dt>
+            <dd className="font-semibold">{groupLabel}</dd>
+          </div>
+          {ctx.taxId && (
+            <div>
+              <dt className="text-text-tertiary">CIF / NIF</dt>
+              <dd className="font-semibold">{ctx.taxId}</dd>
+            </div>
+          )}
+          {ctx.phone && (
+            <div>
+              <dt className="text-text-tertiary">Teléfono</dt>
+              <dd className="font-semibold">{ctx.phone}</dd>
+            </div>
+          )}
+        </dl>
       </Card>
-    </Container>
+    </div>
   );
 }

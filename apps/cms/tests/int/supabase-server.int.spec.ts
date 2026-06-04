@@ -27,7 +27,14 @@ describe('supabase-server', () => {
       entityType: 'producto',
       entityId: 42,
       action: 'create',
-      payload: { title: 'Test product' },
+      payload: {
+        title: 'Test product',
+        skuErp: 'REF-001',
+        ean: '8412345678901',
+        isWildcard: false,
+        _status: 'published',
+        payloadEntityId: 42,
+      },
     })
 
     expect(mockInsert).toHaveBeenCalledOnce()
@@ -36,7 +43,14 @@ describe('supabase-server', () => {
     expect(row.entity_id).toBe(payloadIdToUuid('producto', 42))
     expect(row.action).toBe('upsert')
     expect(row.status).toBe('pending')
-    expect(row.payload).toEqual({ title: 'Test product' })
+    expect(row.payload).toEqual({
+      title: 'Test product',
+      skuErp: 'REF-001',
+      ean: '8412345678901',
+      isWildcard: false,
+      _status: 'published',
+      payloadEntityId: 42,
+    })
   })
 
   it('enqueueSearchEvent maps delete action', async () => {

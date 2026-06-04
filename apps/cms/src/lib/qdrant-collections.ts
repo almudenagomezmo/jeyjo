@@ -11,6 +11,11 @@ export const qdrantCollections: QdrantCollectionDef[] = [
     description: "Embeddings de productos para búsqueda semántica",
   },
   {
+    name: "categories",
+    vectorSize: 384,
+    description: "Embeddings de categorías para búsqueda semántica",
+  },
+  {
     name: "pages",
     vectorSize: 384,
     description: "Embeddings de páginas para búsqueda semántica",

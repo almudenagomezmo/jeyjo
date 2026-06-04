@@ -13,7 +13,7 @@ export function plpRowToProduct(row: PlpProductRow, quote?: PriceQuote): Product
     (quote?.listUnit != null && quote.listUnit > quote.netUnit)
 
   return {
-    id: row.sku,
+    id: row.slug,
     ref: row.sku,
     ean: '',
     name: row.title,

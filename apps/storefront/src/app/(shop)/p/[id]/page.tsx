@@ -147,6 +147,7 @@ export default async function ProductPage({ params }: PageProps) {
 
           <div className="mt-5">
             <ProductBuyBox
+              productId={product.slug}
               sku={product.sku}
               refLabel={product.sku}
               packUnit={product.packUnit}

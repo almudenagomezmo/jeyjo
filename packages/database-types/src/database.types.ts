@@ -144,6 +144,10 @@ export type Database = {
       }
       customers: {
         Row: {
+          billing_address_line1: string | null
+          billing_city: string | null
+          billing_country: string
+          billing_postal_code: string | null
           billing_series: string | null
           commercial_name: string
           created_at: string
@@ -161,6 +165,10 @@ export type Database = {
           validated_at: string | null
         }
         Insert: {
+          billing_address_line1?: string | null
+          billing_city?: string | null
+          billing_country?: string
+          billing_postal_code?: string | null
           billing_series?: string | null
           commercial_name: string
           created_at?: string
@@ -178,6 +186,10 @@ export type Database = {
           validated_at?: string | null
         }
         Update: {
+          billing_address_line1?: string | null
+          billing_city?: string | null
+          billing_country?: string
+          billing_postal_code?: string | null
           billing_series?: string | null
           commercial_name?: string
           created_at?: string
@@ -311,8 +323,10 @@ export type Database = {
           created_at: string
           customer_id: string
           email: string
+          failed_login_count: number
           id: string
           last_login_at: string | null
+          locked_until: string | null
           mfa_enabled: boolean
           parent_customer_id: string | null
           permissions: Json
@@ -323,8 +337,10 @@ export type Database = {
           created_at?: string
           customer_id: string
           email: string
+          failed_login_count?: number
           id: string
           last_login_at?: string | null
+          locked_until?: string | null
           mfa_enabled?: boolean
           parent_customer_id?: string | null
           permissions?: Json
@@ -335,8 +351,10 @@ export type Database = {
           created_at?: string
           customer_id?: string
           email?: string
+          failed_login_count?: number
           id?: string
           last_login_at?: string | null
+          locked_until?: string | null
           mfa_enabled?: boolean
           parent_customer_id?: string | null
           permissions?: Json

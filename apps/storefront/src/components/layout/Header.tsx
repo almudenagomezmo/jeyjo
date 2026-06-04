@@ -6,10 +6,11 @@ import { Container } from "@/components/layout/Container";
 import { MegaMenu } from "@/components/layout/MegaMenu";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { SearchBar } from "@/components/layout/SearchBar";
+import { HeaderAccountLink } from "@/components/layout/HeaderAccountLink";
 import { PriceModeToggle } from "@/components/layout/PriceModeToggle";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Logo } from "@/components/ui/Logo";
-import { CartIcon, ChevronDownIcon, MenuIcon, UserIcon } from "@/components/ui/icons";
+import { CartIcon, ChevronDownIcon, MenuIcon } from "@/components/ui/icons";
 import type { NavNode } from "@/lib/catalog/fetch-navigation-tree";
 import { selectCartCount, useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
@@ -17,9 +18,19 @@ import { useHydrated } from "@/lib/hooks/useHydrated";
 
 interface HeaderProps {
   tree: NavNode[];
+  accountHref?: string;
+  accountLabel?: string;
+  sessionPriceMode?: "b2c" | "b2b";
+  priceModeLocked?: boolean;
 }
 
-export function Header({ tree }: HeaderProps) {
+export function Header({
+  tree,
+  accountHref = "/login",
+  accountLabel = "Acceder",
+  sessionPriceMode,
+  priceModeLocked = false,
+}: HeaderProps) {
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const hydrated = useHydrated();
@@ -62,15 +73,10 @@ export function Header({ tree }: HeaderProps) {
 
         <div className="flex items-center gap-1">
           <div className="hidden lg:block">
-            <PriceModeToggle />
+            <PriceModeToggle sessionPriceMode={sessionPriceMode} locked={priceModeLocked} />
           </div>
           <ThemeToggle />
-          <Link
-            href="/cuenta"
-            className="hidden h-10 items-center gap-1.5 rounded-md px-3 text-sm font-semibold hover:bg-surface-muted sm:inline-flex"
-          >
-            <UserIcon size={18} /> Acceder
-          </Link>
+          <HeaderAccountLink href={accountHref} label={accountLabel} />
           <button
             type="button"
             onClick={() => setMiniCartOpen(true)}

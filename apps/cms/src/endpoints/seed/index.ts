@@ -3,6 +3,7 @@ import type { CollectionSlug, GlobalSlug, Payload, PayloadRequest, File } from '
 import { contactFormData } from './contact-form'
 import { contactPageData } from './contact-page'
 import { seedJeyjoCatalog } from './jeyjo-catalog'
+import { seedHomeMerchandising } from './home-merchandising'
 import { seedStaffUsers } from './staff-users'
 import { productHatData } from './product-hat'
 import { productTshirtData, productTshirtVariant } from './product-tshirt'
@@ -44,7 +45,7 @@ const colorVariantOptions = [
   { label: 'White', value: 'white' },
 ]
 
-const globals: GlobalSlug[] = ['header', 'footer']
+const globals: GlobalSlug[] = ['header', 'footer', 'home']
 
 const baseAddressUSData: Transaction['billingAddress'] = {
   title: 'Dr.',
@@ -95,9 +96,18 @@ export const seed = async ({
     globals.map((global) =>
       payload.updateGlobal({
         slug: global,
-        data: {
-          navItems: [],
-        },
+        data:
+          global === 'home'
+            ? {
+                promoBanners: [],
+                featuredCategories: [],
+                topSalesB2c: [],
+                topSalesB2b: [],
+                ecoHighlight: [],
+              }
+            : {
+                navItems: [],
+              },
         depth: 0,
         context: {
           disableRevalidate: true,
@@ -582,6 +592,7 @@ export const seed = async ({
   ])
 
   await seedJeyjoCatalog({ payload, req })
+  await seedHomeMerchandising({ payload, req, heroMediaId: imageHero.id })
   await seedStaffUsers(payload)
 
   payload.logger.info('Seeded database successfully!')

@@ -40,12 +40,14 @@ VALUES
   )
 ON CONFLICT (id) DO NOTHING;
 
--- web_profiles rows require matching auth.users (create in Supabase Studio → Authentication)
--- Example after creating users with these emails, link profiles:
+-- web_profiles require matching auth.users (Supabase Studio → Authentication → Add user)
+-- CA-AUTH-001 B2C: b2c-demo@jeyjo.local / password en Studio → copiar User UID
+-- CA-AUTH-002 B2B: b2b-demo@jeyjo.local / password en Studio → copiar User UID
 -- INSERT INTO public.web_profiles (id, customer_id, email, role)
 -- VALUES
 --   ('<auth-user-uuid-b2b>', 'a0000001-0000-4000-8000-000000000001', 'b2b-demo@jeyjo.local', 'b2b_superadmin'),
 --   ('<auth-user-uuid-b2c>', 'a0000002-0000-4000-8000-000000000002', 'b2c-demo@jeyjo.local', 'b2c');
+-- Tras insert, login en storefront: B2C → /cuenta, B2B validado → /intranet
 
 INSERT INTO public.search_events (entity_type, entity_id, action, payload, status)
 VALUES

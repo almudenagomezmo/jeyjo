@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define the Next.js storefront application shell with layout, typography, theme toggle, and placeholder home without backend dependencies.
+Define the Next.js storefront application shell with layout, typography, theme toggle, and segmented home with CMS merchandising and graceful degradation.
 
 ## Requirements
 
@@ -26,12 +26,18 @@ The root layout SHALL load Manrope and JetBrains Mono (or equivalent from protot
 
 ### Requirement: Placeholder home without business catalog
 
-The home route SHALL render a minimal placeholder that does not require ERP sync or product catalog APIs. Other routes MAY depend on CMS for navigation while the home route remains renderable if CMS is unavailable.
+The home route SHALL render the segmented merchandising home described in `storefront-home-segmented`, requiring CMS home global and public product data for full content. When CMS merchandising or catalog data is unavailable, the home SHALL still render a reduced experience (hero, segment cards, shell navigation) without returning HTTP 500.
 
-#### Scenario: No backend required for home
+#### Scenario: Full home with CMS available
 
-- **WHEN** only the storefront app runs without cms or database
-- **THEN** the home page still renders successfully
+- **WHEN** the storefront runs with CMS reachable and home global configured
+- **THEN** the home page displays banners, featured categories, and product carousels per §1.6
+
+#### Scenario: Reduced home without CMS merchandising
+
+- **WHEN** the home page loads and the CMS home global is unavailable
+- **THEN** the home still renders hero and segment cards successfully
+- **AND** the header still renders using static navigation fallback data when categories are unavailable
 
 #### Scenario: Navigation degrades without CMS on home
 

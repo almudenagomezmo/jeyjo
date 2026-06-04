@@ -81,6 +81,7 @@ Audit console: `http://localhost:3001/admin/audit-log`
 ### Coexistencia Payload + Supabase
 
 - Tablas `customers`, `web_profiles`, `search_events`, `audit_log` → migraciones `supabase/migrations/`.
+- **Clientes pendientes (RF-004):** vista admin `/admin/pending-customers`; validación `POST /next/customers/:id/validate` (solo sesión staff Payload + MFA).
 - Tablas `products`, `orders`, `suppliers`, etc. → schema Payload (postgres adapter).
 - No ejecutar `DROP` manual de tablas core desde Payload.
 
@@ -130,6 +131,20 @@ curl -X POST http://localhost:3001/next/sync-stock-from-stub -H "Cookie: ..."   
 curl http://localhost:3001/api/cron/stock-sync -H "Authorization: Bearer $CRON_SECRET"
 pnpm --filter @jeyjo/stock-ports test
 pnpm test:int stock
+```
+
+## Search indexer Qdrant (`search-events-qdrant-worker`, ROADMAP #13)
+
+- **Worker:** `src/search-indexer/` — poll `search_events` → embeddings (`@xenova/transformers`) → upsert/delete Qdrant (`products`, `categories`).
+- **Manual (dev):** `POST /next/process-search-events` (admin autenticado, deshabilitado en producción).
+- **Cron:** `GET /api/cron/search-indexer` con `Authorization: Bearer $CRON_SECRET` (Vercel cada minuto).
+- **Exclusiones:** productos comodín (`isWildcard`) y no publicados no permanecen en el índice.
+- **Embeddings:** modelo `Xenova/multilingual-e5-small` (384 dims); primera ejecución descarga ~100 MB — ver `docs/qdrant.md`.
+
+```bash
+curl -X POST http://localhost:3001/next/process-search-events -H "Cookie: ..."   # admin session
+curl http://localhost:3001/api/cron/search-indexer -H "Authorization: Bearer $CRON_SECRET"
+pnpm test:int search-indexer
 ```
 
 ## Scripts
