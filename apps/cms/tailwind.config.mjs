@@ -1,4 +1,5 @@
-const plugin = require('tailwindcss/plugin')
+import tailwindPlugin from 'tailwindcss/plugin'
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -176,8 +177,8 @@ export default {
     hoverOnlyWhenSupported: true,
   },
   plugins: [
-    require('@tailwindcss/typography'),
-    plugin(({ matchUtilities, theme }) => {
+    // typography: loaded via @plugin in src/app/(app)/globals.css
+    tailwindPlugin(({ matchUtilities, theme }) => {
       matchUtilities(
         {
           'animation-delay': (value) => {

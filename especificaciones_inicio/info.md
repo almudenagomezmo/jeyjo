@@ -136,3 +136,8 @@ Vuelve al Paso 3 con el siguiente cambio de la lista. Cada vuelta del bucle aña
 - **Tus 6 docs son el "norte".** Cuando un `propose` se desvíe de tu alcance o arquitectura, corrige el artefacto, no el documento maestro.
 - **Criterios de aceptación = escenarios.** Usa `06-criterios-aceptacion` para validar que las specs de cada cambio son testeables.
 - **Sincroniza siempre antes de archivar** para no perder las delta specs.
+
+
+
+npx supabase link --project-ref <ref>
+npx supabase db push

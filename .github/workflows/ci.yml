@@ -11,6 +11,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  supabase-schema:
+    name: Supabase migrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase and apply migrations
+        run: |
+          supabase start -x studio,imgproxy,logflare,vector,supavisor
+          supabase db reset
+
+      - name: Check generated types match schema
+        run: node scripts/check-database-types.mjs
+
   storefront:
     name: Storefront
     runs-on: ubuntu-latest

@@ -146,7 +146,7 @@ export const plugins: Plugin[] = [
               prefix: 'media',
             },
           },
-          bucket: process.env.SUPABASE_BUCKET || 'ecommerce-media',
+          bucket: process.env.SUPABASE_BUCKET || 'catalog-media',
           config: {
             endpoint: process.env.SUPABASE_ENDPOINT!,
             region: process.env.SUPABASE_REGION || 'us-east-1',
