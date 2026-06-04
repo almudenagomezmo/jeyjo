@@ -18,6 +18,7 @@ import sharp from 'sharp'
 import { Categories } from '@/collections/Categories'
 import { Media } from '@/collections/Media'
 import { Pages } from '@/collections/Pages'
+import { Suppliers } from '@/collections/Suppliers'
 import { Users } from '@/collections/Users'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
@@ -70,7 +71,7 @@ export default buildConfig({
     },
     user: Users.slug,
   },
-  collections: [Users, Pages, Categories, Media],
+  collections: [Users, Pages, Categories, Suppliers, Media],
   cors: corsOrigins,
   csrf: corsOrigins,
   db: postgresAdapter({

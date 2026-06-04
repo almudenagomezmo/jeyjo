@@ -75,6 +75,7 @@ export interface Config {
     users: User;
     pages: Page;
     categories: Category;
+    suppliers: Supplier;
     media: Media;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -108,6 +109,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -228,6 +230,15 @@ export interface User {
  */
 export interface Order {
   id: number;
+  orderNumber?: string | null;
+  origin?: ('b2c' | 'b2b' | 'eva') | null;
+  jeyjoStatus?: ('pending' | 'confirmed' | 'preparing' | 'shipped' | 'delivered' | 'cancelled') | null;
+  /**
+   * UUID de public.customers hasta enlace formal en #16
+   */
+  customerRef?: string | null;
+  validatedEva?: boolean | null;
+  accessToken?: string | null;
   items?:
     | {
         product?: (number | null) | Product;
@@ -255,7 +266,6 @@ export interface Order {
   status?: OrderStatus;
   amount?: number | null;
   currency?: 'USD' | null;
-  accessToken?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -266,6 +276,55 @@ export interface Order {
 export interface Product {
   id: number;
   title: string;
+  longDescription?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Máximo 160 caracteres para SEO
+   */
+  metaDescription?: string | null;
+  keywords?:
+    | {
+        keyword: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * URL externa del proveedor (sin descarga). Si hay imagen propia, tiene prioridad en el frontend.
+   */
+  providerImageUrl?: string | null;
+  /**
+   * Subida a catalog-media. Prioridad sobre URL de proveedor.
+   */
+  ownImage?: (number | null) | Media;
+  skuErp?: string | null;
+  mainWholesaleRef?: string | null;
+  oemRef?: string | null;
+  ean?: string | null;
+  shortDescription?: string | null;
+  p1Price?: number | null;
+  p2Price?: number | null;
+  vatRate?: number | null;
+  packUnit?: number | null;
+  isWildcard?: boolean | null;
+  allowOrderWithoutStock?: boolean | null;
+  /**
+   * Stock multisource en cambio #8; valor ERP de referencia
+   */
+  erpStock?: number | null;
+  syncErpAt?: string | null;
   description?: {
     root: {
       type: string;
@@ -308,6 +367,7 @@ export interface Product {
     image?: (number | null) | Media;
     description?: string | null;
   };
+  supplier?: (number | null) | Supplier;
   categories?: (number | Category)[] | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
@@ -341,7 +401,6 @@ export interface Media {
     };
     [k: string]: unknown;
   } | null;
-  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -600,6 +659,9 @@ export interface ArchiveBlock {
 export interface Category {
   id: number;
   title: string;
+  parent?: (number | null) | Category;
+  sortOrder?: number | null;
+  imageUrl?: string | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
@@ -897,6 +959,22 @@ export interface Variant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers".
+ */
+export interface Supplier {
+  id: number;
+  name: string;
+  erpCode?: string | null;
+  type?: ('wholesaler' | 'manufacturer' | 'distributor' | 'other') | null;
+  /**
+   * Prefijo URL para imágenes del proveedor (ej. Distrisantiago, Arnoia)
+   */
+  baseImageUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "transactions".
  */
 export interface Transaction {
@@ -909,11 +987,6 @@ export interface Transaction {
         id?: string | null;
       }[]
     | null;
-  paymentMethod?: 'stripe' | null;
-  stripe?: {
-    customerID?: string | null;
-    paymentIntentID?: string | null;
-  };
   billingAddress?: {
     title?: string | null;
     firstName?: string | null;
@@ -1073,6 +1146,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'suppliers';
+        value: number | Supplier;
       } | null)
     | ({
         relationTo: 'media';
@@ -1365,8 +1442,23 @@ export interface FormBlockSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
+  parent?: T;
+  sortOrder?: T;
+  imageUrl?: T;
   generateSlug?: T;
   slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers_select".
+ */
+export interface SuppliersSelect<T extends boolean = true> {
+  name?: T;
+  erpCode?: T;
+  type?: T;
+  baseImageUrl?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1377,7 +1469,6 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
-  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1606,6 +1697,29 @@ export interface VariantOptionsSelect<T extends boolean = true> {
  */
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
+  longDescription?: T;
+  metaDescription?: T;
+  keywords?:
+    | T
+    | {
+        keyword?: T;
+        id?: T;
+      };
+  providerImageUrl?: T;
+  ownImage?: T;
+  skuErp?: T;
+  mainWholesaleRef?: T;
+  oemRef?: T;
+  ean?: T;
+  shortDescription?: T;
+  p1Price?: T;
+  p2Price?: T;
+  vatRate?: T;
+  packUnit?: T;
+  isWildcard?: T;
+  allowOrderWithoutStock?: T;
+  erpStock?: T;
+  syncErpAt?: T;
   description?: T;
   gallery?:
     | T
@@ -1635,6 +1749,7 @@ export interface ProductsSelect<T extends boolean = true> {
         image?: T;
         description?: T;
       };
+  supplier?: T;
   categories?: T;
   generateSlug?: T;
   slug?: T;
@@ -1670,6 +1785,12 @@ export interface CartsSelect<T extends boolean = true> {
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
+  orderNumber?: T;
+  origin?: T;
+  jeyjoStatus?: T;
+  customerRef?: T;
+  validatedEva?: T;
+  accessToken?: T;
   items?:
     | T
     | {
@@ -1699,7 +1820,6 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   amount?: T;
   currency?: T;
-  accessToken?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1715,13 +1835,6 @@ export interface TransactionsSelect<T extends boolean = true> {
         variant?: T;
         quantity?: T;
         id?: T;
-      };
-  paymentMethod?: T;
-  stripe?:
-    | T
-    | {
-        customerID?: T;
-        paymentIntentID?: T;
       };
   billingAddress?:
     | T

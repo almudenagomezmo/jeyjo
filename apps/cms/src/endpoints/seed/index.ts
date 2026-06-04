@@ -2,6 +2,7 @@ import type { CollectionSlug, GlobalSlug, Payload, PayloadRequest, File } from '
 
 import { contactFormData } from './contact-form'
 import { contactPageData } from './contact-page'
+import { seedJeyjoCatalog } from './jeyjo-catalog'
 import { productHatData } from './product-hat'
 import { productTshirtData, productTshirtVariant } from './product-tshirt'
 import { homePageData } from './home'
@@ -13,6 +14,7 @@ import { Address, Transaction, VariantOption } from '@/payload-types'
 
 const collections: CollectionSlug[] = [
   'categories',
+  'suppliers',
   'media',
   'pages',
   'products',
@@ -353,6 +355,7 @@ export const seed = async ({
 
   payload.logger.info(`— Seeding transactions...`)
 
+  // Stripe fields optional when paymentMethods is empty (template seed)
   const pendingTransaction = await payload.create({
     collection: 'transactions',
     data: {
@@ -366,7 +369,8 @@ export const seed = async ({
       status: 'pending',
       billingAddress: baseAddressUSData,
     },
-  })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any)
 
   const succeededTransaction = await payload.create({
     collection: 'transactions',
@@ -381,7 +385,8 @@ export const seed = async ({
       status: 'succeeded',
       billingAddress: baseAddressUSData,
     },
-  })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any)
 
   let succeededTransactionID: number | string = succeededTransaction.id
 
@@ -458,6 +463,7 @@ export const seed = async ({
   const orderInCompleted = await payload.create({
     collection: 'orders',
     data: {
+      origin: 'b2c',
       amount: 7499,
       currency: 'USD',
       customer: customer.id,
@@ -482,6 +488,7 @@ export const seed = async ({
   const orderInProcessing = await payload.create({
     collection: 'orders',
     data: {
+      origin: 'b2c',
       amount: 7499,
       currency: 'USD',
       customer: customer.id,
@@ -572,6 +579,8 @@ export const seed = async ({
       },
     }),
   ])
+
+  await seedJeyjoCatalog({ payload, req })
 
   payload.logger.info('Seeded database successfully!')
 }

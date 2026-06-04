@@ -34,9 +34,25 @@ DATABASE_URL=postgres://postgres:postgres@localhost:5432/jeyjo
 QDRANT_URL=http://localhost:6333
 ```
 
-Stripe y Supabase pueden dejarse con valores placeholder para desarrollo.
+Stripe puede dejarse con placeholders (`sk_test_`) — el CMS arranca sin pasarela activa.
+
+Para hooks de `search_events` / `audit_log`:
+
+```bash
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role
+```
+
+Con monorepo Supabase CLI (recomendado):
+
+```bash
+# Desde la raíz del repo
+pnpm db:reset    # aplica supabase/migrations + seed SQL
+```
 
 ## 3. Instalar dependencias
+
+Desde la raíz del monorepo:
 
 ```bash
 pnpm install
@@ -45,12 +61,19 @@ pnpm install
 ## 4. Arrancar el servidor de desarrollo
 
 ```bash
-pnpm dev
+pnpm dev:cms
+# o desde apps/cms: pnpm dev
 ```
 
-El servidor arranca en `http://localhost:3000`.
+El servidor arranca en `http://localhost:3001`.
 
-**Admin panel**: `http://localhost:3000/admin`
+**Admin panel**: `http://localhost:3001/admin`
+
+### Payload schema vs migraciones Supabase
+
+1. Aplicar primero `supabase/migrations/` (`pnpm db:reset` o `supabase db push`).
+2. Arrancar CMS — Payload crea/actualiza tablas de colecciones (`products`, `suppliers`, …) vía postgres adapter.
+3. No eliminar tablas core (`customers`, `search_events`, …) desde el admin Payload.
 
 ## 5. Poblar datos de demo (opcional)
 
@@ -64,20 +87,16 @@ El servidor arranca en `http://localhost:3000`.
 
 Ver [Seed](seed.md) para más detalles.
 
-## Colecciones de Payload
+## Colecciones de Payload (Jeyjo)
 
-| Slug | Descripción |
-|---|---|
-| `users` | Usuarios (admin y customer) |
-| `pages` | Páginas del CMS |
-| `media` | Archivos multimedia |
-| `categories` | Categorías de producto |
-| `products` | Productos (via ecommerce plugin) |
-| `orders` | Pedidos |
-| `carts` | Carritos |
-| `addresses` | Direcciones |
-| `transactions` | Transacciones Stripe |
-| `form-submissions` | Envíos de formularios |
+| Grupo | Slug | Descripción |
+|---|---|---|
+| Catálogo | `products` | Productos ERP + enriquecimiento SEO / imagen dual |
+| Catálogo | `categories` | Categorías jerárquicas |
+| Catálogo | `suppliers` | Proveedores |
+| Pedidos | `orders` | Pedidos web (`origin`, `orderNumber`, IVA snapshot) |
+| Contenido | `pages`, `media`, forms | CMS template |
+| Users | `users` | Staff Payload (clientes tienda → Supabase #16) |
 
 ## Estructura de rutas
 

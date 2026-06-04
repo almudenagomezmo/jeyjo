@@ -20,11 +20,22 @@ import {
 } from '@payloadcms/richtext-lexical'
 import { DefaultDocumentIDType, Where } from 'payload'
 
+import { enrichmentFields } from '@/collections/Products/enrichmentFields'
+import { erpFields } from '@/collections/Products/erpFields'
+import { productSlugHooks } from '@/collections/Products/hooks'
+import { auditLogHooksForCollection } from '@/hooks/auditLogHooks'
+import { productSearchEventHooks } from '@/hooks/searchEventHooks'
+
 export const ProductsCollection: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
+  labels: {
+    singular: 'Producto',
+    plural: 'Productos',
+  },
   admin: {
     ...defaultCollection?.admin,
-    defaultColumns: ['title', 'enableVariants', '_status', 'variants.variants'],
+    group: 'Catálogo',
+    defaultColumns: ['title', 'skuErp', 'supplier', '_status'],
     livePreview: {
       url: ({ data, req }) =>
         generatePreviewPath({
@@ -45,24 +56,60 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     ...defaultCollection?.defaultPopulate,
     title: true,
     slug: true,
-    variantOptions: true,
-    variants: true,
-    enableVariants: true,
-    gallery: true,
-    priceInUSD: true,
-    inventory: true,
+    skuErp: true,
+    supplier: true,
+    metaDescription: true,
+    providerImageUrl: true,
+    ownImage: true,
     meta: true,
   },
+  hooks: {
+    ...defaultCollection?.hooks,
+    beforeValidate: [...(defaultCollection?.hooks?.beforeValidate ?? []), ...productSlugHooks],
+    beforeChange: [
+      ...(defaultCollection?.hooks?.beforeChange ?? []),
+      ({ data }) => {
+        if (data) {
+          data.enableVariants = false
+        }
+        return data
+      },
+    ],
+    afterChange: [
+      ...(defaultCollection?.hooks?.afterChange ?? []),
+      ...productSearchEventHooks.afterChange,
+      ...auditLogHooksForCollection('products').afterChange,
+    ],
+    afterDelete: [
+      ...(defaultCollection?.hooks?.afterDelete ?? []),
+      ...productSearchEventHooks.afterDelete,
+      ...auditLogHooksForCollection('products').afterDelete,
+    ],
+  },
   fields: [
-    { name: 'title', type: 'text', required: true },
+    {
+      name: 'title',
+      type: 'text',
+      label: 'Nombre',
+      required: true,
+    },
     {
       type: 'tabs',
       tabs: [
+        {
+          label: 'Marketing / SEO',
+          fields: enrichmentFields,
+        },
+        {
+          label: 'Datos ERP',
+          fields: erpFields,
+        },
         {
           fields: [
             {
               name: 'description',
               type: 'richText',
+              label: 'Descripción (template)',
               editor: lexicalEditor({
                 features: ({ rootFeatures }) => {
                   return [
@@ -74,13 +121,13 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                   ]
                 },
               }),
-              label: false,
               required: false,
+              admin: { hidden: true },
             },
             {
               name: 'gallery',
               type: 'array',
-              minRows: 1,
+              admin: { hidden: true },
               fields: [
                 {
                   name: 'image',
@@ -99,9 +146,9 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                   },
                   filterOptions: ({ data }) => {
                     if (data?.enableVariants && data?.variantTypes?.length) {
-                      const variantTypeIDs = data.variantTypes.map((item: any) => {
-                        if (typeof item === 'object' && item?.id) {
-                          return item.id
+                      const variantTypeIDs = data.variantTypes.map((item: unknown) => {
+                        if (typeof item === 'object' && item && 'id' in item) {
+                          return (item as { id: DefaultDocumentIDType }).id
                         }
                         return item
                       }) as DefaultDocumentIDType[]
@@ -131,10 +178,10 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                 },
               ],
             },
-
             {
               name: 'layout',
               type: 'blocks',
+              admin: { hidden: true },
               blocks: [CallToAction, Content, MediaBlock],
             },
           ],
@@ -155,7 +202,6 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                   }
                 }
 
-                // ID comes back as undefined during seeding so we need to handle that case
                 return {
                   id: {
                     exists: true,
@@ -170,7 +216,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
         },
         {
           name: 'meta',
-          label: 'SEO',
+          label: 'SEO Preview',
           fields: [
             OverviewField({
               titlePath: 'meta.title',
@@ -183,19 +229,24 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
             MetaImageField({
               relationTo: 'media',
             }),
-
             MetaDescriptionField({}),
             PreviewField({
-              // if the `generateUrl` function is configured
               hasGenerateFn: true,
-
-              // field paths to match the target field for data
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',
             }),
           ],
         },
       ],
+    },
+    {
+      name: 'supplier',
+      type: 'relationship',
+      relationTo: 'suppliers',
+      label: 'Proveedor',
+      admin: {
+        position: 'sidebar',
+      },
     },
     {
       name: 'categories',
@@ -206,6 +257,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
       },
       hasMany: true,
       relationTo: 'categories',
+      label: 'Categorías',
     },
     slugField(),
   ],

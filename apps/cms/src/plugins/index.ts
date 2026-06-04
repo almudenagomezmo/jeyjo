@@ -9,15 +9,15 @@ import { ecommercePlugin } from '@payloadcms/plugin-ecommerce'
 import { stripeAdapter } from '@payloadcms/plugin-ecommerce/payments/stripe'
 
 import { Page, Product } from '@/payload-types'
-import { getServerSideURL } from '@/utilities/getURL'
+import { OrdersCollectionOverride } from '@/collections/Orders'
 import { ProductsCollection } from '@/collections/Products'
 import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
 import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { customerOnlyFieldAccess } from '@/access/customerOnlyFieldAccess'
 import { isAdmin } from '@/access/isAdmin'
 import { isDocumentOwner } from '@/access/isDocumentOwner'
+import { getServerSideURL } from '@/utilities/getURL'
 
-// si estan configurados los parametros de supabase, se agrega el plugin de s3Storage con la configuracion de supabase, si no, no se agrega el plugin
 const isSupabaseConfigured =
   process.env.SUPABASE_ENDPOINT &&
   !process.env.SUPABASE_ENDPOINT.includes('xxxx') &&
@@ -26,8 +26,17 @@ const isSupabaseConfigured =
   process.env.SUPABASE_SECRET_ACCESS_KEY &&
   !process.env.SUPABASE_SECRET_ACCESS_KEY.includes('tu_')
 
+const isStripeConfigured =
+  Boolean(process.env.STRIPE_SECRET_KEY) &&
+  process.env.STRIPE_SECRET_KEY !== 'sk_test_' &&
+  process.env.STRIPE_SECRET_KEY!.length > 12 &&
+  Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY !== 'pk_test_' &&
+  Boolean(process.env.STRIPE_WEBHOOKS_SIGNING_SECRET) &&
+  process.env.STRIPE_WEBHOOKS_SIGNING_SECRET !== 'whsec_'
+
 const generateTitle: GenerateTitle<Product | Page> = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Payload Ecommerce Template` : 'Payload Ecommerce Template'
+  return doc?.title ? `${doc.title} | Jeyjo` : 'Jeyjo'
 }
 
 const generateURL: GenerateURL<Product | Page> = ({ doc }) => {
@@ -52,7 +61,7 @@ export const plugins: Plugin[] = [
         update: isAdmin,
       },
       admin: {
-        group: 'Content',
+        group: 'Contenido',
       },
     },
     formOverrides: {
@@ -63,7 +72,7 @@ export const plugins: Plugin[] = [
         create: isAdmin,
       },
       admin: {
-        group: 'Content',
+        group: 'Contenido',
       },
       fields: ({ defaultFields }) => {
         return defaultFields.map((field) => {
@@ -98,41 +107,18 @@ export const plugins: Plugin[] = [
       slug: 'users',
     },
     orders: {
-      ordersCollectionOverride: ({ defaultCollection }) => ({
-        ...defaultCollection,
-        fields: [
-          ...defaultCollection.fields,
-          {
-            name: 'accessToken',
-            type: 'text',
-            unique: true,
-            index: true,
-            admin: {
-              position: 'sidebar',
-              readOnly: true,
-            },
-            hooks: {
-              beforeValidate: [
-                ({ value, operation }) => {
-                  if (operation === 'create' || !value) {
-                    return crypto.randomUUID()
-                  }
-                  return value
-                },
-              ],
-            },
-          },
-        ],
-      }),
+      ordersCollectionOverride: OrdersCollectionOverride,
     },
     payments: {
-      paymentMethods: [
-        stripeAdapter({
-          secretKey: process.env.STRIPE_SECRET_KEY!,
-          publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-          webhookSecret: process.env.STRIPE_WEBHOOKS_SIGNING_SECRET!,
-        }),
-      ],
+      paymentMethods: isStripeConfigured
+        ? [
+            stripeAdapter({
+              secretKey: process.env.STRIPE_SECRET_KEY!,
+              publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+              webhookSecret: process.env.STRIPE_WEBHOOKS_SIGNING_SECRET!,
+            }),
+          ]
+        : [],
     },
     products: {
       productsCollectionOverride: ProductsCollection,
