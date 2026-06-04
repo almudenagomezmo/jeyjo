@@ -6,12 +6,20 @@ import { createPayloadCheckoutOrder } from '@/lib/checkout/payload-order'
 import { verifyCheckoutPrepare } from '@/lib/checkout/prepare-token'
 import { resolveCheckoutSegment } from '@/lib/checkout/segment'
 import type { DeliveryMethod } from '@/lib/checkout/totals'
+import { isPaymentsEnabled } from '@/lib/payments/enabled'
+import {
+  PaymentMethodDisabledError,
+  resolvePaymentNextStep,
+} from '@/lib/payments/orchestrator'
+import { fetchPaymentSettings, isPaymentMethodEnabled } from '@/lib/payments/settings'
 
 const B2C_PAYMENT_OPTIONS: Record<string, string> = {
   card: 'Tarjeta',
   bizum: 'Bizum',
   paypal: 'PayPal',
   transfer: 'Transferencia bancaria',
+  apple_pay: 'Apple Pay',
+  google_pay: 'Google Pay',
 }
 
 const PICKUP_LABELS: Record<string, string> = {
@@ -81,6 +89,10 @@ export async function POST(request: Request) {
     if (!code || !B2C_PAYMENT_OPTIONS[code]) {
       return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
     }
+    const paymentSettings = await fetchPaymentSettings()
+    if (!isPaymentMethodEnabled(paymentSettings, code)) {
+      return NextResponse.json({ error: 'Payment method not available' }, { status: 400 })
+    }
     paymentMethodCode = code
     paymentMethodLabel = B2C_PAYMENT_OPTIONS[code]!
   }
@@ -114,10 +126,30 @@ export async function POST(request: Request) {
       )
     }
 
+    const status = segment === 'b2b' ? 'pending_confirmation' : 'pending_payment'
+    let nextStep = null
+
+    if (segment === 'b2c' && isPaymentsEnabled()) {
+      try {
+        nextStep = await resolvePaymentNextStep({
+          orderNumber: order.orderNumber,
+          orderId: order.id,
+          paymentMethodCode,
+          amountEuros: prepare.totals.total,
+        })
+      } catch (err) {
+        if (err instanceof PaymentMethodDisabledError) {
+          return NextResponse.json({ error: 'Payment method not available' }, { status: 400 })
+        }
+        throw err
+      }
+    }
+
     return NextResponse.json({
       orderNumber: order.orderNumber,
       orderId: order.id,
-      status: segment === 'b2b' ? 'pending_confirmation' : 'pending_payment',
+      status,
+      nextStep,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Place order failed'

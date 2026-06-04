@@ -1,0 +1,36 @@
+.pim-health-view {
+  padding: 2rem;
+  max-width: 56rem;
+
+  &__hint {
+    color: var(--theme-elevation-500);
+    margin-bottom: 1.5rem;
+  }
+
+  &__error {
+    color: var(--theme-error-500);
+  }
+
+  &__list {
+    margin: 0.5rem 0 1.5rem;
+    padding-left: 1.25rem;
+  }
+
+  &__group {
+    margin-bottom: 1rem;
+  }
+
+  section {
+    margin-bottom: 2rem;
+  }
+
+  h2 {
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+  }
+}

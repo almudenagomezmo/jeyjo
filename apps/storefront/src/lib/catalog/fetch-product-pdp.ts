@@ -1,5 +1,7 @@
+import { resolveCatalogImage, resolveSeoImage } from '@jeyjo/catalog-images'
 import { unstable_cache } from 'next/cache'
 
+import { absoluteMediaUrl, absoluteMediaUrlOrNull, cmsBaseUrl } from '@/lib/catalog/absolute-media-url'
 import { lexicalToSanitizedHtml } from '@/lib/cms/lexical-to-html'
 import {
   isPublicCatalogProduct,
@@ -35,32 +37,19 @@ export type CmsPdpProductDoc = CmsProductSnapshot &
     }> | null
     relatedProducts?: Array<CmsPdpProductDoc | string | number> | null
     categories?: Array<{ name?: string | null; slug?: string | null } | string | number> | null
+    meta?: {
+      title?: string | null
+      description?: string | null
+      image?: CmsMediaRef | string | number | null
+    } | null
   }
 
-function cmsBaseUrl(): string | null {
-  return (
-    process.env.CMS_URL ??
-    process.env.CMS_INTERNAL_URL ??
-    process.env.NEXT_PUBLIC_PAYLOAD_URL ??
-    null
-  )
-}
-
-function absoluteMediaUrl(url: string): string {
-  const trimmed = url.trim()
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
-  const base = cmsBaseUrl()
-  if (!base) return trimmed
-  return `${base.replace(/\/$/, '')}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`
-}
-
-function resolveImageUrl(doc: CmsPdpProductDoc): string | null {
-  const own = doc.ownImage
-  if (own && typeof own === 'object' && own.url) {
-    return absoluteMediaUrl(String(own.url))
-  }
-  if (doc.providerImageUrl?.trim()) return doc.providerImageUrl.trim()
-  return null
+function resolveCatalogImageUrl(doc: CmsPdpProductDoc): string | null {
+  const raw = resolveCatalogImage({
+    ownImage: doc.ownImage,
+    providerImageUrl: doc.providerImageUrl,
+  })
+  return absoluteMediaUrlOrNull(raw)
 }
 
 function primaryCategoryName(categories: CmsPdpProductDoc['categories']): string {
@@ -138,7 +127,15 @@ export function mapPdpDocToView(doc: CmsPdpProductDoc): PdpProductView | null {
     ecoLabel: doc.ecoLabel === true,
     categoryName: primaryCategoryName(doc.categories),
     categorySlugs: mapDocToRow(doc)?.categorySlugs ?? [],
-    imageUrl: resolveImageUrl(doc),
+    imageUrl: resolveCatalogImageUrl(doc),
+    metaTitle: doc.meta?.title?.trim() || null,
+    seoImageUrl: absoluteMediaUrlOrNull(
+      resolveSeoImage({
+        metaImage: doc.meta?.image,
+        ownImage: doc.ownImage,
+        providerImageUrl: doc.providerImageUrl,
+      }),
+    ),
     longDescriptionHtml: doc.longDescription
       ? lexicalToSanitizedHtml(doc.longDescription)
       : null,

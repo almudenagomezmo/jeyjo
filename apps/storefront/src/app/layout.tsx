@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Manrope, JetBrains_Mono } from "next/font/google";
-import { TopBar } from "@/components/layout/TopBar";
 import { NavigationShell } from "@/components/layout/NavigationShell";
 import { MiniCart } from "@/components/cart/MiniCart";
 import { themeInitScript } from "@/components/layout/ThemeToggle";
@@ -37,7 +36,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="antialiased">
-        <TopBar />
         <NavigationShell>{children}</NavigationShell>
         <MiniCart />
       </body>

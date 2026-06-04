@@ -1,8 +1,29 @@
 import type { NextConfig } from "next";
 
+function catalogImageRemotePatterns(): Array<{
+  protocol: "http" | "https";
+  hostname: string;
+  pathname: string;
+}> {
+  const defaults = [
+    { protocol: "https" as const, hostname: "example.com", pathname: "/**" },
+    { protocol: "http" as const, hostname: "localhost", pathname: "/**" },
+    { protocol: "http" as const, hostname: "127.0.0.1", pathname: "/**" },
+  ];
+  const extra = (process.env.CATALOG_IMAGE_REMOTE_HOSTS ?? "")
+    .split(",")
+    .map((h) => h.trim())
+    .filter(Boolean)
+    .flatMap((hostname) => [
+      { protocol: "https" as const, hostname, pathname: "/**" },
+      { protocol: "http" as const, hostname, pathname: "/**" },
+    ]);
+  return [...defaults, ...extra];
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@jeyjo/pricing", "@jeyjo/stock-ports", "@jeyjo/erp-ports"],
+  transpilePackages: ["@jeyjo/pricing", "@jeyjo/stock-ports", "@jeyjo/erp-ports", "@jeyjo/catalog-images"],
   // Workspace packages use Node-style `.js` import specifiers in TS sources.
   webpack: (config) => {
     config.resolve ??= {};
@@ -12,11 +33,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "example.com", pathname: "/**" },
-      { protocol: "http", hostname: "localhost", pathname: "/**" },
-      { protocol: "http", hostname: "127.0.0.1", pathname: "/**" },
-    ],
+    remotePatterns: catalogImageRemotePatterns(),
   },
 };
 

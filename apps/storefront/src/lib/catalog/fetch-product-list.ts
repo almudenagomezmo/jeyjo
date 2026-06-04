@@ -1,5 +1,7 @@
+import { resolveCatalogImage } from '@jeyjo/catalog-images'
 import { unstable_cache } from 'next/cache'
 
+import { absoluteMediaUrlOrNull } from '@/lib/catalog/absolute-media-url'
 import {
   fetchPublicProductsBySkus,
 } from '@/lib/catalog/fetch-public-products-by-skus'
@@ -19,6 +21,8 @@ import { demoRowsForCategory, demoRowsForSearch, isPlpDemoFallback } from '@/lib
 export type CmsProductListDoc = CmsProductSnapshot & {
   title?: string | null
   slug?: string | null
+  providerImageUrl?: string | null
+  ownImage?: { url?: string | null } | string | number | null
   packUnit?: number | null
   facetColor?: string | null
   facetMaterial?: string | null
@@ -61,6 +65,10 @@ export function mapDocToRow(doc: CmsProductListDoc): PlpProductRow | null {
   if (!sku) return null
 
   const level = (doc.stockIndicator ?? 'limited') as StockIndicatorLevel
+  const catalogRaw = resolveCatalogImage({
+    ownImage: doc.ownImage,
+    providerImageUrl: doc.providerImageUrl,
+  })
 
   return {
     sku,
@@ -78,6 +86,7 @@ export function mapDocToRow(doc: CmsProductListDoc): PlpProductRow | null {
     rating: 4.5,
     reviews: 0,
     hasOffer: false,
+    imageUrl: absoluteMediaUrlOrNull(catalogRaw),
   }
 }
 

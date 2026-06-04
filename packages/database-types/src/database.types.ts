@@ -338,6 +338,36 @@ export type Database = {
           },
         ]
       }
+      payment_notifications: {
+        Row: {
+          created_at: string
+          gateway: string
+          id: string
+          order_reference: string
+          raw_parameters: Json
+          response_code: string | null
+          signature: string
+        }
+        Insert: {
+          created_at?: string
+          gateway?: string
+          id?: string
+          order_reference: string
+          raw_parameters?: Json
+          response_code?: string | null
+          signature: string
+        }
+        Update: {
+          created_at?: string
+          gateway?: string
+          id?: string
+          order_reference?: string
+          raw_parameters?: Json
+          response_code?: string | null
+          signature?: string
+        }
+        Relationships: []
+      }
       search_events: {
         Row: {
           action: string

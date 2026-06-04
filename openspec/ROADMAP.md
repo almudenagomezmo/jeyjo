@@ -25,11 +25,11 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 15 | `home-segmented-banners` | 9, 10 | Alcance §1.6, US-02 | Completado | 2026-06-04 |
 | 16 | `auth-registration-area-cliente` | 2, 3 | RF-001, RF-004, US-04, US-07 | Completado | 2026-06-04 |
 | 17 | `checkout-shipping-b2c-b2b` | 12, 16 | RF-013, RF-014, US-04 | Completado | 2026-06-04 |
-| 18 | `payments-redsys-wallets` | 17 | RF-014, US-04, RI-006 | Pendiente | — |
+| 18 | `payments-redsys-wallets` | 17 | RF-014, US-04, RI-006 | Completado | 2026-06-04 |
 | 19 | `quotes-presupuesto-flow` | 17, 20 | RF-015, US-05 | Pendiente | — |
 | 20 | `oms-pedidos-web` | 3, 17 | RF-025, US-17 | Pendiente | — |
-| 21 | `pim-seo-dual-images` | 3, 5 | RF-024, US-16 | Pendiente | — |
-| 22 | `portal-b2b-shell` | 16, 6 | RF-001, RF-011, US-07 | Pendiente | — |
+| 21 | `pim-seo-dual-images` | 3, 5 | RF-024, US-16 | Completado | 2026-06-04 |
+| 22 | `portal-b2b-shell` | 16, 6 | RF-001, RF-011, US-07 | Completado | 2026-06-04 |
 | 23 | `purchase-history-repeat` | 6, 12, 22 | RF-018, US-10 | Pendiente | — |
 | 24 | `quick-order-excel` | 12, 22 | RF-019, US-11 | Pendiente | — |
 | 25 | `custom-tariffs-view` | 6, 22, 4 | RF-020, US-14 | Pendiente | — |
@@ -52,6 +52,6 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 42 | `system-config-backoffice` | 5, 30 | Alcance §1.36 | Pendiente | — |
 | 43 | `seo-technical-auditor` | 21, 34 | Alcance auditor SEO | Pendiente | — |
 
-**Siguiente cambio recomendado:** #18 `payments-redsys-wallets` (dependencia #17 completada). Alternativa en paralelo si se prioriza backoffice: #20 `oms-pedidos-web` (dependencias #3 y #17 completadas).
+**Siguiente cambio recomendado:** #20 `oms-pedidos-web` (desbloquea #19 presupuestos, #27 RMA, #28 notificaciones y flujos post-pago). En paralelo, si se prioriza portal B2B: #23 `purchase-history-repeat`, #24 `quick-order-excel` o #25 `custom-tariffs-view` (dependencias #6, #12 y #22 ya completadas).
 
 Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live.

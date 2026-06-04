@@ -49,16 +49,17 @@ export async function seedHomeMerchandising({
   const lastMonth = new Date(now)
   lastMonth.setDate(lastMonth.getDate() - 30)
 
-  const topSalesB2c = [ref001, ref002, toner, grifo].filter(Boolean) as (string | number)[]
-  const topSalesB2b = [printer, toner, ref002].filter(Boolean) as (string | number)[]
-  const ecoHighlight = [pvc, ref002].filter(Boolean) as (string | number)[]
+  const topSalesB2c = [ref001, ref002, toner, grifo].filter((id): id is number => typeof id === 'number')
+  const topSalesB2b = [printer, toner, ref002].filter((id): id is number => typeof id === 'number')
+  const ecoHighlight = [pvc, ref002].filter((id): id is number => typeof id === 'number')
+  const heroImageId = typeof heroMediaId === 'number' ? heroMediaId : Number(heroMediaId)
 
   await payload.updateGlobal({
     slug: 'home',
     data: {
       promoBanners: [
         {
-          image: heroMediaId,
+          image: heroImageId,
           href: '/c/escritura',
           alt: 'Ofertas escritura B2C',
           segment: 'b2c',
@@ -67,7 +68,7 @@ export async function seedHomeMerchandising({
           sortOrder: 1,
         },
         {
-          image: heroMediaId,
+          image: heroImageId,
           href: '/c/impresion',
           alt: 'Portal empresas impresión',
           segment: 'b2b',
@@ -76,7 +77,7 @@ export async function seedHomeMerchandising({
           sortOrder: 2,
         },
         {
-          image: heroMediaId,
+          image: heroImageId,
           href: '/search?q=eco',
           alt: 'Campaña eco (expirada — QA)',
           segment: 'both',
@@ -85,7 +86,7 @@ export async function seedHomeMerchandising({
           sortOrder: 0,
         },
         {
-          image: heroMediaId,
+          image: heroImageId,
           href: '/c/reciclaje',
           alt: 'Sostenibilidad para todos',
           segment: 'both',

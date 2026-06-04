@@ -2,7 +2,7 @@ import type { Payload, PayloadRequest } from 'payload'
 
 import { deletePoints, upsertPoints } from '@/lib/qdrant'
 import type { SearchEntityType } from '@/lib/supabase-server'
-import { resolveDisplayImage } from '@/utilities/resolveDisplayImage'
+import { resolveCatalogImage } from '@jeyjo/catalog-images'
 
 import { embedDocumentText } from './embedding'
 import { buildIndexText } from './indexText'
@@ -92,7 +92,7 @@ async function loadProductPayload(
     priceHint: base.priceHint ?? product.p1Price ?? null,
     thumbnailUrl:
       base.thumbnailUrl ??
-      resolveDisplayImage({
+      resolveCatalogImage({
         ownImage: product.ownImage,
         providerImageUrl: product.providerImageUrl,
       }),

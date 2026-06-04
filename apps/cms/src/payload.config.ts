@@ -23,8 +23,11 @@ import { Users } from '@/collections/Users'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
 import { Home } from '@/globals/Home'
+import { PaymentSettings } from '@/globals/PaymentSettings'
 import { auditLogEndpoint } from '@/endpoints/audit-log'
+import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
 import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
+import { pimHealthEndpoint } from '@/endpoints/pim-health'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
 import { qdrantCollections } from '@/lib/qdrant-collections'
@@ -79,6 +82,14 @@ export default buildConfig({
         pendingCustomers: {
           Component: '@/components/PendingCustomersView#PendingCustomersView',
           path: '/pending-customers',
+        },
+        pimHealth: {
+          Component: '@/components/PimHealthView#PimHealthView',
+          path: '/pim-health',
+        },
+        bulkSeoTemplate: {
+          Component: '@/components/BulkSeoTemplateView#BulkSeoTemplateView',
+          path: '/bulk-seo-template',
         },
       },
     },
@@ -135,8 +146,13 @@ export default buildConfig({
     defaultFromName: process.env.RESEND_FROM_NAME || 'Jeyjo',
     defaultFromAddress: process.env.RESEND_FROM_EMAIL || 'noreply@tudominio.com',
   }),
-  endpoints: [auditLogEndpoint, pendingCustomersEndpoint],
-  globals: [Header, Footer, Home],
+  endpoints: [
+    auditLogEndpoint,
+    pendingCustomersEndpoint,
+    bulkSeoTemplateEndpoint,
+    pimHealthEndpoint,
+  ],
+  globals: [Header, Footer, Home, PaymentSettings],
   plugins,
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL,

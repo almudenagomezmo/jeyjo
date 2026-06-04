@@ -29,6 +29,7 @@ function demoToRow(p: (typeof PRODUCTS)[number]): PlpProductRow {
     rating: p.rating,
     reviews: p.reviews,
     hasOffer: p.offer != null,
+    imageUrl: null,
   }
 }
 

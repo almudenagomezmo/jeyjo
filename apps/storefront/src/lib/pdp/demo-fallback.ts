@@ -31,6 +31,7 @@ function demoToRow(p: (typeof PRODUCTS)[number]): PlpProductRow {
     rating: p.rating,
     reviews: p.reviews,
     hasOffer: p.offer != null,
+    imageUrl: null,
   }
 }
 
@@ -60,6 +61,8 @@ export function loadDemoPdpView(id: string): {
       categoryName: p.categoryId,
       categorySlugs: [p.categoryId, p.subcategoryId].filter(Boolean),
       imageUrl: null,
+      metaTitle: null,
+      seoImageUrl: null,
       longDescriptionHtml: `<p>${p.description}</p>`,
       metaDescription: p.description.slice(0, 160),
       specRows: [

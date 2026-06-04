@@ -17,14 +17,19 @@ import type { CheckoutTotals } from "@/lib/checkout/totals";
 import { useCartSummary } from "@/lib/hooks/useCartSummary";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useHydrated } from "@/lib/hooks/useHydrated";
+import { submitRedirectForm } from "@/lib/payments/submit-redirect-form";
+import type { PaymentSettings } from "@/lib/payments/settings";
 import { formatMoney } from "@/lib/utils/format";
+import { WalletPayButtons } from "@/components/checkout/WalletPayButtons";
 
-const B2C_PAYMENTS = [
-  { code: "card", label: "Tarjeta" },
-  { code: "bizum", label: "Bizum" },
-  { code: "paypal", label: "PayPal" },
-  { code: "transfer", label: "Transferencia bancaria" },
-] as const;
+const PAYMENT_LABELS: Record<string, string> = {
+  card: "Tarjeta",
+  bizum: "Bizum",
+  paypal: "PayPal",
+  transfer: "Transferencia bancaria",
+  apple_pay: "Apple Pay",
+  google_pay: "Google Pay",
+};
 
 const DELIVERY_OPTIONS: { value: DeliveryMethod; label: string }[] = [
   { value: "home", label: "Envío a dirección de facturación" },
@@ -38,6 +43,7 @@ export type CheckoutPageProps = {
   isLoggedIn: boolean;
   defaultPaymentMethod: string | null;
   billingLabel: string | null;
+  paymentSettings?: PaymentSettings | null;
 };
 
 export function CheckoutPage({
@@ -45,6 +51,7 @@ export function CheckoutPage({
   isLoggedIn,
   defaultPaymentMethod,
   billingLabel,
+  paymentSettings,
 }: CheckoutPageProps) {
   const router = useRouter();
   const hydrated = useHydrated();
@@ -72,6 +79,21 @@ export function CheckoutPage({
   const [prepareError, setPrepareError] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState<string | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<{ code: string; label: string }[]>([]);
+
+  useEffect(() => {
+    if (segment !== "b2c") return;
+    void fetch("/api/payments/methods")
+      .then((r) => r.json())
+      .then((body: { methods?: { code: string; label: string }[] }) => {
+        const methods = body.methods ?? [];
+        setPaymentMethods(methods);
+        if (methods.length > 0 && !methods.some((m) => m.code === paymentMethodCode)) {
+          setPaymentMethodCode(methods[0]!.code);
+        }
+      })
+      .catch(() => setPaymentMethods([]));
+  }, [segment]);
 
   const readCouponCode = () =>
     typeof window !== "undefined" ? sessionStorage.getItem(CHECKOUT_COUPON_STORAGE_KEY) : null;
@@ -203,12 +225,46 @@ export function CheckoutPage({
           alternateAddressId,
         }),
       });
-      const body = (await res.json()) as { error?: string; orderNumber?: string };
+      const body = (await res.json()) as {
+        error?: string;
+        orderNumber?: string;
+        orderId?: number;
+        nextStep?: {
+          type: string;
+          provider?: string;
+          url?: string;
+          path?: string;
+          form?: { action: string; fields: Record<string, string> };
+        };
+      };
       if (!res.ok) throw new Error(body.error ?? "Error al confirmar");
       clearCart();
       sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
       sessionStorage.removeItem("jeyjo-checkout-draft");
-      router.push(`/checkout/confirmacion?order=${encodeURIComponent(body.orderNumber ?? "")}`);
+
+      const orderNumber = body.orderNumber ?? "";
+      const next = body.nextStep;
+
+      if (next?.type === "redirect" && next.form) {
+        submitRedirectForm(next.form.action, next.form.fields);
+        return;
+      }
+      if (next?.type === "redirect" && next.url) {
+        window.location.href = next.url;
+        return;
+      }
+      if (next?.type === "instructions" && next.path) {
+        router.push(next.path);
+        return;
+      }
+      if (next?.type === "wallet") {
+        setPlaceError(
+          "Apple Pay y Google Pay requieren configuración InSite en Redsys. Usa tarjeta o Bizum.",
+        );
+        return;
+      }
+
+      router.push(`/checkout/confirmacion?order=${encodeURIComponent(orderNumber)}`);
     } catch (err) {
       setPlaceError(err instanceof Error ? err.message : "Error al confirmar");
     } finally {
@@ -378,7 +434,12 @@ export function CheckoutPage({
               {segment === "b2c" ? (
                 <fieldset className="space-y-2">
                   <legend className="text-sm font-medium text-text-secondary">Forma de pago</legend>
-                  {B2C_PAYMENTS.map((p) => (
+                  {(paymentMethods.length > 0
+                    ? paymentMethods
+                    : Object.entries(PAYMENT_LABELS).map(([code, label]) => ({ code, label }))
+                  )
+                    .filter((p) => p.code !== "apple_pay" && p.code !== "google_pay")
+                    .map((p) => (
                     <label
                       key={p.code}
                       className="flex cursor-pointer items-center gap-2 text-sm"
@@ -395,9 +456,21 @@ export function CheckoutPage({
                       {p.label}
                     </label>
                   ))}
-                  <p className="text-xs text-text-tertiary">
-                    El cobro con pasarela se activará en una próxima versión.
-                  </p>
+                  {paymentSettings && (
+                    <WalletPayButtons
+                      applePayEnabled={paymentSettings.applePayEnabled}
+                      googlePayEnabled={paymentSettings.googlePayEnabled}
+                      disabled={placing}
+                      onApplePay={() => {
+                        setPaymentMethodCode("apple_pay");
+                        persistDraft({ paymentMethodCode: "apple_pay" });
+                      }}
+                      onGooglePay={() => {
+                        setPaymentMethodCode("google_pay");
+                        persistDraft({ paymentMethodCode: "google_pay" });
+                      }}
+                    />
+                  )}
                 </fieldset>
               ) : (
                 <div className="rounded-md bg-surface-muted p-4 text-sm">

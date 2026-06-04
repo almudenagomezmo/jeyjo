@@ -44,6 +44,33 @@ describe('hydrateSuggestProducts', () => {
 
     expect(products.map((p) => p.sku)).toEqual(['GOOD'])
   })
+
+  it('returns imageUrl from catalog thumbnail hydration', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          docs: [
+            {
+              skuErp: 'REF-IMG',
+              title: 'With image',
+              slug: 'ref-img',
+              _status: 'published',
+              isWildcard: false,
+              ownImage: { url: '/media/own.jpg' },
+            },
+          ],
+        }),
+      }),
+    )
+
+    const products = await hydrateSuggestProducts([
+      { sku: 'REF-IMG', score: 1, payload: { skuErp: 'REF-IMG', title: 'With image' } },
+    ])
+
+    expect(products[0]?.imageUrl).toBe('http://cms.test/media/own.jpg')
+  })
 })
 
 describe('EAN query mock ordering', () => {

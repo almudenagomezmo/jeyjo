@@ -24,6 +24,7 @@
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
   },
   "dependencies": {
+    "@jeyjo/catalog-images": "workspace:*",
     "@jeyjo/database-types": "workspace:*",
     "@jeyjo/erp-ports": "workspace:*",
     "@jeyjo/pricing": "workspace:*",

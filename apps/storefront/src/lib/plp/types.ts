@@ -21,6 +21,7 @@ export type PlpProductRow = {
   rating: number
   reviews: number
   hasOffer: boolean
+  imageUrl: string | null
 }
 
 export type PlpActiveFilters = {

@@ -1,5 +1,7 @@
+import { resolveCatalogImage } from '@jeyjo/catalog-images'
 import { unstable_cache } from 'next/cache'
 
+import { absoluteMediaUrlOrNull } from '@/lib/catalog/absolute-media-url'
 import {
   isPublicCatalogProduct,
   type CmsProductSnapshot,
@@ -8,6 +10,8 @@ import {
 export type PublicProductDoc = CmsProductSnapshot & {
   title?: string | null
   slug?: string | null
+  providerImageUrl?: string | null
+  ownImage?: { url?: string | null } | string | number | null
   mainWholesaleRef?: string | null
   oemRef?: string | null
   ean?: string | null
@@ -75,9 +79,14 @@ export async function fetchPublicProductsBySkus(skus: string[]): Promise<PublicP
     if (!isPublicCatalogProduct(doc)) continue
     const sku = doc.skuErp?.trim()
     if (!sku) continue
+    const catalogRaw = resolveCatalogImage({
+      ownImage: doc.ownImage,
+      providerImageUrl: doc.providerImageUrl,
+    })
     bySku.set(sku, {
       ...doc,
       brand: supplierName(doc.supplier),
+      thumbnailUrl: absoluteMediaUrlOrNull(catalogRaw) ?? doc.thumbnailUrl ?? null,
     })
   }
 

@@ -83,7 +83,12 @@ export function QuickViewDialog({ row, quote, stock, onClose }: QuickViewDialogP
           </button>
         </div>
 
-        <ProductImage product={product} glyphSize={120} className="mx-auto mb-4" />
+        <ProductImage
+          product={product}
+          imageUrl={row.imageUrl ?? undefined}
+          glyphSize={120}
+          className="mx-auto mb-4"
+        />
 
         {quote && (
           <div className="mb-3">

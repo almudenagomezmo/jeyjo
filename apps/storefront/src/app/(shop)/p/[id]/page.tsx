@@ -12,6 +12,7 @@ import { appendCrumb, buildBreadcrumbsFromPath } from "@/lib/catalog/build-bread
 import { getNavigationTree } from "@/lib/catalog/fetch-navigation-tree";
 import { listPublishedProductSlugs } from "@/lib/catalog/fetch-product-pdp";
 import { loadPdpPage } from "@/lib/pdp/load-pdp-page";
+import { buildPdpMetadataFromView, buildProductJsonLdFromView } from "@/lib/seo/pdp-metadata";
 import { plpRowToProduct } from "@/lib/plp/row-to-product";
 
 export const dynamicParams = true;
@@ -30,13 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const payload = await loadPdpPage(id);
   if (!payload) return { title: "Producto no encontrado" };
   const { product } = payload;
-  return {
-    title: product.title,
-    description:
-      product.metaDescription ??
-      product.longDescriptionHtml?.replace(/<[^>]+>/g, "").slice(0, 160) ??
-      undefined,
-  };
+  return buildPdpMetadataFromView(product);
 }
 
 export default async function ProductPage({ params }: PageProps) {
@@ -70,12 +65,18 @@ export default async function ProductPage({ params }: PageProps) {
     rating: product.rating ?? 0,
     reviews: product.reviews ?? 0,
     hasOffer: false,
+    imageUrl: product.imageUrl,
   });
 
   const showRating = product.rating != null && product.reviews != null && product.reviews > 0;
+  const productJsonLd = buildProductJsonLdFromView(product);
 
   return (
     <Container className="pt-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <Breadcrumb items={crumbs} />
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">

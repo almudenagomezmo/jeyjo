@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 import { isB2bValidated, isB2cOnly } from '@/lib/auth/redirect'
 import { getCustomerContext } from '@/lib/auth/customer-context'
-import { updateSession } from '@/lib/supabase/middleware'
+import { applyPortalRequestHeader, updateSession } from '@/lib/supabase/middleware'
 
 const ACCOUNT_PREFIX = '/cuenta'
 const INTRANET_PREFIX = '/intranet'
@@ -59,6 +59,7 @@ export async function middleware(request: NextRequest) {
       cuenta.searchParams.set('error', 'forbidden')
       return NextResponse.redirect(cuenta)
     }
+    return applyPortalRequestHeader(request, response)
   }
 
   return response

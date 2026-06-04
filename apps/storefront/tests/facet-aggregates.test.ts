@@ -20,6 +20,7 @@ const rows: PlpProductRow[] = [
     rating: 4,
     reviews: 0,
     hasOffer: false,
+    imageUrl: null,
   },
   {
     sku: 'B',
@@ -37,6 +38,7 @@ const rows: PlpProductRow[] = [
     rating: 5,
     reviews: 0,
     hasOffer: false,
+    imageUrl: null,
   },
   {
     sku: 'C',
@@ -54,6 +56,7 @@ const rows: PlpProductRow[] = [
     rating: 3,
     reviews: 0,
     hasOffer: false,
+    imageUrl: null,
   },
 ]
 

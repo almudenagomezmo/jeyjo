@@ -49,4 +49,29 @@ describe('fetchPublicProductsBySkus', () => {
 
     expect(docs.map((d) => d.skuErp)).toEqual(['REF-001', 'REF-002'])
   })
+
+  it('sets thumbnailUrl from ownImage via resolveCatalogImage', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          docs: [
+            {
+              skuErp: 'REF-IMG',
+              title: 'With image',
+              slug: 'ref-img',
+              _status: 'published',
+              isWildcard: false,
+              ownImage: { url: '/media/own.jpg' },
+              providerImageUrl: 'https://provider.example/p.jpg',
+            },
+          ],
+        }),
+      }),
+    )
+
+    const docs = await fetchPublicProductsBySkus(['REF-IMG'])
+    expect(docs[0]?.thumbnailUrl).toBe('http://cms.test/media/own.jpg')
+  })
 })

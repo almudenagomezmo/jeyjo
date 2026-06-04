@@ -92,29 +92,28 @@ export const seed = async ({
   payload.logger.info(`— Clearing collections and globals...`)
 
   // clear the database
-  await Promise.all(
-    globals.map((global) =>
+  await Promise.all([
+    payload.updateGlobal({
+      slug: 'home',
+      data: {
+        promoBanners: [],
+        featuredCategories: [],
+        topSalesB2c: [],
+        topSalesB2b: [],
+        ecoHighlight: [],
+      },
+      depth: 0,
+      context: { disableRevalidate: true },
+    }),
+    ...(['header', 'footer'] as const).map((global) =>
       payload.updateGlobal({
         slug: global,
-        data:
-          global === 'home'
-            ? {
-                promoBanners: [],
-                featuredCategories: [],
-                topSalesB2c: [],
-                topSalesB2b: [],
-                ecoHighlight: [],
-              }
-            : {
-                navItems: [],
-              },
+        data: { navItems: [] },
         depth: 0,
-        context: {
-          disableRevalidate: true,
-        },
+        context: { disableRevalidate: true },
       }),
     ),
-  )
+  ])
 
   for (const collection of collections) {
     await payload.db.deleteMany({ collection, req, where: {} })

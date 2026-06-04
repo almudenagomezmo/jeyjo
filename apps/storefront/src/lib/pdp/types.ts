@@ -24,6 +24,8 @@ export type PdpProductView = {
   categoryName: string
   categorySlugs: string[]
   imageUrl: string | null
+  metaTitle: string | null
+  seoImageUrl: string | null
   longDescriptionHtml: string | null
   metaDescription: string | null
   specRows: PdpSpecRow[]

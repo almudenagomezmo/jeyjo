@@ -80,7 +80,11 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     metaDescription: true,
     providerImageUrl: true,
     ownImage: true,
-    meta: true,
+    meta: {
+      title: true,
+      description: true,
+      image: true,
+    },
   },
   hooks: {
     ...defaultCollection?.hooks,
@@ -243,6 +247,10 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
         {
           name: 'meta',
           label: 'SEO Preview',
+          admin: {
+            description:
+              'Título, descripción e imagen para Open Graph, Twitter y datos estructurados. Si no hay meta.image, el storefront usa la imagen de catálogo (propia o proveedor).',
+          },
           fields: [
             OverviewField({
               titlePath: 'meta.title',

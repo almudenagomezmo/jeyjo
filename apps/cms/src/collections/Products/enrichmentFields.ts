@@ -50,7 +50,7 @@ export const enrichmentFields: Field[] = [
     label: 'URL imagen proveedor',
     admin: {
       description:
-        'URL externa del proveedor (sin descarga). Si hay imagen propia, tiene prioridad en el frontend.',
+        'Imagen de catálogo (listados y ficha): URL externa del proveedor. La imagen propia tiene prioridad en el storefront. No se usa para Open Graph.',
     },
   },
   {
@@ -59,7 +59,8 @@ export const enrichmentFields: Field[] = [
     relationTo: 'media',
     label: 'Imagen propia',
     admin: {
-      description: 'Subida a catalog-media. Prioridad sobre URL de proveedor.',
+      description:
+        'Imagen de catálogo (listados y galería PDP). Prioridad sobre URL de proveedor. Para redes sociales use meta.image en la pestaña SEO Preview.',
     },
   },
   {

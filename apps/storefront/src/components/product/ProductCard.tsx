@@ -82,7 +82,11 @@ export function ProductCard(props: ProductCardProps) {
     <Card className="group relative flex flex-col overflow-hidden transition-[border-color,transform] hover:-translate-y-0.5 hover:border-border-strong">
       <div className="relative p-4 pb-0">
         <Link href={`/p/${product.id}`} aria-label={product.name}>
-          <ProductImage product={product} glyphSize={120} />
+          <ProductImage
+            product={product}
+            imageUrl={props.row?.imageUrl ?? undefined}
+            glyphSize={120}
+          />
         </Link>
         <div className="absolute left-6 top-6 flex flex-col gap-1">
           {discount != null && discount > 0 && (

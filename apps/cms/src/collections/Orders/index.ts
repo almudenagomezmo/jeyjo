@@ -149,6 +149,62 @@ const jeyjoOrderFields: Field[] = [
     admin: { position: 'sidebar' },
   },
   {
+    type: 'collapsible',
+    label: 'Pago',
+    admin: { initCollapsed: false },
+    fields: [
+      {
+        name: 'paymentStatus',
+        type: 'select',
+        label: 'Estado del pago',
+        defaultValue: 'pending',
+        options: [
+          { label: 'Pendiente', value: 'pending' },
+          { label: 'Autorizado', value: 'authorized' },
+          { label: 'Fallido', value: 'failed' },
+          { label: 'Cancelado', value: 'cancelled' },
+        ],
+      },
+      {
+        name: 'gateway',
+        type: 'select',
+        label: 'Pasarela',
+        options: [
+          { label: 'Redsys', value: 'redsys' },
+          { label: 'PayPal', value: 'paypal' },
+          { label: 'Transferencia', value: 'transfer' },
+          { label: 'ERP / condiciones', value: 'erp' },
+        ],
+      },
+      {
+        name: 'gatewayTransactionId',
+        type: 'text',
+        label: 'ID transacción pasarela',
+      },
+      {
+        name: 'gatewayAuthCode',
+        type: 'text',
+        label: 'Código autorización',
+      },
+      {
+        name: 'paidAmount',
+        type: 'number',
+        label: 'Importe cobrado',
+      },
+      {
+        name: 'paidAt',
+        type: 'date',
+        label: 'Fecha de cobro',
+        admin: { date: { pickerAppearance: 'dayAndTime' } },
+      },
+      {
+        name: 'paymentFailureReason',
+        type: 'text',
+        label: 'Motivo fallo de pago',
+      },
+    ],
+  },
+  {
     name: 'orderLineSnapshots',
     type: 'json',
     label: 'Líneas (snapshot checkout)',

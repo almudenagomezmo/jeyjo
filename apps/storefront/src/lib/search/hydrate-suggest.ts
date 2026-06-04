@@ -27,7 +27,7 @@ function mapDocToSuggest(
     title: doc.title?.trim() || payload.title?.trim() || sku,
     slug,
     href: productHref(slug, sku),
-    imageUrl: doc.thumbnailUrl ?? payload.thumbnailUrl ?? null,
+    imageUrl: doc.thumbnailUrl ?? null,
     wholesaleRef: doc.mainWholesaleRef ?? payload.mainWholesaleRef ?? null,
     oemRef: doc.oemRef ?? payload.oemRef ?? null,
     ean: doc.ean ?? payload.ean ?? null,

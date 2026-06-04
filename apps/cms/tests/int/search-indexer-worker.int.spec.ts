@@ -72,6 +72,55 @@ describe('search-indexer worker batch', () => {
     expect(completeSearchEvent).toHaveBeenCalled()
   })
 
+  it('does not use meta.image for thumbnailUrl (catalog only)', async () => {
+    const entityId = payloadIdToUuid('producto', 88)
+    claimSearchEvents.mockResolvedValue([
+      {
+        id: '66666666-6666-6666-6666-666666666666',
+        entity_type: 'producto',
+        entity_id: entityId,
+        action: 'upsert',
+        payload: {
+          title: 'SEO only image',
+          payloadEntityId: 88,
+        },
+        status: 'processing',
+        error_message: null,
+        created_at: new Date().toISOString(),
+        processed_at: null,
+      },
+    ])
+
+    const findByID = vi.fn().mockResolvedValue({
+      id: 88,
+      title: 'SEO only image',
+      slug: 'seo-only',
+      skuErp: 'REF-SEO',
+      ean: '8412222222222',
+      _status: 'published',
+      isWildcard: false,
+      categories: [],
+      ownImage: null,
+      providerImageUrl: null,
+      meta: { image: { url: '/media/seo-only.jpg' } },
+    })
+
+    await runSearchIndexerBatch({
+      payload: { logger: mockLogger(), findByID } as never,
+    })
+
+    expect(upsertPoints).toHaveBeenCalledWith(
+      'products',
+      expect.arrayContaining([
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            thumbnailUrl: null,
+          }),
+        }),
+      ]),
+    )
+  })
+
   it('loads ERP fields from Payload when hook payload is minimal', async () => {
     const entityId = payloadIdToUuid('producto', 77)
     claimSearchEvents.mockResolvedValue([

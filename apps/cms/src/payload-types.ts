@@ -133,10 +133,14 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    home: Home;
+    paymentSettings: PaymentSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    home: HomeSelect<false> | HomeSelect<true>;
+    paymentSettings: PaymentSettingsSelect<false> | PaymentSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -241,12 +245,68 @@ export interface Order {
   id: number;
   orderNumber?: string | null;
   origin?: ('b2c' | 'b2b' | 'eva') | null;
-  jeyjoStatus?: ('pending' | 'confirmed' | 'preparing' | 'shipped' | 'delivered' | 'cancelled') | null;
+  jeyjoStatus?:
+    | (
+        | 'pending'
+        | 'pending_payment'
+        | 'pending_confirmation'
+        | 'confirmed'
+        | 'preparing'
+        | 'shipped'
+        | 'delivered'
+        | 'cancelled'
+      )
+    | null;
   /**
    * UUID de public.customers hasta enlace formal en #16
    */
   customerRef?: string | null;
   validatedEva?: boolean | null;
+  deliveryMethod?: ('home' | 'alternate_address' | 'pickup_alfaro' | 'pickup_rincon') | null;
+  shippingCost?: number | null;
+  pickupStoreLabel?: string | null;
+  shippingAddressSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  billingAddressSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  couponCode?: string | null;
+  customerNotes?: string | null;
+  guestEmail?: string | null;
+  paymentMethodCode?: string | null;
+  paymentMethodLabel?: string | null;
+  paymentStatus?: ('pending' | 'authorized' | 'failed' | 'cancelled') | null;
+  gateway?: ('redsys' | 'paypal' | 'transfer' | 'erp') | null;
+  gatewayTransactionId?: string | null;
+  gatewayAuthCode?: string | null;
+  paidAmount?: number | null;
+  paidAt?: string | null;
+  paymentFailureReason?: string | null;
+  /**
+   * SKU, cantidades y precios al confirmar desde storefront
+   */
+  orderLineSnapshots?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   accessToken?: string | null;
   items?:
     | {
@@ -311,13 +371,35 @@ export interface Product {
       }[]
     | null;
   /**
-   * URL externa del proveedor (sin descarga). Si hay imagen propia, tiene prioridad en el frontend.
+   * Imagen de catálogo (listados y ficha): URL externa del proveedor. La imagen propia tiene prioridad en el storefront. No se usa para Open Graph.
    */
   providerImageUrl?: string | null;
   /**
-   * Subida a catalog-media. Prioridad sobre URL de proveedor.
+   * Imagen de catálogo (listados y galería PDP). Prioridad sobre URL de proveedor. Para redes sociales use meta.image en la pestaña SEO Preview.
    */
   ownImage?: (number | null) | Media;
+  /**
+   * Valor mostrado en filtros del listado de productos (RF-010).
+   */
+  facetColor?: string | null;
+  /**
+   * Tipo de material para filtros del listado (RF-010).
+   */
+  facetMaterial?: string | null;
+  /**
+   * Producto con etiqueta ecológica en PLP.
+   */
+  ecoLabel?: boolean | null;
+  /**
+   * Manuales y fichas técnicas visibles en la ficha de producto (RF-012).
+   */
+  attachments?:
+    | {
+        label: string;
+        file: number | Media;
+        id?: string | null;
+      }[]
+    | null;
   skuErp?: string | null;
   mainWholesaleRef?: string | null;
   oemRef?: string | null;
@@ -373,6 +455,9 @@ export interface Product {
   priceInUSDEnabled?: boolean | null;
   priceInUSD?: number | null;
   relatedProducts?: (number | Product)[] | null;
+  /**
+   * Título, descripción e imagen para Open Graph, Twitter y datos estructurados. Si no hay meta.image, el storefront usa la imagen de catálogo (propia o proveedor).
+   */
   meta?: {
     title?: string | null;
     /**
@@ -677,6 +762,30 @@ export interface Category {
   parent?: (number | null) | Category;
   sortOrder?: number | null;
   imageUrl?: string | null;
+  /**
+   * Icono en la rejilla de categorías destacadas de la tienda.
+   */
+  homeGlyph?:
+    | (
+        | 'pen'
+        | 'notebook'
+        | 'paper'
+        | 'toner'
+        | 'ink'
+        | 'folder'
+        | 'binder'
+        | 'stapler'
+        | 'calc'
+        | 'scissors'
+        | 'marker'
+        | 'tape'
+        | 'recycle'
+        | 'bin'
+        | 'battery'
+        | 'printer'
+        | 'box'
+      )
+    | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
@@ -1463,6 +1572,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   parent?: T;
   sortOrder?: T;
   imageUrl?: T;
+  homeGlyph?: T;
   generateSlug?: T;
   slug?: T;
   updatedAt?: T;
@@ -1726,6 +1836,16 @@ export interface ProductsSelect<T extends boolean = true> {
       };
   providerImageUrl?: T;
   ownImage?: T;
+  facetColor?: T;
+  facetMaterial?: T;
+  ecoLabel?: T;
+  attachments?:
+    | T
+    | {
+        label?: T;
+        file?: T;
+        id?: T;
+      };
   skuErp?: T;
   mainWholesaleRef?: T;
   oemRef?: T;
@@ -1814,6 +1934,24 @@ export interface OrdersSelect<T extends boolean = true> {
   jeyjoStatus?: T;
   customerRef?: T;
   validatedEva?: T;
+  deliveryMethod?: T;
+  shippingCost?: T;
+  pickupStoreLabel?: T;
+  shippingAddressSnapshot?: T;
+  billingAddressSnapshot?: T;
+  couponCode?: T;
+  customerNotes?: T;
+  guestEmail?: T;
+  paymentMethodCode?: T;
+  paymentMethodLabel?: T;
+  paymentStatus?: T;
+  gateway?: T;
+  gatewayTransactionId?: T;
+  gatewayAuthCode?: T;
+  paidAmount?: T;
+  paidAt?: T;
+  paymentFailureReason?: T;
+  orderLineSnapshots?: T;
   accessToken?: T;
   items?:
     | T
@@ -1975,6 +2113,54 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home".
+ */
+export interface Home {
+  id: number;
+  promoBanners?:
+    | {
+        image: number | Media;
+        href: string;
+        alt?: string | null;
+        segment: 'b2c' | 'b2b' | 'both';
+        startAt: string;
+        endAt: string;
+        sortOrder?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  featuredCategories?: (number | Category)[] | null;
+  topSalesB2c?: (number | Product)[] | null;
+  topSalesB2b?: (number | Product)[] | null;
+  ecoHighlight?: (number | Product)[] | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "paymentSettings".
+ */
+export interface PaymentSetting {
+  id: number;
+  cardEnabled?: boolean | null;
+  bizumEnabled?: boolean | null;
+  paypalEnabled?: boolean | null;
+  transferEnabled?: boolean | null;
+  applePayEnabled?: boolean | null;
+  googlePayEnabled?: boolean | null;
+  transferInstructions?: {
+    iban?: string | null;
+    beneficiary?: string | null;
+    /**
+     * Use {orderNumber} como marcador de referencia
+     */
+    conceptTemplate?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -2014,6 +2200,53 @@ export interface FooterSelect<T extends boolean = true> {
               label?: T;
             };
         id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home_select".
+ */
+export interface HomeSelect<T extends boolean = true> {
+  promoBanners?:
+    | T
+    | {
+        image?: T;
+        href?: T;
+        alt?: T;
+        segment?: T;
+        startAt?: T;
+        endAt?: T;
+        sortOrder?: T;
+        id?: T;
+      };
+  featuredCategories?: T;
+  topSalesB2c?: T;
+  topSalesB2b?: T;
+  ecoHighlight?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "paymentSettings_select".
+ */
+export interface PaymentSettingsSelect<T extends boolean = true> {
+  cardEnabled?: T;
+  bizumEnabled?: T;
+  paypalEnabled?: T;
+  transferEnabled?: T;
+  applePayEnabled?: T;
+  googlePayEnabled?: T;
+  transferInstructions?:
+    | T
+    | {
+        iban?: T;
+        beneficiary?: T;
+        conceptTemplate?: T;
       };
   updatedAt?: T;
   createdAt?: T;

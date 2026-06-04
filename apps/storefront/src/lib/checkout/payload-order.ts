@@ -1,6 +1,7 @@
 import type { CheckoutSegment } from '@/lib/checkout/segment'
 import type { DeliveryMethod } from '@/lib/checkout/totals'
 import type { CheckoutPreparePayload } from '@/lib/checkout/prepare-token'
+import { gatewayForMethod } from '@/lib/payments/settings'
 
 export type PlaceOrderInput = {
   prepare: CheckoutPreparePayload
@@ -52,6 +53,8 @@ export async function createPayloadCheckoutOrder(
     customerNotes: input.customerNotes,
     paymentMethodCode: input.paymentMethodCode,
     paymentMethodLabel: input.paymentMethodLabel,
+    paymentStatus: segment === 'b2b' ? undefined : 'pending',
+    gateway: gatewayForMethod(input.paymentMethodCode),
     amount: prepare.totals.total,
     orderLineSnapshots: prepare.lineSnapshots,
     items: [],
