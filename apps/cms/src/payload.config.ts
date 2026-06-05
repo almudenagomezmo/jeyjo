@@ -58,7 +58,9 @@ import { preloadExcelAdapter } from '@/erp/registry'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
 import { qdrantCollections } from '@/lib/qdrant-collections'
-import {nodemailerAdapter} from "@payloadcms/email-nodemailer";
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
+
+import { getEmailTransportOptions } from '@/lib/email/mailpit'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -79,28 +81,6 @@ const connectionString =
   isSupabase && !databaseUrl.includes('sslmode=')
     ? `${databaseUrl}${databaseUrl.includes('?') ? '&' : '?'}uselibpqcompat=true&sslmode=require`
     : databaseUrl
-
-/** Desarrollo → Mailpit (salvo SMTP_USE_RESEND=true); producción → Resend; si no, jsonTransport. */
-function getEmailTransportOptions() {
-  const isDev = process.env.NODE_ENV !== 'production'
-  const useResendInDev = process.env.SMTP_USE_RESEND === 'true'
-
-  if (process.env.SMTP_USE_MAILPIT === 'true' || (isDev && !useResendInDev)) {
-    return { host: 'localhost', port: 1025, secure: false, ignoreTLS: true }
-  }
-
-  if (process.env.RESEND_API_KEY?.trim()) {
-    const port = Number(process.env.RESEND_SMTP_PORT || 587)
-    return {
-      host: process.env.RESEND_SMTP_HOST || 'smtp.resend.com',
-      port,
-      auth: { user: 'resend', pass: process.env.RESEND_API_KEY },
-      secure: port === 465,
-    }
-  }
-
-  return { jsonTransport: true }
-}
 
 export default buildConfig({
   admin: {

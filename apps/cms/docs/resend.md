@@ -2,7 +2,40 @@
 
 Configuración de envío de correos mediante **Resend** en producción y **Mailpit** en desarrollo.
 
-## Credenciales SMTP
+## Interruptor local: `USE_MAILPIT`
+
+En `apps/cms/.env` y `apps/storefront/.env`:
+
+```env
+USE_MAILPIT=true   # desarrollo → Mailpit
+USE_MAILPIT=false  # prueba Resend / Supabase SMTP real
+```
+
+| `USE_MAILPIT` | CMS (Payload) | Registro storefront |
+|---------------|---------------|---------------------|
+| `true` | SMTP → `localhost:1025` | Enlace confirmación → Mailpit |
+| `false` + `RESEND_API_KEY` | SMTP → Resend | Supabase Auth SMTP |
+| `false` sin API key | `jsonTransport` (log) | Supabase Auth SMTP |
+
+Levantar Mailpit:
+
+```bash
+pnpm mailpit:up    # desde la raíz del monorepo
+```
+
+UI: `http://localhost:8025`
+
+Variables opcionales:
+
+| Variable | Defecto |
+|----------|---------|
+| `MAILPIT_SMTP_HOST` | `localhost` |
+| `MAILPIT_SMTP_PORT` | `1025` |
+| `MAILPIT_WEB_URL` | `http://localhost:8025` |
+
+Variables legacy (siguen funcionando): `SMTP_USE_MAILPIT`, `SMTP_USE_RESEND`.
+
+## Credenciales SMTP (Resend)
 
 | Campo | Valor |
 |---|---|
@@ -20,32 +53,6 @@ Configuración de envío de correos mediante **Resend** en producción y **Mailp
 | `RESEND_SMTP_PORT` | Puerto SMTP | `587` |
 | `RESEND_FROM_EMAIL` | Dirección remitente | `noreply@tudominio.com` |
 | `RESEND_FROM_NAME` | Nombre remitente | `Jeyjo` |
-
-## Comportamiento por entorno
-
-La configuración en `src/payload.config.ts` usa automáticamente:
-
-- **Desarrollo** (`NODE_ENV=development` o sin `RESEND_API_KEY`) → **Mailpit** en `localhost:1025`
-- **Producción** → **Resend** vía SMTP
-
-## Mailpit (desarrollo)
-
-Mailpit captura todos los correos sin enviarlos realmente y los muestra en una interfaz web.
-
-### Inicio rápido
-
-```bash
-docker compose -f docker/docker-compose.yml up -d mailpit
-```
-
-Abre `http://localhost:8025` para ver los correos.
-
-### Puertos
-
-| Puerto | Uso |
-|---|---|
-| `1025` | SMTP |
-| `8025` | Web UI |
 
 ## Envío manual con el SDK de Resend
 
@@ -71,3 +78,4 @@ await resend.emails.send({
 
 - [Dashboard Resend](https://resend.com)
 - [Mailpit](https://github.com/axllent/mailpit)
+- [CONFIGURACION.md](../../../CONFIGURACION.md) — guía completa del monorepo

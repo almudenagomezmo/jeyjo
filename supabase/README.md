@@ -62,6 +62,27 @@ Variables típicas (ver `.env.example` de cada app):
 
 Local tras `supabase start`: API `http://127.0.0.1:54321`, Postgres `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
 
+## Auth: emails de confirmación (Resend SMTP)
+
+El registro en el storefront (`/registro`) llama a `signUp()` de Supabase Auth, que envía el correo de confirmación **desde el dashboard de Supabase**, no desde el CMS.
+
+En **Supabase Dashboard → Authentication → SMTP Settings**:
+
+| Campo | Valor |
+|-------|-------|
+| Enable custom SMTP | Sí |
+| Host | `smtp.resend.com` |
+| Port | `587` (TLS) o `465` (SSL) |
+| Username | `resend` |
+| Password | API key de Resend (`re_…`) |
+| Sender email | Dirección de un **dominio verificado** en Resend |
+
+El remitente debe usar un dominio verificado en [Resend → Domains](https://resend.com/domains). Si `noreply@jeyjo.com` falla con *"Error sending confirmation email"*, Resend está rechazando el envío porque `jeyjo.com` aún no está verificado (añade los registros DNS que indica Resend).
+
+**Desarrollo rápido (sin SMTP):** Authentication → Providers → Email → desactivar **Confirm email**. Los usuarios podrán iniciar sesión sin abrir el enlace del correo.
+
+**Site URL / Redirect URLs:** `http://localhost:3000` (y la URL de producción cuando exista).
+
 ## Migraciones
 
 | Archivo | Contenido |

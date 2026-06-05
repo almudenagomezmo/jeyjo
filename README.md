@@ -14,6 +14,10 @@ Monorepo de la plataforma e-commerce B2C/B2B y backoffice de Jeyjo.
 - Proyecto en [Supabase Cloud](https://supabase.com/dashboard) (flujo habitual)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) — **opcional**: Qdrant/Mailpit del CMS (`apps/cms/docker/`) o Supabase local (ver abajo)
 
+**Configuración detallada** (Supabase dashboard, Resend, `.env` de cada app): [CONFIGURACION.md](CONFIGURACION.md)
+
+**Emails en local (Mailpit):** `pnpm mailpit:up` y `USE_MAILPIT=true` en `apps/cms/.env` + `apps/storefront/.env`
+
 ## Base de datos (Supabase Cloud — recomendado)
 
 Esquema núcleo (`customers`, `web_profiles`, `search_events`, `audit_log`, RLS): ver [supabase/README.md](supabase/README.md).
