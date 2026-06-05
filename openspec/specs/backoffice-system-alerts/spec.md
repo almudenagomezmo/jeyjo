@@ -70,7 +70,7 @@ When one or more `customers` rows have `validated_at` NULL, the dashboard SHALL 
 
 - **WHEN** three customers await validation
 - **THEN** a warning alert states pending count 3
-- **AND** the alert links to `/admin/pending-customers`
+- **AND** the alert links to `/admin/customers?status=pending`
 
 #### Scenario: No pending registrations
 

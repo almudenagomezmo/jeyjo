@@ -27,6 +27,7 @@ import { DashboardKpisView as DashboardKpisView_a65563ff34e3d45a0b5926f6ee65ae59
 import { BeforeLogin as BeforeLogin_8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/components/BeforeLogin'
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 import { AuditLogView as AuditLogView_03160af9efa1fa5b8f41c67277172bb7 } from '@/components/AuditLogView'
+import { CustomersAdminView as CustomersAdminView_98bf39f3aeefa044b99829865cf3b800 } from '@/components/CustomersAdminView'
 import { PendingCustomersView as PendingCustomersView_1f8eb6690bca47cd8067d5902ebc0c17 } from '@/components/PendingCustomersView'
 import { PimHealthView as PimHealthView_b511d8cee0ee65de27135277bd34293a } from '@/components/PimHealthView'
 import { BulkSeoTemplateView as BulkSeoTemplateView_7891f73b3f6aae4e5805baf0cbd09d28 } from '@/components/BulkSeoTemplateView'
@@ -72,6 +73,7 @@ export const importMap = {
   "@/components/BeforeLogin#BeforeLogin": BeforeLogin_8a7ab0eb7ab5c511aba12e68480bfe5e,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
   "@/components/AuditLogView#AuditLogView": AuditLogView_03160af9efa1fa5b8f41c67277172bb7,
+  "@/components/CustomersAdminView#CustomersAdminView": CustomersAdminView_98bf39f3aeefa044b99829865cf3b800,
   "@/components/PendingCustomersView#PendingCustomersView": PendingCustomersView_1f8eb6690bca47cd8067d5902ebc0c17,
   "@/components/PimHealthView#PimHealthView": PimHealthView_b511d8cee0ee65de27135277bd34293a,
   "@/components/BulkSeoTemplateView#BulkSeoTemplateView": BulkSeoTemplateView_7891f73b3f6aae4e5805baf0cbd09d28,

@@ -15,8 +15,14 @@ Requisitos cubiertos: **RNF-009** (RLS multi-tenant), **RD-001** (índices para 
 
 `DATABASE_URL` en `apps/cms/.env` debe apuntar al pooler del proyecto cloud. **No hace falta** `supabase start`.
 
+**Alternativa sin CLI** (SQL Editor del dashboard): ejecuta el bundle
+[`apply-all-migrations-sql-editor.sql`](apply-all-migrations-sql-editor.sql) — regenerar con `pnpm db:sql-editor-bundle`.
+
 ```bash
+pnpm db:check-schema # verifica tablas/columnas núcleo en cloud (REST)
 pnpm db:push         # migraciones pendientes → proyecto enlazado (supabase link)
+pnpm db:apply-migrations   # aplica SQL vía DATABASE_URL (si db:push falla)
+pnpm db:repair-migrations  # borra historial y re-aplica (tablas ausentes pero marcadas)
 pnpm db:seed         # seed.sql (clientes, precios) vía DATABASE_URL
 pnpm seed:catalog    # catálogo jeyjo.es → tablas Payload en el mismo Postgres
 pnpm db:bootstrap    # db:seed + seed:catalog (arranque cloud)

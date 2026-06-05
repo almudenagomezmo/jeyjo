@@ -86,7 +86,7 @@ Verificación manual (**CA-SEARCH-002**): tras warm-up, `"boligrafo vic"` debe m
   - **CA-AUTH-001 (B2C):** email `b2c-demo@jeyjo.local`, customer `a0000002-…0002`, `role=b2c`.
   - **CA-AUTH-002 (B2B):** email `b2b-demo@jeyjo.local`, customer `a0000001-…0001`, `role=b2b_superadmin`, `customer_group=2`.
 - Confirmación de email: configurable en el proyecto Supabase; redirect recomendado `/login?confirmed=1`.
-- Validación de altas pendientes: CMS admin → **Clientes pendientes** (`/admin/pending-customers`).
+- Validación de altas pendientes: CMS admin → **Clientes tienda** (`/admin/customers`, filtro pendientes). Tras validar, el CMS envía email de aprobación (distinto del email de confirmación de Supabase).
 
 ## Scripts
 

@@ -1,10 +1,4 @@
-# CMS customer validation queue
-
-## Purpose
-
-Staff-only customer registration queue, full customers admin view, and validate action in Payload CMS (RF-004).
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Staff queue for pending customer registrations
 
@@ -63,24 +57,7 @@ Staff with roles `superadmin` or `administracion` and valid MFA session SHALL va
 - **AND** `web_profiles.role` becomes `b2b_superadmin`
 - **AND** the next login redirects to `/intranet`
 
-### Requirement: Validation action is audited
-
-Each validation action SHALL append an immutable `audit_log` record with staff user id, customer id, previous and new `customer_group`, and timestamp.
-
-#### Scenario: Audit log on validation
-
-- **WHEN** staff validates customer id C-123
-- **THEN** `audit_log` contains an entry with entity type customer and the group change details
-
-### Requirement: Validation endpoint is staff-authenticated only
-
-The validate action SHALL require an authenticated Payload staff session with permission to manage customers; anonymous and storefront JWT MUST NOT call the validation endpoint successfully.
-
-#### Scenario: Storefront JWT cannot validate
-
-- **WHEN** a storefront customer JWT calls the validation endpoint
-- **THEN** the response is 401 or 403
-- **AND** no customer row is updated
+## ADDED Requirements
 
 ### Requirement: Customer detail read-only view
 

@@ -79,8 +79,8 @@ El servidor arranca en `http://localhost:3001`.
 ### Payload schema vs migraciones Supabase
 
 1. Aplicar primero `supabase/migrations/` (`pnpm db:reset` o `supabase db push`).
-2. Arrancar CMS — Payload crea/actualiza tablas de colecciones (`products`, `suppliers`, …) vía postgres adapter.
-3. No eliminar tablas core (`customers`, `search_events`, …) desde el admin Payload.
+2. Arrancar CMS — Payload **no** hace schema push automático (evita borrar `customers`, `web_profiles`, …). Tras cambiar colecciones: `pnpm --filter @jeyjo/cms payload migrate`.
+3. No eliminar tablas core (`customers`, `search_events`, …) desde el admin Payload. No uses `PAYLOAD_DB_PUSH=true` salvo en Postgres sin tablas Supabase.
 
 ## 5. Poblar catálogo y datos de demo
 

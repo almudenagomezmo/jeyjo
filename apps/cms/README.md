@@ -107,7 +107,7 @@ NEXT_PUBLIC_SERVER_URL=http://localhost:3001
 MFA_GRACE_DAYS=0
 ```
 
-3. Payload crea/actualiza tablas de colecciones al arrancar (`push` en dev). **Orden:** migraciones Supabase (#2) primero, luego `pnpm dev:cms`.
+3. **Orden:** migraciones Supabase (#2) primero, luego `pnpm dev:cms`. El schema push de Payload está **desactivado** por defecto (coexiste con tablas `customers`, `web_profiles`, etc.). Si cambias colecciones Payload, ejecuta `pnpm --filter @jeyjo/cms payload migrate`. Solo en Postgres aislado: `PAYLOAD_DB_PUSH=true pnpm dev:cms`.
 
 4. Seed Jeyjo: admin → seed endpoint o POST `/next/seed` (catálogo demo + usuarios staff).
 
@@ -121,7 +121,7 @@ Audit console: `http://localhost:3001/admin/audit-log`
 ### Coexistencia Payload + Supabase
 
 - Tablas `customers`, `web_profiles`, `search_events`, `audit_log` → migraciones `supabase/migrations/`.
-- **Clientes pendientes (RF-004):** vista admin `/admin/pending-customers`; validación `POST /next/customers/:id/validate` (solo sesión staff Payload + MFA).
+- **Clientes tienda (RF-004):** vista admin `/admin/customers` (filtro pendientes por defecto); APIs `GET /api/customers-admin` y `GET /api/customers-admin/:id`; validación `POST /next/customers/:id/validate` (solo `superadmin`/`administracion` + MFA). Email Supabase = confirmar dirección; email CMS = cuenta aprobada. Legacy `/admin/pending-customers` redirige a la nueva vista.
 - Tablas `products`, `orders`, `suppliers`, etc. → schema Payload (postgres adapter).
 - No ejecutar `DROP` manual de tablas core desde Payload.
 

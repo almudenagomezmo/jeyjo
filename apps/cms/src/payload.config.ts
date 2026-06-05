@@ -36,7 +36,7 @@ import { SystemSettings } from '@/globals/SystemSettings'
 import { SYSTEM_SETTINGS_SEED } from '@/lib/system-config/defaults'
 import { auditLogEndpoint } from '@/endpoints/audit-log'
 import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
-import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
+import { customersAdminEndpoints } from '@/endpoints/customers-admin'
 import { dashboardSummaryEndpoint } from '@/endpoints/dashboard-summary'
 import { pimHealthEndpoint } from '@/endpoints/pim-health'
 import { ordersOmsEndpoints } from '@/endpoints/orders-oms'
@@ -82,6 +82,13 @@ const connectionString =
     ? `${databaseUrl}${databaseUrl.includes('?') ? '&' : '?'}uselibpqcompat=true&sslmode=require`
     : databaseUrl
 
+/**
+ * Payload schema push deletes tables Drizzle does not own. Jeyjo core tables
+ * (`customers`, `web_profiles`, `audit_log`, …) live in supabase/migrations and
+ * must never be dropped. Opt in with PAYLOAD_DB_PUSH=true only on isolated DBs.
+ */
+const pushSchema = process.env.PAYLOAD_DB_PUSH === 'true'
+
 export default buildConfig({
   admin: {
     components: {
@@ -94,6 +101,10 @@ export default buildConfig({
         auditLog: {
           Component: '@/components/AuditLogView#AuditLogView',
           path: '/audit-log',
+        },
+        customersAdmin: {
+          Component: '@/components/CustomersAdminView#CustomersAdminView',
+          path: '/customers',
         },
         pendingCustomers: {
           Component: '@/components/PendingCustomersView#PendingCustomersView',
@@ -167,6 +178,8 @@ export default buildConfig({
         ? { ssl: { rejectUnauthorized: false } }
         : {}),
     },
+    push: pushSchema,
+    migrationDir: path.resolve(dirname, '../migrations'),
   }),
   editor: lexicalEditor({
     features: () => {
@@ -210,7 +223,7 @@ export default buildConfig({
   }),
   endpoints: [
     auditLogEndpoint,
-    pendingCustomersEndpoint,
+    ...customersAdminEndpoints,
     bulkSeoTemplateEndpoint,
     dashboardSummaryEndpoint,
     pimHealthEndpoint,

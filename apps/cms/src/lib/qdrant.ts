@@ -7,6 +7,7 @@ function getClient() {
   return new QdrantClient({
     url,
     apiKey: apiKey || undefined,
+    checkCompatibility: false,
   });
 }
 

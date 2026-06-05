@@ -81,8 +81,8 @@ export function RegisterForm() {
     <Card className="mx-auto max-w-lg p-8">
       <h1 className="text-2xl font-extrabold tracking-tight">Crear cuenta</h1>
       <p className="mt-2 text-sm text-text-secondary">
-        Tras el registro, un administrador validará tu cuenta. Hasta entonces comprarás con condiciones de
-        particular.
+        Primero recibirás un correo para confirmar tu dirección de email. Después, un administrador de Jeyjo
+        validará tu cuenta; hasta entonces comprarás con condiciones de particular.
       </p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <label className="block text-sm font-semibold">

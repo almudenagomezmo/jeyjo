@@ -114,7 +114,7 @@ export async function buildSystemAlerts(input: {
         title: 'Clientes pendientes de validar',
         description: `${pending} registro(s) esperan validación.`,
         timestamp: now.toISOString(),
-        href: '/admin/pending-customers',
+        href: '/admin/customers?status=pending',
       })
     }
   }
