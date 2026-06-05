@@ -26,6 +26,12 @@ import { MfaGate as MfaGate_68edbd8d33f9093aab74ace8411f3a87 } from '@/component
 import { BeforeLogin as BeforeLogin_8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/components/BeforeLogin'
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 import { AuditLogView as AuditLogView_03160af9efa1fa5b8f41c67277172bb7 } from '@/components/AuditLogView'
+import { PendingCustomersView as PendingCustomersView_1f8eb6690bca47cd8067d5902ebc0c17 } from '@/components/PendingCustomersView'
+import { PimHealthView as PimHealthView_b511d8cee0ee65de27135277bd34293a } from '@/components/PimHealthView'
+import { BulkSeoTemplateView as BulkSeoTemplateView_7891f73b3f6aae4e5805baf0cbd09d28 } from '@/components/BulkSeoTemplateView'
+import { OmsInboxView as OmsInboxView_e9e8ed26e22b88b8327fe273ee5f398b } from '@/components/OmsInboxView'
+import { EvaOrdersQueueView as EvaOrdersQueueView_a7a9f0e2bc60731d8b0674605c616d10 } from '@/components/EvaOrdersQueueView'
+import { QuotesInboxView as QuotesInboxView_32842f000502387a81d1e28fa6fedb2b } from '@/components/QuotesInboxView'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -58,5 +64,11 @@ export const importMap = {
   "@/components/BeforeLogin#BeforeLogin": BeforeLogin_8a7ab0eb7ab5c511aba12e68480bfe5e,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
   "@/components/AuditLogView#AuditLogView": AuditLogView_03160af9efa1fa5b8f41c67277172bb7,
+  "@/components/PendingCustomersView#PendingCustomersView": PendingCustomersView_1f8eb6690bca47cd8067d5902ebc0c17,
+  "@/components/PimHealthView#PimHealthView": PimHealthView_b511d8cee0ee65de27135277bd34293a,
+  "@/components/BulkSeoTemplateView#BulkSeoTemplateView": BulkSeoTemplateView_7891f73b3f6aae4e5805baf0cbd09d28,
+  "@/components/OmsInboxView#OmsInboxView": OmsInboxView_e9e8ed26e22b88b8327fe273ee5f398b,
+  "@/components/EvaOrdersQueueView#EvaOrdersQueueView": EvaOrdersQueueView_a7a9f0e2bc60731d8b0674605c616d10,
+  "@/components/QuotesInboxView#QuotesInboxView": QuotesInboxView_32842f000502387a81d1e28fa6fedb2b,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }
