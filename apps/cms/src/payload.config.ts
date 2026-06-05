@@ -75,9 +75,16 @@ const connectionString =
     ? `${databaseUrl}${databaseUrl.includes('?') ? '&' : '?'}uselibpqcompat=true&sslmode=require`
     : databaseUrl
 
-/** Resend si hay API key; Mailpit con SMTP_USE_MAILPIT=true; si no, jsonTransport (sin envío real). */
+/** Desarrollo → Mailpit (salvo SMTP_USE_RESEND=true); producción → Resend; si no, jsonTransport. */
 function getEmailTransportOptions() {
-  if (process.env.RESEND_API_KEY) {
+  const isDev = process.env.NODE_ENV !== 'production'
+  const useResendInDev = process.env.SMTP_USE_RESEND === 'true'
+
+  if (process.env.SMTP_USE_MAILPIT === 'true' || (isDev && !useResendInDev)) {
+    return { host: 'localhost', port: 1025, secure: false, ignoreTLS: true }
+  }
+
+  if (process.env.RESEND_API_KEY?.trim()) {
     const port = Number(process.env.RESEND_SMTP_PORT || 587)
     return {
       host: process.env.RESEND_SMTP_HOST || 'smtp.resend.com',
@@ -86,9 +93,7 @@ function getEmailTransportOptions() {
       secure: port === 465,
     }
   }
-  if (process.env.SMTP_USE_MAILPIT === 'true') {
-    return { host: 'localhost', port: 1025, secure: false, ignoreTLS: true }
-  }
+
   return { jsonTransport: true }
 }
 

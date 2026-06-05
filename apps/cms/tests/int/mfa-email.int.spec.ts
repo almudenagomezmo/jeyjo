@@ -25,6 +25,12 @@ describe('mfa email codes', () => {
     clearEmailMfaCode('user-2')
     expect(verifyEmailMfaCode('user-2', code)).toBe(false)
   })
+
+  it('can verify without consuming the code', () => {
+    const code = storeEmailMfaCode('user-3')
+    expect(verifyEmailMfaCode('user-3', code, { consume: false })).toBe(true)
+    expect(verifyEmailMfaCode('user-3', code)).toBe(true)
+  })
 })
 
 describe('mfa mode', () => {

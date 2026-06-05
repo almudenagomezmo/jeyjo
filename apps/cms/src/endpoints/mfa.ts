@@ -1,7 +1,11 @@
 import { APIError, type Endpoint } from 'payload'
 
 import { hasStaffRole, isStaff } from '@/access/staffRoles'
-import { clearEmailMfaCode, storeEmailMfaCode, verifyEmailMfaCode } from '@/lib/mfa-email-codes'
+import {
+  clearEmailMfaCode,
+  storeEmailMfaCode,
+  verifyEmailMfaCode,
+} from '@/lib/mfa-email-codes'
 import { getMfaMode, isEmailMfaMode } from '@/lib/mfa-mode'
 import { clearMfaCookieHeader, mfaCookieHeader } from '@/lib/mfa-session'
 import { sendMfaCodeEmail } from '@/lib/send-mfa-email'
@@ -13,6 +17,17 @@ function requireStaffUser(req: Parameters<NonNullable<Endpoint['handler']>>[0]) 
     throw new APIError('Forbidden', 403)
   }
   return req.user
+}
+
+async function logMfaSecurityAudit(
+  req: Parameters<NonNullable<Endpoint['handler']>>[0],
+  input: Parameters<typeof writeSecurityAudit>[0],
+): Promise<void> {
+  try {
+    await writeSecurityAudit(input)
+  } catch (err) {
+    req.payload.logger.error({ err }, 'Failed to write MFA security audit')
+  }
 }
 
 async function sendEmailMfaCode(
@@ -28,9 +43,24 @@ async function sendEmailMfaCode(
   try {
     await sendMfaCodeEmail(req.payload, email, code, isEnrollment)
   } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      req.payload.logger.warn({
+        msg: '[dev] MFA email delivery failed — use the code from this log entry',
+        err,
+        userId: user.id,
+        email,
+        code,
+      })
+      return Response.json({ mode: 'email' as const, sent: true, email })
+    }
+
     clearEmailMfaCode(user.id)
     req.payload.logger.error({ msg: 'Failed to send MFA email', err, userId: user.id })
     throw new APIError('No se pudo enviar el código por email. Revisa la configuración SMTP.', 500)
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    req.payload.logger.info({ msg: '[dev] MFA code sent', userId: user.id, email, code })
   }
 
   return Response.json({ mode: 'email' as const, sent: true, email })
@@ -76,7 +106,7 @@ export const mfaVerifyEnrollmentEndpoint: Endpoint = {
     if (!code) throw new APIError('Code required', 400)
 
     if (isEmailMfaMode()) {
-      if (!verifyEmailMfaCode(user.id, code)) {
+      if (!verifyEmailMfaCode(user.id, code, { consume: false })) {
         throw new APIError('Invalid email code', 400)
       }
 
@@ -87,7 +117,9 @@ export const mfaVerifyEnrollmentEndpoint: Endpoint = {
         overrideAccess: true,
       })
 
-      await writeSecurityAudit({
+      clearEmailMfaCode(user.id)
+
+      await logMfaSecurityAudit(req, {
         action: 'MFA_ENROLLED',
         actorId: user.id,
         actorName: user.email ?? null,
@@ -123,7 +155,7 @@ export const mfaVerifyEnrollmentEndpoint: Endpoint = {
       overrideAccess: true,
     })
 
-    await writeSecurityAudit({
+    await logMfaSecurityAudit(req, {
       action: 'MFA_ENROLLED',
       actorId: user.id,
       actorName: user.email ?? null,
@@ -161,9 +193,11 @@ export const mfaVerifyEndpoint: Endpoint = {
     }
 
     if (isEmailMfaMode()) {
-      if (!verifyEmailMfaCode(user.id, code)) {
+      if (!verifyEmailMfaCode(user.id, code, { consume: false })) {
         throw new APIError('Invalid email code', 401)
       }
+
+      clearEmailMfaCode(user.id)
 
       return new Response(JSON.stringify({ success: true, mode: 'email' }), {
         headers: {
@@ -211,7 +245,7 @@ export const mfaResetEndpoint: Endpoint = {
       overrideAccess: true,
     })
 
-    await writeSecurityAudit({
+    await logMfaSecurityAudit(req, {
       action: 'MFA_RESET',
       actorId: actor.id,
       actorName: actor.email ?? null,

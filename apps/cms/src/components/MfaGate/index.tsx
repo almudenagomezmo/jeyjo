@@ -114,7 +114,15 @@ export const MfaGate: React.FC = () => {
       body: JSON.stringify({ code }),
     })
     if (!res.ok) {
-      setError(mode === 'email' ? 'Código inválido o caducado' : 'Código TOTP inválido')
+      const data = (await res.json().catch(() => null)) as { message?: string } | null
+      if (res.status >= 500) {
+        setError(data?.message || 'Error del servidor. Inténtalo de nuevo.')
+      } else {
+        setError(
+          data?.message ||
+            (mode === 'email' ? 'Código inválido o caducado' : 'Código TOTP inválido'),
+        )
+      }
       return
     }
     setStep('ready')

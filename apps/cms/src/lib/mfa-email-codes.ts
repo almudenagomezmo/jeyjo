@@ -20,7 +20,11 @@ export function storeEmailMfaCode(userId: string | number): string {
   return code
 }
 
-export function verifyEmailMfaCode(userId: string | number, code: string): boolean {
+export function verifyEmailMfaCode(
+  userId: string | number,
+  code: string,
+  options?: { consume?: boolean },
+): boolean {
   const pending = pendingByUser.get(String(userId))
   if (!pending) return false
 
@@ -30,7 +34,9 @@ export function verifyEmailMfaCode(userId: string | number, code: string): boole
   }
 
   const ok = pending.code === code.trim()
-  if (ok) pendingByUser.delete(String(userId))
+  if (ok && options?.consume !== false) {
+    pendingByUser.delete(String(userId))
+  }
   return ok
 }
 
