@@ -5,7 +5,7 @@ Backoffice Jeyjo sobre **Payload CMS 3.x** (base: template ecommerce Payload).
 ## Staff auth (cambio `backoffice-mfa-audit-roles`)
 
 - **`users` Payload = solo staff Jeyjo.** Clientes tienda → Supabase `web_profiles` (#16).
-- **MFA TOTP obligatorio** para todo staff antes de operar en colecciones (enrolamiento QR/manual en primer acceso).
+- **MFA obligatorio** para todo staff antes de operar en colecciones. **Desarrollo:** código por email (`RESEND_*` o Mailpit). **Producción:** TOTP (Google Authenticator).
 - **Roles staff:** `superadmin`, `administracion`, `catalogo`, `personalizacion`, `mantenimiento` (campo `staffRoles`, `saveToJWT`).
 - **Consola de auditoría:** `/admin/audit-log` (roles `superadmin` | `mantenimiento`).
 - **Contraseñas staff:** mínimo 12 caracteres + complejidad (RNF-011).

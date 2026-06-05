@@ -1,3 +1,5 @@
+import 'server-only'
+
 import { embedQueryText } from '@jeyjo/search-embedding'
 
 const TTL_MS = 60_000

@@ -32,6 +32,11 @@ export const Users: CollectionConfig = {
     delete: staffDeleteAccess('users'),
     read: (args) => {
       const { user } = args.req
+      const { id } = args
+      // Permite cargar la vista Account durante enrolamiento MFA (sin cookie MFA aún).
+      if (user && id != null && String(id) === String(user.id)) {
+        return true
+      }
       if (user && (hasStaffRole(user, ['superadmin']) || hasStaffRole(user, ['mantenimiento']))) {
         return staffReadAccess('users')(args)
       }

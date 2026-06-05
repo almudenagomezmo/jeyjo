@@ -1,7 +1,10 @@
 import { APIError, type Endpoint } from 'payload'
 
 import { hasStaffRole, isStaff } from '@/access/staffRoles'
+import { clearEmailMfaCode, storeEmailMfaCode, verifyEmailMfaCode } from '@/lib/mfa-email-codes'
+import { getMfaMode, isEmailMfaMode } from '@/lib/mfa-mode'
 import { clearMfaCookieHeader, mfaCookieHeader } from '@/lib/mfa-session'
+import { sendMfaCodeEmail } from '@/lib/send-mfa-email'
 import { extractSourceIp, writeSecurityAudit } from '@/lib/supabase-server'
 import { generateTotpSecret, getTotpUri, verifyTotpCode } from '@/lib/totp'
 
@@ -12,11 +15,43 @@ function requireStaffUser(req: Parameters<NonNullable<Endpoint['handler']>>[0]) 
   return req.user
 }
 
+async function sendEmailMfaCode(
+  req: Parameters<NonNullable<Endpoint['handler']>>[0],
+  isEnrollment: boolean,
+) {
+  const user = requireStaffUser(req)
+  const email = user.email?.trim()
+  if (!email) throw new APIError('User email required for MFA', 400)
+
+  const code = storeEmailMfaCode(user.id)
+
+  try {
+    await sendMfaCodeEmail(req.payload, email, code, isEnrollment)
+  } catch (err) {
+    clearEmailMfaCode(user.id)
+    req.payload.logger.error({ msg: 'Failed to send MFA email', err, userId: user.id })
+    throw new APIError('No se pudo enviar el código por email. Revisa la configuración SMTP.', 500)
+  }
+
+  return Response.json({ mode: 'email' as const, sent: true, email })
+}
+
 export const mfaSetupEndpoint: Endpoint = {
   path: '/mfa/setup',
   method: 'post',
   handler: async (req) => {
     const user = requireStaffUser(req)
+
+    if (isEmailMfaMode()) {
+      const fullUser = await req.payload.findByID({
+        collection: 'users',
+        id: user.id,
+        depth: 0,
+        overrideAccess: true,
+      })
+      return sendEmailMfaCode(req, !fullUser.twoFactorEnabled)
+    }
+
     const secret = generateTotpSecret()
 
     await req.payload.update({
@@ -27,7 +62,7 @@ export const mfaSetupEndpoint: Endpoint = {
     })
 
     const uri = getTotpUri(secret, user.email || String(user.id))
-    return Response.json({ secret, uri })
+    return Response.json({ mode: 'totp' as const, secret, uri })
   },
 }
 
@@ -39,6 +74,35 @@ export const mfaVerifyEnrollmentEndpoint: Endpoint = {
     const body = (await req.json!()) as { code?: string }
     const code = body.code?.trim()
     if (!code) throw new APIError('Code required', 400)
+
+    if (isEmailMfaMode()) {
+      if (!verifyEmailMfaCode(user.id, code)) {
+        throw new APIError('Invalid email code', 400)
+      }
+
+      await req.payload.update({
+        collection: 'users',
+        id: user.id,
+        data: { twoFactorEnabled: true, totpSecret: null },
+        overrideAccess: true,
+      })
+
+      await writeSecurityAudit({
+        action: 'MFA_ENROLLED',
+        actorId: user.id,
+        actorName: user.email ?? null,
+        entityId: user.id,
+        metadata: { mode: 'email' },
+        sourceIp: extractSourceIp(req.headers),
+      })
+
+      return new Response(JSON.stringify({ success: true, mode: 'email' }), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Set-Cookie': mfaCookieHeader(user.id),
+        },
+      })
+    }
 
     const fullUser = await req.payload.findByID({
       collection: 'users',
@@ -67,7 +131,7 @@ export const mfaVerifyEnrollmentEndpoint: Endpoint = {
       sourceIp: extractSourceIp(req.headers),
     })
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, mode: 'totp' }), {
       headers: {
         'Content-Type': 'application/json',
         'Set-Cookie': mfaCookieHeader(user.id),
@@ -92,7 +156,24 @@ export const mfaVerifyEndpoint: Endpoint = {
       overrideAccess: true,
     })
 
-    if (!fullUser.twoFactorEnabled || !fullUser.totpSecret) {
+    if (!fullUser.twoFactorEnabled) {
+      throw new APIError('MFA not enrolled', 400)
+    }
+
+    if (isEmailMfaMode()) {
+      if (!verifyEmailMfaCode(user.id, code)) {
+        throw new APIError('Invalid email code', 401)
+      }
+
+      return new Response(JSON.stringify({ success: true, mode: 'email' }), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Set-Cookie': mfaCookieHeader(user.id),
+        },
+      })
+    }
+
+    if (!fullUser.totpSecret) {
       throw new APIError('MFA not enrolled', 400)
     }
 
@@ -100,7 +181,7 @@ export const mfaVerifyEndpoint: Endpoint = {
       throw new APIError('Invalid TOTP code', 401)
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, mode: 'totp' }), {
       headers: {
         'Content-Type': 'application/json',
         'Set-Cookie': mfaCookieHeader(user.id),
@@ -120,6 +201,8 @@ export const mfaResetEndpoint: Endpoint = {
 
     const targetId = String(req.routeParams?.userId ?? '')
     if (!targetId) throw new APIError('userId required', 400)
+
+    clearEmailMfaCode(targetId)
 
     await req.payload.update({
       collection: 'users',
@@ -160,7 +243,7 @@ export const mfaStatusEndpoint: Endpoint = {
   handler: async (req) => {
     requireStaffUser(req)
     const { hasValidMfaSession } = await import('@/lib/mfa-session')
-    return Response.json({ verified: hasValidMfaSession(req) })
+    return Response.json({ verified: hasValidMfaSession(req), mode: getMfaMode() })
   },
 }
 

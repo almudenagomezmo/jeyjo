@@ -1,3 +1,5 @@
+import 'server-only'
+
 import { searchPoints } from '@/lib/qdrant/client'
 
 import { getCachedQueryEmbedding } from './embedding-cache'
@@ -7,14 +9,6 @@ export type VectorSearchHit = {
   sku: string
   score: number
   payload: QdrantProductPayload
-}
-
-export function isPredictiveSearchEnabled(): boolean {
-  return process.env.PREDICTIVE_SEARCH_ENABLED !== 'false'
-}
-
-export function isQdrantConfigured(): boolean {
-  return Boolean(process.env.QDRANT_URL?.trim())
 }
 
 export async function vectorSearchProductSkus(

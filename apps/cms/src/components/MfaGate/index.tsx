@@ -9,14 +9,20 @@ import './index.scss'
 const baseClass = 'mfa-gate'
 
 type MfaStep = 'loading' | 'enroll' | 'verify' | 'ready'
+type MfaMode = 'email' | 'totp'
+
+const defaultMfaMode: MfaMode = process.env.NODE_ENV === 'production' ? 'totp' : 'email'
 
 export const MfaGate: React.FC = () => {
   const { user } = useAuth()
   const [step, setStep] = useState<MfaStep>('loading')
+  const [mode, setMode] = useState<MfaMode | null>(null)
+  const [sentToEmail, setSentToEmail] = useState<string | null>(null)
   const [uri, setUri] = useState<string | null>(null)
   const [secret, setSecret] = useState<string | null>(null)
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
 
   const staffRoles = (user as { staffRoles?: string[] } | null)?.staffRoles
   const isStaffUser = Boolean(staffRoles?.length)
@@ -28,47 +34,76 @@ export const MfaGate: React.FC = () => {
       return
     }
 
+    const meRes = await fetch('/api/users/mfa/status', { credentials: 'include' }).catch(() => null)
+    if (meRes?.ok) {
+      const data = (await meRes.json()) as { verified?: boolean; mode?: MfaMode }
+      setMode(data.mode ?? defaultMfaMode)
+
+      if (!twoFactorEnabled) {
+        setStep('enroll')
+        return
+      }
+
+      setStep(data.verified ? 'ready' : 'verify')
+      return
+    }
+
+    setMode(defaultMfaMode)
     if (!twoFactorEnabled) {
       setStep('enroll')
       return
     }
 
-    const res = await fetch('/api/users/me', { credentials: 'include' })
-    if (!res.ok) {
-      setStep('verify')
-      return
-    }
-
-    const meRes = await fetch('/api/mfa/status', { credentials: 'include' }).catch(() => null)
-    if (meRes?.ok) {
-      const data = await meRes.json()
-      setStep(data.verified ? 'ready' : 'verify')
-    } else {
-      setStep('verify')
-    }
+    setStep('verify')
   }, [isStaffUser, twoFactorEnabled])
 
   useEffect(() => {
     void checkMfaSession()
   }, [checkMfaSession])
 
-  const startEnrollment = async () => {
+  const sendCode = useCallback(async () => {
     setError(null)
-    const res = await fetch('/api/users/mfa/setup', { method: 'POST', credentials: 'include' })
-    if (!res.ok) {
-      setError('No se pudo iniciar el enrolamiento MFA')
-      return
+    setSending(true)
+    try {
+      const res = await fetch('/api/users/mfa/setup', { method: 'POST', credentials: 'include' })
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { message?: string } | null
+        setError(data?.message || 'No se pudo enviar el código MFA')
+        return
+      }
+
+      const data = (await res.json()) as {
+        mode?: MfaMode
+        email?: string
+        secret?: string
+        uri?: string
+      }
+
+      if (data.mode) setMode(data.mode)
+
+      if (data.mode === 'email') {
+        setSentToEmail(data.email || (user as { email?: string } | null)?.email || null)
+        return
+      }
+
+      setUri(data.uri || null)
+      setSecret(data.secret || null)
+    } finally {
+      setSending(false)
     }
-    const data = await res.json()
-    setUri(data.uri)
-    setSecret(data.secret)
-  }
+  }, [user])
 
   useEffect(() => {
-    if (step === 'enroll' && !uri) {
-      void startEnrollment()
+    if ((step === 'enroll' || step === 'verify') && mode === 'email' && !sentToEmail && !sending) {
+      void sendCode()
     }
-  }, [step, uri])
+  }, [step, mode, sentToEmail, sending, sendCode])
+
+  useEffect(() => {
+    if (step === 'enroll' && mode === 'totp' && !uri) {
+      void sendCode()
+    }
+  }, [step, mode, uri, sendCode])
 
   const submitCode = async (path: string) => {
     setError(null)
@@ -79,22 +114,66 @@ export const MfaGate: React.FC = () => {
       body: JSON.stringify({ code }),
     })
     if (!res.ok) {
-      setError('Código TOTP inválido')
+      setError(mode === 'email' ? 'Código inválido o caducado' : 'Código TOTP inválido')
       return
     }
     setStep('ready')
     window.location.reload()
   }
 
-  if (!isStaffUser || step === 'ready' || step === 'loading') {
+  if (!isStaffUser || step === 'ready' || step === 'loading' || !mode) {
     return null
   }
+
+  const isEmailMode = mode === 'email'
 
   return (
     <div className={baseClass}>
       <div className={`${baseClass}__panel`}>
-        <h2>Autenticación en dos pasos (TOTP)</h2>
-        {step === 'enroll' && (
+        <h2>
+          {isEmailMode
+            ? 'Verificación por email'
+            : 'Autenticación en dos pasos (TOTP)'}
+        </h2>
+
+        {isEmailMode && (
+          <>
+            <p>
+              {step === 'enroll'
+                ? 'Te hemos enviado un código para activar la autenticación en dos pasos.'
+                : 'Te hemos enviado un código de verificación a tu email.'}
+            </p>
+            {sentToEmail && (
+              <p>
+                <strong>Email:</strong> {sentToEmail}
+              </p>
+            )}
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Código de 6 dígitos"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() =>
+                submitCode(
+                  step === 'enroll'
+                    ? '/api/users/mfa/verify-enrollment'
+                    : '/api/users/mfa/verify',
+                )
+              }
+            >
+              {step === 'enroll' ? 'Activar MFA' : 'Verificar'}
+            </button>
+            <button type="button" onClick={() => void sendCode()} disabled={sending}>
+              {sending ? 'Enviando…' : 'Reenviar código'}
+            </button>
+          </>
+        )}
+
+        {!isEmailMode && step === 'enroll' && (
           <>
             <p>Escanea este código en Google Authenticator o introduce el secreto manualmente.</p>
             {secret && (
@@ -122,7 +201,8 @@ export const MfaGate: React.FC = () => {
             </button>
           </>
         )}
-        {step === 'verify' && (
+
+        {!isEmailMode && step === 'verify' && (
           <>
             <p>Introduce el código TOTP de tu aplicación autenticadora.</p>
             <input
@@ -137,6 +217,7 @@ export const MfaGate: React.FC = () => {
             </button>
           </>
         )}
+
         {error && <p className={`${baseClass}__error`}>{error}</p>}
       </div>
     </div>

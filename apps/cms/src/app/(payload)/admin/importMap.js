@@ -32,6 +32,7 @@ import { BulkSeoTemplateView as BulkSeoTemplateView_7891f73b3f6aae4e5805baf0cbd0
 import { OmsInboxView as OmsInboxView_e9e8ed26e22b88b8327fe273ee5f398b } from '@/components/OmsInboxView'
 import { EvaOrdersQueueView as EvaOrdersQueueView_a7a9f0e2bc60731d8b0674605c616d10 } from '@/components/EvaOrdersQueueView'
 import { QuotesInboxView as QuotesInboxView_32842f000502387a81d1e28fa6fedb2b } from '@/components/QuotesInboxView'
+import { RmaInboxView as RmaInboxView_6281e42023e8d04db95a29ce524735ac } from '@/components/RmaInboxView'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -70,5 +71,6 @@ export const importMap = {
   "@/components/OmsInboxView#OmsInboxView": OmsInboxView_e9e8ed26e22b88b8327fe273ee5f398b,
   "@/components/EvaOrdersQueueView#EvaOrdersQueueView": EvaOrdersQueueView_a7a9f0e2bc60731d8b0674605c616d10,
   "@/components/QuotesInboxView#QuotesInboxView": QuotesInboxView_32842f000502387a81d1e28fa6fedb2b,
+  "@/components/RmaInboxView#RmaInboxView": RmaInboxView_6281e42023e8d04db95a29ce524735ac,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

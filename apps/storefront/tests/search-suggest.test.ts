@@ -18,7 +18,7 @@ vi.mock('@/lib/search/hydrate-suggest', () => ({
     cats.map((c) => ({ ...c, href: `/c/${c.slug}` })),
 }))
 
-vi.mock('@/lib/search/vector-search', () => ({
+vi.mock('@/lib/search/search-flags', () => ({
   isQdrantConfigured: () => true,
 }))
 

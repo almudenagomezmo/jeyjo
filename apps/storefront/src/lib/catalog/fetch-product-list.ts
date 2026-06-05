@@ -3,20 +3,12 @@ import { unstable_cache } from 'next/cache'
 
 import { absoluteMediaUrlOrNull } from '@/lib/catalog/absolute-media-url'
 import {
-  fetchPublicProductsBySkus,
-} from '@/lib/catalog/fetch-public-products-by-skus'
-import {
   isPublicCatalogProduct,
   type CmsProductSnapshot,
 } from '@/lib/catalog/public-product-filter'
+import { demoRowsForCategory, isPlpDemoFallback } from '@/lib/plp/demo-fallback'
 import { PLP_AGGREGATION_LIMIT, type PlpProductRow } from '@/lib/plp/types'
 import type { StockIndicatorLevel } from '@jeyjo/stock-ports'
-import {
-  isPredictiveSearchEnabled,
-  vectorSearchProductSkuList,
-} from '@/lib/search/vector-search'
-
-import { demoRowsForCategory, demoRowsForSearch, isPlpDemoFallback } from '@/lib/plp/demo-fallback'
 
 export type CmsProductListDoc = CmsProductSnapshot & {
   title?: string | null
@@ -117,7 +109,7 @@ const cachedFetchAll = unstable_cache(
   { revalidate: 120 },
 )
 
-async function allPublicRows(): Promise<PlpProductRow[]> {
+export async function listCachedPublicProductRows(): Promise<PlpProductRow[]> {
   const docs = await cachedFetchAll()
   const rows: PlpProductRow[] = []
   for (const doc of docs) {
@@ -133,20 +125,11 @@ function matchesCategorySlugs(row: PlpProductRow, slugs: string[]): boolean {
   return slugs.some((s) => row.categorySlugs.includes(s))
 }
 
-function matchesSearchQuery(row: PlpProductRow, q: string): boolean {
-  const needle = q.toLowerCase()
-  return (
-    row.title.toLowerCase().includes(needle) ||
-    row.sku.toLowerCase().includes(needle) ||
-    row.brand.toLowerCase().includes(needle)
-  )
-}
-
 export async function listPublicProducts(options: {
   categorySlugs?: string[]
 }): Promise<PlpProductRow[]> {
   const slugs = options.categorySlugs ?? []
-  const cmsRows = await allPublicRows()
+  const cmsRows = await listCachedPublicProductRows()
   const filtered = cmsRows.filter((r) => matchesCategorySlugs(r, slugs))
 
   if (filtered.length > 0 || !isPlpDemoFallback()) return filtered
@@ -202,46 +185,4 @@ export async function listPublicProductsByIds(ids: string[]): Promise<PlpProduct
     if (row) rows.push(row)
   }
   return rows
-}
-
-async function searchPublicProductsText(q: string): Promise<PlpProductRow[]> {
-  const trimmed = q.trim()
-  if (!trimmed) return []
-
-  const cmsRows = await allPublicRows()
-  const filtered = cmsRows.filter((r) => matchesSearchQuery(r, trimmed))
-
-  if (filtered.length > 0 || !isPlpDemoFallback()) return filtered
-
-  return demoRowsForSearch(trimmed)
-}
-
-async function searchPublicProductsVector(q: string): Promise<PlpProductRow[]> {
-  const trimmed = q.trim()
-  if (!trimmed) return []
-
-  try {
-    const skus = await vectorSearchProductSkuList(trimmed, { limit: 200 })
-    if (skus.length === 0) {
-      return isPlpDemoFallback() ? demoRowsForSearch(trimmed) : []
-    }
-
-    const docs = await fetchPublicProductsBySkus(skus)
-    const rows: PlpProductRow[] = []
-    for (const doc of docs) {
-      const row = mapDocToRow(doc as CmsProductListDoc)
-      if (row) rows.push(row)
-    }
-    return rows
-  } catch {
-    if (isPlpDemoFallback()) return demoRowsForSearch(trimmed)
-    return []
-  }
-}
-
-export async function searchPublicProducts(q: string): Promise<PlpProductRow[]> {
-  if (isPredictiveSearchEnabled()) {
-    return searchPublicProductsVector(q)
-  }
-  return searchPublicProductsText(q)
 }

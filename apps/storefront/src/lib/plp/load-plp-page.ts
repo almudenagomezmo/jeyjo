@@ -1,6 +1,7 @@
 import type { PriceQuote } from '@jeyjo/pricing'
 
-import { listPublicProducts, searchPublicProducts } from '@/lib/catalog/fetch-product-list'
+import { listPublicProducts } from '@/lib/catalog/fetch-product-list'
+import { searchPublicProducts } from '@/lib/catalog/search-public-products'
 import { filterProducts } from '@/lib/plp/apply-filters'
 import { buildFacetAggregates } from '@/lib/plp/facet-aggregates'
 import { parsePlpSearchParams } from '@/lib/plp/plp-search-params'

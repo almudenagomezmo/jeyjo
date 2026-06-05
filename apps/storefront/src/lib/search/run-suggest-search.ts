@@ -1,3 +1,5 @@
+import 'server-only'
+
 import { searchPoints } from '@/lib/qdrant/client'
 import { getCachedQueryEmbedding } from '@/lib/search/embedding-cache'
 import { hydrateSuggestProducts, mapCategoryHits } from '@/lib/search/hydrate-suggest'

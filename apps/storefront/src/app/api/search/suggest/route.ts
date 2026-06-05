@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { logSuggestTimings, runSuggestSearch } from '@/lib/search/run-suggest-search'
 import type { SuggestResponse } from '@/lib/search/types'
-import { isQdrantConfigured } from '@/lib/search/vector-search'
+import { isQdrantConfigured } from '@/lib/search/search-flags'
 
 export async function POST(request: Request) {
   let body: { q?: string }
