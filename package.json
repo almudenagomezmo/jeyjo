@@ -25,7 +25,9 @@
     "db:bootstrap": "pnpm db:seed && pnpm seed:catalog",
     "db:bootstrap:local": "pnpm db:reset && pnpm seed:catalog",
     "db:types": "node scripts/generate-database-types.mjs",
-    "db:types:check": "node scripts/check-database-types.mjs"
+    "db:types:check": "node scripts/check-database-types.mjs",
+    "mailpit:up": "docker compose -f apps/cms/docker/docker-compose.yml up -d mailpit",
+    "mailpit:down": "docker compose -f apps/cms/docker/docker-compose.yml stop mailpit"
   },
   "engines": {
     "node": ">=20.9.0"

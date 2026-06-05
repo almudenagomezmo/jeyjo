@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import type { AuthApiErrorBody } from "@/lib/auth/api-errors";
+import { formatAuthErrorForUi } from "@/lib/auth/format-api-error";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -39,26 +41,24 @@ export function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = (await res.json()) as {
-        error?: string
-        details?: string
+      const data = (await res.json()) as AuthApiErrorBody & {
         message?: string
         needsEmailConfirmation?: boolean
+        devMailpit?: boolean
       };
       if (!res.ok) {
-        setError(
-          data.details
-            ? `${data.error ?? "Error"}: ${data.details}`
-            : (data.error ?? "No se pudo completar el registro"),
-        );
+        setError(formatAuthErrorForUi(data));
         return;
       }
       const needsConfirm = data.needsEmailConfirmation === true;
+      const mailpitHint = data.devMailpit
+        ? " Abre Mailpit en http://localhost:8025 para ver el correo de confirmación."
+        : "";
       setInfo(
-        data.message ??
+        (data.message ??
           (needsConfirm
             ? "Revisa tu email para confirmar la cuenta antes de iniciar sesión."
-            : "Registro completado. Pendiente de validación por Jeyjo."),
+            : "Registro completado. Pendiente de validación por Jeyjo.")) + mailpitHint,
       );
       if (!needsConfirm) {
         router.push("/login");

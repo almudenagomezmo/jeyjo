@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import type { AuthApiErrorBody } from "@/lib/auth/api-errors";
+import { formatAuthErrorForUi } from "@/lib/auth/format-api-error";
 
 export function LoginForm() {
   const router = useRouter();
@@ -31,9 +33,9 @@ export function LoginForm() {
           next: searchParams.get("next"),
         }),
       });
-      const data = (await res.json()) as { error?: string; redirectTo?: string };
+      const data = (await res.json()) as AuthApiErrorBody & { redirectTo?: string };
       if (!res.ok) {
-        setError(data.error ?? "No se pudo iniciar sesión");
+        setError(formatAuthErrorForUi(data));
         return;
       }
       router.push(data.redirectTo ?? "/cuenta");

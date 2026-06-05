@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server'
 
+import {
+  authErrorResponse,
+  formatValidationFieldErrors,
+  mapPostgresError,
+  mapSupabaseAuthError,
+} from '@/lib/auth/api-errors'
+import { registerAuthUserViaMailpit } from '@/lib/auth/register-via-mailpit'
 import { registerSchema } from '@/lib/auth/register-schema'
+import { getMailpitWebUrl, isMailpitEnabled } from '@/lib/email/mailpit'
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
 import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
@@ -10,13 +18,22 @@ export async function POST(request: Request) {
   try {
     json = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    return authErrorResponse(
+      { error: 'Petición inválida', details: 'El cuerpo de la solicitud no es JSON válido.', code: 'invalid_json' },
+      400,
+    )
   }
 
   const parsed = registerSchema.safeParse(json)
   if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors
     return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
+      {
+        error: 'Revisa los datos del formulario',
+        details: formatValidationFieldErrors(fieldErrors),
+        fieldErrors,
+        code: 'validation_failed',
+      },
       { status: 400 },
     )
   }
@@ -27,34 +44,76 @@ export async function POST(request: Request) {
   if (!getSupabaseAnonKey()) missingEnv.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
   if (!getSupabaseServiceRoleKey()) missingEnv.push('SUPABASE_SERVICE_ROLE_KEY')
   if (missingEnv.length > 0) {
-    return NextResponse.json(
+    return authErrorResponse(
       {
-        error: 'Auth not configured',
-        details: `Faltan en apps/storefront/.env.local: ${missingEnv.join(', ')}. Obtén las claves en Supabase Dashboard → Project Settings → API (proyecto tqgrsofvlkyumagrqbqa).`,
+        error: 'Autenticación no configurada',
+        details: `Faltan en apps/storefront/.env o .env.local: ${missingEnv.join(', ')}. Obtén las claves en Supabase Dashboard → Project Settings → API (proyecto tqgrsofvlkyumagrqbqa).`,
+        code: 'auth_not_configured',
       },
-      { status: 503 },
+      503,
     )
   }
 
   const admin = getSupabaseAdminClient()
   if (!admin) {
-    return NextResponse.json({ error: 'Auth not configured' }, { status: 503 })
-  }
-
-  const supabase = await createSupabaseServerClient()
-  const { data: signUp, error: signUpError } = await supabase.auth.signUp({
-    email: data.email,
-    password: data.password,
-  })
-
-  if (signUpError || !signUp.user) {
-    return NextResponse.json(
-      { error: signUpError?.message ?? 'No se pudo crear la cuenta' },
-      { status: 400 },
+    return authErrorResponse(
+      {
+        error: 'Autenticación no configurada',
+        details: 'No se pudo crear el cliente admin de Supabase (revisa SUPABASE_SERVICE_ROLE_KEY).',
+        code: 'auth_admin_missing',
+      },
+      503,
     )
   }
 
-  const userId = signUp.user.id
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'http://localhost:3000'
+  let userId: string
+  let needsEmailConfirmation: boolean
+  let devMailpit = false
+
+  if (isMailpitEnabled()) {
+    const mailpitResult = await registerAuthUserViaMailpit(admin, {
+      email: data.email,
+      password: data.password,
+      redirectTo: siteUrl,
+    })
+
+    if (!mailpitResult.ok) {
+      if (mailpitResult.code === 'mailpit_unreachable') {
+        return authErrorResponse(
+          {
+            error: 'Mailpit no está disponible',
+            details: mailpitResult.message,
+            code: 'mailpit_unreachable',
+          },
+          503,
+        )
+      }
+      const mapped = mapSupabaseAuthError(mailpitResult.message)
+      const status = mapped.code === 'auth_email_rate_limit' ? 429 : 400
+      return authErrorResponse(mapped, status)
+    }
+
+    userId = mailpitResult.userId
+    needsEmailConfirmation = true
+    devMailpit = true
+  } else {
+    const supabase = await createSupabaseServerClient()
+    const { data: signUp, error: signUpError } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: { emailRedirectTo: siteUrl },
+    })
+
+    if (signUpError || !signUp.user) {
+      const mapped = mapSupabaseAuthError(signUpError?.message)
+      const status = mapped.code === 'auth_email_rate_limit' ? 429 : 400
+      return authErrorResponse(mapped, status)
+    }
+
+    userId = signUp.user.id
+    needsEmailConfirmation = !signUp.session
+  }
 
   const { data: customer, error: customerError } = await admin
     .from('customers')
@@ -76,7 +135,7 @@ export async function POST(request: Request) {
 
   if (customerError || !customer) {
     await admin.auth.admin.deleteUser(userId)
-    return NextResponse.json({ error: customerError?.message ?? 'Error al crear cliente' }, { status: 500 })
+    return authErrorResponse(mapPostgresError(customerError?.message, 'customer'), 500)
   }
 
   const { error: profileError } = await admin.from('web_profiles').insert({
@@ -89,13 +148,19 @@ export async function POST(request: Request) {
   if (profileError) {
     await admin.from('customers').delete().eq('id', customer.id)
     await admin.auth.admin.deleteUser(userId)
-    return NextResponse.json({ error: profileError.message }, { status: 500 })
+    return authErrorResponse(mapPostgresError(profileError.message, 'profile'), 500)
   }
+
+  const mailpitUrl = getMailpitWebUrl()
 
   return NextResponse.json({
     ok: true,
-    needsEmailConfirmation: !signUp.session,
-    message:
-      'Registro completado. Tu cuenta está pendiente de validación por Jeyjo. Revisa tu email si se requiere confirmación.',
+    needsEmailConfirmation,
+    devMailpit,
+    message: devMailpit
+      ? `Registro completado. Abre Mailpit (${mailpitUrl}) y confirma tu cuenta desde el correo capturado. Después, Jeyjo validará tu perfil.`
+      : needsEmailConfirmation
+        ? 'Registro completado. Revisa tu email y confirma la cuenta antes de iniciar sesión. Después, Jeyjo validará tu perfil.'
+        : 'Registro completado. Tu cuenta está pendiente de validación por Jeyjo.',
   })
 }

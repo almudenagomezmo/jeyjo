@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { mapSupabaseAuthError } from '@/lib/auth/api-errors'
 import { writeCustomerLoginAudit } from '@/lib/auth/audit'
 import { getCustomerContext } from '@/lib/auth/customer-context'
 import {
@@ -56,8 +57,10 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         {
-          error:
-            'Debes confirmar tu email antes de iniciar sesión. Revisa tu bandeja de entrada (y spam) o solicita un nuevo enlace desde Supabase.',
+          error: 'Email sin confirmar',
+          details:
+            'Abre el enlace del correo de confirmación antes de iniciar sesión. Revisa bandeja de entrada y spam. Si caducó, desactiva temporalmente "Confirm email" en Supabase o espera a un nuevo enlace.',
+          code: 'auth_email_not_confirmed',
         },
         { status: 403 },
       )
@@ -84,7 +87,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: lockoutMessage() }, { status: 429 })
       }
     }
-    return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 })
+    const mapped = mapSupabaseAuthError(authError?.message)
+    return NextResponse.json(mapped, { status: 401 })
   }
 
   const userId = authData.user.id
@@ -92,7 +96,15 @@ export async function POST(request: Request) {
 
   const ctx = await getCustomerContext(userId)
   if (!ctx) {
-    return NextResponse.json({ error: 'Perfil de cliente no encontrado' }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Perfil de cliente no encontrado',
+        details:
+          'Tu usuario de Auth existe pero falta el enlace web_profiles ↔ customers. Contacta con soporte o revisa que las migraciones de Supabase estén aplicadas (pnpm db:push).',
+        code: 'profile_not_found',
+      },
+      { status: 500 },
+    )
   }
 
   if (!ctx.isActive) {
