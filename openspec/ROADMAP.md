@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **42 / 48** cambios completados (~88 %). Hito reciente: admin **Clientes tienda** en CMS — listado/ficha Supabase, validación grupos 01–04, gate email confirmado y email de aprobación (#48 `cms-customer-accounts-admin`).
+**Progreso:** **43 / 49** cambios completados (~88 %). Hito reciente: avisos de stock en área `/cuenta` — sidebar, dashboard y página `/cuenta/avisos-stock` para B2C y B2B (#49 `cuenta-b2b-stock-watches-link`).
 
 
 | #   | Cambio                              | Depende de | US / RF principales          | Estado     | Fecha      |
@@ -59,11 +59,14 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 46  | `pdp-additional-images-gallery`     | 11, 21     | RF-012, RF-024, US-16        | Completado | 2026-06-05 |
 | 47  | `qdrant-search-reliability`         | 13, 14, 30, 42 | RF-009                    | Pendiente  | —          |
 | 48  | `cms-customer-accounts-admin`     | 16, 5, 28      | RF-004, RF-001              | Completado | 2026-06-05 |
+| 49  | `cuenta-b2b-stock-watches-link`   | 16, 35, 22     | Alcance §1.21, US-07        | Completado | 2026-06-05 |
 
 
 **Siguiente cambio recomendado:** #47 `qdrant-search-reliability` (implementación completa; pendiente archive) o #40 `footer-eva-omnichannel-complete` (depende de #9, #32).
 
 **Portal B2B — estado actual:** operativo histórico (#23), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27), notificaciones (#28), avisos stock wishlist (#35), descargas catálogos (#41) y contabilidad documental (#37).
+
+**Área `/cuenta` — avisos de stock (#49):** sidebar **Avisos de stock**, card en dashboard y página `/cuenta/avisos-stock` con API `GET /api/account/stock-watches` para cualquier cliente autenticado (B2C y B2B); portal B2B mantiene `/intranet/stock`.
 
 Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live; filtro por árbol en histórico B2B (#23, fuera de #45); cambio de grupo post-validación y ciclo de vida grupos 3–4 (fuera de #48). Tras #44–#45, taxonomía y slugs de catálogo en storefront provienen solo de Payload (+ snapshot) y el PLP `/c/*` incluye productos de categorías descendientes; ejecutar `pnpm sync:categories` tras cambios en CMS.
 

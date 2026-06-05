@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ForbiddenBanner } from "@/components/account/ForbiddenBanner";
 import { LogoutButton } from "@/components/account/LogoutButton";
 import { PendingValidationBanner } from "@/components/account/PendingValidationBanner";
+import { StockWatchesQuickAccessCard } from "@/components/account/StockWatchesQuickAccessCard";
 import { Card } from "@/components/ui/Card";
 import { getCustomerContext } from "@/lib/auth/customer-context";
 
@@ -57,6 +58,8 @@ export default async function AccountDashboardPage({ searchParams }: PageProps) 
           )}
         </dl>
       </Card>
+
+      <StockWatchesQuickAccessCard />
     </div>
   );
 }

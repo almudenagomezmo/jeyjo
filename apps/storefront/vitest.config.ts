@@ -7,6 +7,9 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  esbuild: {
+    jsx: 'automatic',
+  },
   resolve: {
     alias: {
       'server-only': path.join(rootDir, 'tests/mocks/server-only.ts'),
@@ -14,6 +17,6 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
   },
 })

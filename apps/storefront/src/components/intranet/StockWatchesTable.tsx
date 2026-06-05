@@ -5,22 +5,18 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Card } from "@/components/ui/Card";
 import { StockIndicatorBadge } from "@/components/ui/StockBadge";
+import type { StockWatchListItem } from "@/lib/wishlist/list-enriched-stock-watches";
 import { removeWishlistSku } from "@/lib/wishlist/api-client";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
-import type { PublicStockIndicator } from "@/lib/stock/types";
 
-type StockWatchItem = {
-  id: string;
-  sku: string;
-  productTitle: string;
-  stockIndicator: PublicStockIndicator;
-  lastNotifiedAt: string | null;
-  createdAt: string;
-  href: string;
+type StockWatchesTableProps = {
+  apiPath?: string;
 };
 
-export function StockWatchesTable() {
-  const [items, setItems] = useState<StockWatchItem[]>([]);
+export function StockWatchesTable({
+  apiPath = "/api/intranet/stock-watches",
+}: StockWatchesTableProps) {
+  const [items, setItems] = useState<StockWatchListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const setIds = useWishlistStore((s) => s.setIds);
@@ -29,20 +25,20 @@ export function StockWatchesTable() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/intranet/stock-watches", { credentials: "include" });
+      const res = await fetch(apiPath, { credentials: "include" });
       if (!res.ok) {
         const body = (await res.json()) as { error?: string };
         setError(body.error ?? "No se pudieron cargar los avisos");
         return;
       }
-      const data = (await res.json()) as { items?: StockWatchItem[] };
+      const data = (await res.json()) as { items?: StockWatchListItem[] };
       const list = data.items ?? [];
       setItems(list);
       setIds(list.map((i) => i.sku));
     } finally {
       setLoading(false);
     }
-  }, [setIds]);
+  }, [setIds, apiPath]);
 
   useEffect(() => {
     void load();

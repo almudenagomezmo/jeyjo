@@ -108,3 +108,8 @@ export function getScaffoldForPath(pathname: string): IntranetScaffoldMeta | nul
 export function getQuickAccessSections(): IntranetNavItem[] {
   return INTRANET_PRIMARY_NAV
 }
+
+/** Single source for stock watches href/label in intranet nav. */
+export const STOCK_WATCHES_NAV = INTRANET_PRIMARY_NAV.find(
+  (item) => item.href === '/intranet/stock',
+)! as Pick<IntranetNavItem, 'href' | 'label'>
