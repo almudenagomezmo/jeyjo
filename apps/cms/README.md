@@ -30,6 +30,28 @@ SUPABASE_SERVICE_ROLE_KEY=...   # audit_log + consola
 MFA_GRACE_DAYS=0                # solo dev: omitir cookie MFA temporalmente
 ```
 
+## Dashboard KPIs (cambio `dashboard-kpis-alerts`, US-19 / RF-026)
+
+Tras MFA, la landing `/admin` muestra el **dashboard de KPIs** (ventas, conversión, visitantes, carritos, últimos pedidos, monitorización EVA preview y alertas de sistema).
+
+| Rol | Visibilidad |
+|-----|-------------|
+| `superadmin`, `administracion` | KPIs completos + alertas operativas |
+| `mantenimiento` | Solo alertas técnicas (sync ERP) |
+| `catalogo`, `personalizacion` | Bienvenida sin cifras de ventas; alertas PIM/stock si aplica |
+
+API staff: `GET /api/dashboard/summary?period=today|yesterday|week|month|custom&from=&to=`
+
+Variables:
+
+```env
+TZ=Europe/Madrid
+DASHBOARD_LOW_STOCK_THRESHOLD=5
+TOP_SALES_WINDOW_DAYS=30
+```
+
+Los visitantes y carritos activos dependen de beacons en `apps/storefront` (`NEXT_PUBLIC_ANALYTICS_BEACONS_ENABLED`).
+
 ## Colecciones Jeyjo (cambio `payload-collections-bootstrap`)
 
 | Grupo admin | Colección | Descripción |
@@ -96,6 +118,21 @@ Audit console: `http://localhost:3001/admin/audit-log`
 ```bash
 pnpm --filter @jeyjo/pricing test
 pnpm test:int   # incluye pricing-engine + order-iva-snapshot + erp-sync
+```
+
+## Importación / exportación catálogo Excel (`excel-importer-exporter`, ROADMAP #29)
+
+- **Paquete:** `@jeyjo/erp-excel` — parser `ImportaciónArticulos.xlsx` ↔ DTOs ERP.
+- **Admin:** `/admin/catalog-import` (roles `superadmin` | `catalogo`).
+- **API:** `POST /api/erp/catalog-import/parse`, `POST /api/erp/catalog-import/apply`, `GET /api/erp/catalog-export`, `GET /api/erp/catalog-import/template`.
+- **Storage:** bucket Supabase `erp-imports` (o `.data/erp-imports` en local sin Storage).
+- **Auditoría:** `audit_log` action `IMPORT_CATALOG_EXCEL` / `EXPORT_CATALOG_EXCEL`; `erp_sync_runs.source=excel_import`.
+- **Docs:** `docs/avansuite-catalog-import.md`; checklist staging en `openspec/changes/excel-importer-exporter/MANUAL-VERIFY.md`.
+
+```bash
+pnpm --filter @jeyjo/erp-excel test
+pnpm test:int   # erp-registry, catalog-excel-import
+# ERP_ADAPTER=excel + ERP_EXCEL_CATALOG_PATH para cron sync desde fichero
 ```
 
 ## Sync lectura ERP (`catalog-sync-read-stub`, ROADMAP #7)

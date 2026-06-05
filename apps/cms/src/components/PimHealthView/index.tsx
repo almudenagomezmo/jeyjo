@@ -55,6 +55,9 @@ export const PimHealthView: React.FC = () => {
   return (
     <div className={baseClass}>
       <h1>Salud PIM / SEO</h1>
+      <p>
+        <a href="/admin/catalog-import">Importación catálogo Excel</a>
+      </p>
       <p className={`${baseClass}__hint`}>
         Hasta {data?.scanned ?? '…'} productos publicados analizados (US-16 CA4).
       </p>

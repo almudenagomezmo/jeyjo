@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Container } from "@/components/layout/Container";
+import { CartRecoverHandler } from "@/components/cart/CartRecoverHandler";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -20,12 +21,23 @@ import { useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 
-const COUPONS: Record<string, { label: string; percent: number }> = {
-  BLOG5: { label: "5% de descuento", percent: 5 },
-  MAYO10: { label: "10% descuento mayo", percent: 10 },
+type AppliedCoupon = {
+  code: string;
+  label: string;
+  discountAmount: number;
+  showOfferExclusionWarning: boolean;
 };
 
 export default function CartPage() {
+  return (
+    <Suspense fallback={null}>
+      <CartRecoverHandler />
+      <CartPageContent />
+    </Suspense>
+  );
+}
+
+function CartPageContent() {
   const hydrated = useHydrated();
   const lines = useCartStore((s) => s.lines);
   const setQty = useCartStore((s) => s.setQty);
@@ -34,8 +46,9 @@ export default function CartPage() {
   const { summary, loading, pricedLineCount } = useCartSummary();
 
   const [couponInput, setCouponInput] = useState("");
-  const [coupon, setCoupon] = useState<{ code: string; percent: number } | null>(null);
-  const [couponError, setCouponError] = useState(false);
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   if (!hydrated) {
     return (
@@ -46,21 +59,57 @@ export default function CartPage() {
   }
 
   const vatNote = priceMode === "b2c" ? "(IVA inc.)" : "(sin IVA)";
-  const discount = coupon ? Math.round(summary.subtotal * (coupon.percent / 100) * 100) / 100 : 0;
-  const total = Math.round((summary.total - discount) * 100) / 100;
+  const discount = coupon?.discountAmount ?? 0;
+  const merchandiseSubtotal = Math.round((summary.subtotal - discount) * 100) / 100;
+  const shippingCost =
+    merchandiseSubtotal >= summary.shippingThreshold ? 0 : summary.shippingCost;
+  const total = Math.round((merchandiseSubtotal + shippingCost) * 100) / 100;
 
-  const applyCoupon = () => {
-    const found = COUPONS[couponInput.trim().toUpperCase()];
-    if (found) {
-      const code = couponInput.trim().toUpperCase();
-      setCoupon({ code, percent: found.percent });
-      setCouponError(false);
-      sessionStorage.setItem(CHECKOUT_COUPON_STORAGE_KEY, code);
-    } else {
-      setCoupon(null);
-      setCouponError(true);
-      sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
+  const applyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const res = await fetch("/api/cart/coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, lines }),
+      });
+      const data = (await res.json()) as {
+        valid?: boolean;
+        code?: string;
+        label?: string;
+        discountAmount?: number;
+        showOfferExclusionWarning?: boolean;
+        message?: string;
+      };
+      if (!res.ok || !data.valid) {
+        setCoupon(null);
+        setCouponError(data.message ?? "Cupón no válido.");
+        sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
+        return;
+      }
+      const applied: AppliedCoupon = {
+        code: data.code ?? code.toUpperCase(),
+        label: data.label ?? code,
+        discountAmount: data.discountAmount ?? 0,
+        showOfferExclusionWarning: data.showOfferExclusionWarning ?? false,
+      };
+      setCoupon(applied);
+      sessionStorage.setItem(CHECKOUT_COUPON_STORAGE_KEY, applied.code);
+    } catch {
+      setCouponError("No se pudo validar el cupón.");
+    } finally {
+      setCouponLoading(false);
     }
+  };
+
+  const removeCoupon = () => {
+    setCoupon(null);
+    setCouponError(null);
+    setCouponInput("");
+    sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
   };
 
   if (lines.length === 0) {
@@ -189,7 +238,7 @@ export default function CartPage() {
             <h2 className="mb-4 text-lg font-extrabold">Resumen del pedido</h2>
 
             <label className="text-[13px] font-medium text-text-secondary">
-              ¿Tienes un cupón? <span className="text-text-tertiary">(Demo)</span>
+              ¿Tienes un cupón?
             </label>
             <div className="mt-1.5 flex gap-2">
               <Input
@@ -198,15 +247,22 @@ export default function CartPage() {
                 placeholder="Ej. BLOG5"
                 className="h-9 uppercase"
               />
-              <Button variant="secondary" size="sm" onClick={applyCoupon}>
-                Aplicar
+              <Button variant="secondary" size="sm" onClick={() => void applyCoupon()} disabled={couponLoading}>
+                {couponLoading ? "…" : "Aplicar"}
               </Button>
             </div>
-            {couponError && <p className="mt-1 text-xs text-danger-text">Cupón no válido.</p>}
+            {couponError && <p className="mt-1 text-xs text-danger-text">{couponError}</p>}
+            {coupon?.showOfferExclusionWarning && (
+              <p className="mt-1 text-xs text-warning-text">
+                El cupón no aplica sobre artículos en oferta
+              </p>
+            )}
             {coupon && (
               <div className="mt-2 flex items-center justify-between rounded bg-success-soft p-2.5 text-xs font-semibold text-success-text">
-                <span>Cupón {coupon.code} aplicado</span>
-                <button type="button" onClick={() => setCoupon(null)}>
+                <span>
+                  Cupón {coupon.code} — {coupon.label}
+                </span>
+                <button type="button" onClick={removeCoupon}>
                   Quitar
                 </button>
               </div>
@@ -228,24 +284,22 @@ export default function CartPage() {
                 label={
                   <span className="inline-flex items-center gap-1.5">
                     Envío
-                    {summary.shippingCost === 0 && summary.subtotal > 0 && (
+                    {shippingCost === 0 && merchandiseSubtotal > 0 && (
                       <Badge tone="success" size="xs">
                         GRATIS
                       </Badge>
                     )}
                   </span>
                 }
-                value={
-                  summary.shippingCost === 0 ? "0,00 €" : formatMoney(summary.shippingCost)
-                }
+                value={shippingCost === 0 ? "0,00 €" : formatMoney(shippingCost)}
               />
             </div>
 
-            {summary.shippingCost === 0 && summary.subtotal > 0 ? (
+            {shippingCost === 0 && merchandiseSubtotal > 0 ? (
               <p className="mt-3 flex items-center gap-2 rounded-md bg-success-soft p-3 text-xs text-success-text">
                 <TruckIcon size={15} /> Tu pedido tiene envío gratis.
               </p>
-            ) : summary.shippingCost > 0 ? (
+            ) : shippingCost > 0 ? (
               <p className="mt-3 flex items-center gap-2 rounded-md bg-info-soft p-3 text-xs text-info-text">
                 <TruckIcon size={15} /> Añade {formatMoney(summary.amountToFreeShipping)} más para
                 el envío gratis.

@@ -79,6 +79,7 @@ export interface Config {
     media: Media;
     quotes: Quote;
     'rma-incidents': RmaIncident;
+    coupons: Coupon;
     forms: Form;
     'form-submissions': FormSubmission;
     addresses: Address;
@@ -115,6 +116,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     quotes: QuotesSelect<false> | QuotesSelect<true>;
     'rma-incidents': RmaIncidentsSelect<false> | RmaIncidentsSelect<true>;
+    coupons: CouponsSelect<false> | CouponsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
@@ -139,12 +141,14 @@ export interface Config {
     footer: Footer;
     home: Home;
     paymentSettings: PaymentSetting;
+    marketingSettings: MarketingSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     home: HomeSelect<false> | HomeSelect<true>;
     paymentSettings: PaymentSettingsSelect<false> | PaymentSettingsSelect<true>;
+    marketingSettings: MarketingSettingsSelect<false> | MarketingSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -200,7 +204,9 @@ export interface User {
   /**
    * Al menos un rol staff es necesario para acceder al backoffice.
    */
-  staffRoles?: ('superadmin' | 'administracion' | 'catalogo' | 'personalizacion' | 'mantenimiento')[] | null;
+  staffRoles?:
+    | ('superadmin' | 'administracion' | 'catalogo' | 'personalizacion' | 'mantenimiento' | 'marketing')[]
+    | null;
   twoFactorEnabled?: boolean | null;
   totpSecret?: string | null;
   /**
@@ -299,6 +305,7 @@ export interface Order {
     | boolean
     | null;
   couponCode?: string | null;
+  couponUsageRecorded?: boolean | null;
   customerNotes?: string | null;
   guestEmail?: string | null;
   paymentMethodCode?: string | null;
@@ -1306,6 +1313,35 @@ export interface RmaIncident {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons".
+ */
+export interface Coupon {
+  id: number;
+  /**
+   * Se guarda en mayúsculas (ej. BLOG5)
+   */
+  code: string;
+  discountType: 'percent' | 'fixed';
+  /**
+   * Porcentaje 1–100 o importe fijo en € (neto)
+   */
+  discountValue: number;
+  minimumOrderAmount?: number | null;
+  validFrom: string;
+  validUntil: string;
+  /**
+   * Vacío = ilimitado
+   */
+  maxUses?: number | null;
+  usesCount?: number | null;
+  active?: boolean | null;
+  source?: ('manual' | 'recovery') | null;
+  recoveryCartId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
 export interface FormSubmission {
@@ -1372,6 +1408,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'rma-incidents';
         value: number | RmaIncident;
+      } | null)
+    | ({
+        relationTo: 'coupons';
+        value: number | Coupon;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1747,6 +1787,25 @@ export interface RmaIncidentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons_select".
+ */
+export interface CouponsSelect<T extends boolean = true> {
+  code?: T;
+  discountType?: T;
+  discountValue?: T;
+  minimumOrderAmount?: T;
+  validFrom?: T;
+  validUntil?: T;
+  maxUses?: T;
+  usesCount?: T;
+  active?: T;
+  source?: T;
+  recoveryCartId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms_select".
  */
 export interface FormsSelect<T extends boolean = true> {
@@ -2080,6 +2139,7 @@ export interface OrdersSelect<T extends boolean = true> {
   shippingAddressSnapshot?: T;
   billingAddressSnapshot?: T;
   couponCode?: T;
+  couponUsageRecorded?: T;
   customerNotes?: T;
   guestEmail?: T;
   paymentMethodCode?: T;
@@ -2301,6 +2361,36 @@ export interface PaymentSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marketingSettings".
+ */
+export interface MarketingSetting {
+  id: number;
+  abandonedCartEnabled?: boolean | null;
+  /**
+   * Por defecto 2 horas
+   */
+  firstEmailDelayMinutes?: number | null;
+  /**
+   * Por defecto 24 horas
+   */
+  secondEmailDelayMinutes?: number | null;
+  secondEmailDiscountPercent?: number | null;
+  /**
+   * Si está vacío, se genera un cupón RECOVER- único de un solo uso
+   */
+  secondEmailUseFixedCoupon?: (number | null) | Coupon;
+  b2bRecoveryEnabled?: boolean | null;
+  b2bRecoveryCustomerGroups?:
+    | {
+        code: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -2387,6 +2477,27 @@ export interface PaymentSettingsSelect<T extends boolean = true> {
         iban?: T;
         beneficiary?: T;
         conceptTemplate?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marketingSettings_select".
+ */
+export interface MarketingSettingsSelect<T extends boolean = true> {
+  abandonedCartEnabled?: T;
+  firstEmailDelayMinutes?: T;
+  secondEmailDelayMinutes?: T;
+  secondEmailDiscountPercent?: T;
+  secondEmailUseFixedCoupon?: T;
+  b2bRecoveryEnabled?: T;
+  b2bRecoveryCustomerGroups?:
+    | T
+    | {
+        code?: T;
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;

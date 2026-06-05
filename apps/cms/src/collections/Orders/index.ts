@@ -13,6 +13,7 @@ import {
   type JeyjoOrderStatus,
 } from '@/collections/Orders/status-transitions'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
+import { incrementCouponUsage } from '@/lib/coupons/increment-usage-hook'
 import { notifyOrderStatusChange } from '@/lib/notifications/order-status-hook'
 import {
   staffCreateAccess,
@@ -170,6 +171,17 @@ const jeyjoOrderFields: Field[] = [
     type: 'text',
     label: 'Cupón',
     admin: { position: 'sidebar' },
+  },
+  {
+    name: 'couponUsageRecorded',
+    type: 'checkbox',
+    label: 'Uso de cupón registrado',
+    defaultValue: false,
+    admin: {
+      position: 'sidebar',
+      readOnly: true,
+      condition: (data) => Boolean(data?.couponCode),
+    },
   },
   {
     name: 'customerNotes',
@@ -359,6 +371,7 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
       ...(defaultCollection?.hooks?.afterChange ?? []),
       ...orderAuditHooks.afterChange,
       notifyOrderStatusChange,
+      incrementCouponUsage,
     ],
     afterDelete: [
       ...(defaultCollection?.hooks?.afterDelete ?? []),

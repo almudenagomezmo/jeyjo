@@ -4,6 +4,7 @@ export const STAFF_ROLES = [
   'catalogo',
   'personalizacion',
   'mantenimiento',
+  'marketing',
 ] as const
 
 export type StaffRole = (typeof STAFF_ROLES)[number]
@@ -32,6 +33,7 @@ export const COLLECTION_ACCESS: Record<string, StaffRole[]> = {
   transactions: ['superadmin', 'administracion'],
   addresses: ['superadmin', 'administracion'],
   carts: ['superadmin', 'administracion'],
+  coupons: ['superadmin', 'marketing'],
 }
 
 const CATALOG_WRITE_COLLECTIONS = new Set(['products', 'categories', 'suppliers'])
@@ -79,6 +81,10 @@ export function canWriteCollection(
 
   if (collection === 'orders' || collection === 'quotes' || collection === 'rma-incidents') {
     return hasStaffRole(user, ['superadmin', 'administracion'])
+  }
+
+  if (collection === 'coupons') {
+    return hasStaffRole(user, ['superadmin', 'marketing'])
   }
 
   if (['pages', 'forms', 'form-submissions', 'media'].includes(collection)) {

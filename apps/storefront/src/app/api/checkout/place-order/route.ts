@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { markAbandonedCartConverted } from '@/lib/abandoned-cart/sync'
 import { getCustomerContext } from '@/lib/auth/customer-context'
 import { isCheckoutEnabled } from '@/lib/checkout/enabled'
 import { createPayloadCheckoutOrder } from '@/lib/checkout/payload-order'
@@ -160,6 +161,10 @@ export async function POST(request: Request) {
         }
         throw err
       }
+    }
+
+    if (ctx?.userId) {
+      await markAbandonedCartConverted(ctx.userId, String(order.id))
     }
 
     return NextResponse.json({

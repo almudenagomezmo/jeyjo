@@ -3,11 +3,22 @@ import type { PriceQuote } from '@jeyjo/pricing'
 import { getCustomerContext, pricingCustomerId } from '@/lib/auth/customer-context'
 import { computeCartSummary } from '@/lib/cart/compute-summary'
 import type { CartProductSnapshot } from '@/lib/cart/types'
+import { validateCoupon } from '@/lib/coupon/validate'
 import { resolveCheckoutSegment } from '@/lib/checkout/segment'
 import { buildCheckoutTotals, type DeliveryMethod } from '@/lib/checkout/totals'
 import { fetchCartProductsByIds } from '@/lib/catalog/fetch-cart-products'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
 import type { CartLine } from '@/lib/types'
+
+export class CouponValidationError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+  ) {
+    super(message)
+    this.name = 'CouponValidationError'
+  }
+}
 
 export async function resolveServerCheckoutCart(
   lines: CartLine[],
@@ -26,13 +37,31 @@ export async function resolveServerCheckoutCart(
   const quotesBySku = skus.length > 0 ? await resolvePriceQuotesBatch(skus, customerId) : {}
   const quotes = quotesBySku as Record<string, PriceQuote>
 
+  const couponResult =
+    couponCode && couponCode.trim()
+      ? await validateCoupon({
+          code: couponCode,
+          lines,
+          products,
+          quotes,
+          mode: segment,
+        })
+      : null
+
+  if (couponResult && !couponResult.valid && couponResult.errors.length > 0) {
+    throw new CouponValidationError(
+      `Cupón no válido: ${couponResult.errors.join(', ')}`,
+      couponResult.errors[0] ?? 'invalid',
+    )
+  }
+
   const summary = computeCartSummary(lines, products, quotes, segment)
   const totals = buildCheckoutTotals(
     lines,
     products,
     quotes,
     segment,
-    couponCode,
+    couponResult,
     deliveryMethod,
   )
 
@@ -47,5 +76,5 @@ export async function resolveServerCheckoutCart(
       lineTotal: l.lineTotal,
     }))
 
-  return { ctx, segment, products, quotes, summary, totals, lineSnapshots }
+  return { ctx, segment, products, quotes, summary, totals, lineSnapshots, couponResult }
 }

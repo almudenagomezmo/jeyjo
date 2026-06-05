@@ -15,6 +15,7 @@ import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
+import { Coupons } from '@/collections/Coupons'
 import { Categories } from '@/collections/Categories'
 import { Quotes } from '@/collections/Quotes'
 import { RmaIncidents } from '@/collections/RmaIncidents'
@@ -25,14 +26,18 @@ import { Users } from '@/collections/Users'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
 import { Home } from '@/globals/Home'
+import { MarketingSettings } from '@/globals/MarketingSettings'
 import { PaymentSettings } from '@/globals/PaymentSettings'
 import { auditLogEndpoint } from '@/endpoints/audit-log'
 import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
 import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
+import { dashboardSummaryEndpoint } from '@/endpoints/dashboard-summary'
 import { pimHealthEndpoint } from '@/endpoints/pim-health'
 import { ordersOmsEndpoints } from '@/endpoints/orders-oms'
 import { quotesOmsEndpoints } from '@/endpoints/quotes-oms'
 import { rmaOmsEndpoints } from '@/endpoints/rma-oms'
+import { catalogImportEndpoints } from '@/endpoints/catalog-import'
+import { preloadExcelAdapter } from '@/erp/registry'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
 import { qdrantCollections } from '@/lib/qdrant-collections'
@@ -79,7 +84,10 @@ export default buildConfig({
   admin: {
     components: {
       beforeLogin: ['@/components/BeforeLogin#BeforeLogin'],
-      beforeDashboard: ['@/components/MfaGate#MfaGate'],
+      beforeDashboard: [
+        '@/components/MfaGate#MfaGate',
+        '@/components/DashboardKpisView#DashboardKpisView',
+      ],
       views: {
         auditLog: {
           Component: '@/components/AuditLogView#AuditLogView',
@@ -113,11 +121,15 @@ export default buildConfig({
           Component: '@/components/RmaInboxView#RmaInboxView',
           path: '/rma',
         },
+        catalogImport: {
+          Component: '@/components/CatalogImportView#CatalogImportView',
+          path: '/catalog-import',
+        },
       },
     },
     user: Users.slug,
   },
-  collections: [Users, Pages, Categories, Suppliers, Media, Quotes, RmaIncidents],
+  collections: [Users, Pages, Categories, Suppliers, Media, Quotes, RmaIncidents, Coupons],
   cors: corsOrigins,
   csrf: corsOrigins,
   db: postgresAdapter({
@@ -172,12 +184,14 @@ export default buildConfig({
     auditLogEndpoint,
     pendingCustomersEndpoint,
     bulkSeoTemplateEndpoint,
+    dashboardSummaryEndpoint,
     pimHealthEndpoint,
     ...ordersOmsEndpoints,
     ...quotesOmsEndpoints,
     ...rmaOmsEndpoints,
+    ...catalogImportEndpoints,
   ],
-  globals: [Header, Footer, Home, PaymentSettings],
+  globals: [Header, Footer, Home, PaymentSettings, MarketingSettings],
   plugins,
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL,
@@ -186,6 +200,12 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   onInit: async () => {
+    try {
+      await preloadExcelAdapter()
+    } catch (e) {
+      console.warn('[ERP] Excel adapter preload skipped:', e instanceof Error ? e.message : e)
+    }
+
     for (const col of qdrantCollections) {
       try {
         await ensureCollection(col.name, col.vectorSize)

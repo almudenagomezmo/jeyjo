@@ -1,6 +1,14 @@
 import {
+  createExcelAdapterBundle,
+  createExcelCatalogReader,
+  createExcelCatalogWriter,
+  type ExcelCatalogReaderSource,
+} from '@jeyjo/erp-excel'
+import {
   ErpIntegrationError,
   createStubAdapterBundle,
+  createStubDocumentsReader,
+  createStubPricingReader,
   type ErpCatalogReader,
   type ErpCatalogWriter,
   type ErpDocumentsReader,
@@ -40,6 +48,28 @@ export function resolveErpAdapterKind(): ErpAdapterKind {
 
 let cached: ErpAdapterBundle | null = null
 
+function createInMemoryExcelBundle(source: ExcelCatalogReaderSource): ErpAdapterBundle {
+  return {
+    kind: 'excel',
+    catalogReader: createExcelCatalogReader(source),
+    catalogWriter: createExcelCatalogWriter(),
+    documentsReader: createStubDocumentsReader(),
+    pricingReader: createStubPricingReader(),
+  }
+}
+
+export async function preloadExcelAdapter(): Promise<void> {
+  if (resolveErpAdapterKind() !== 'excel') return
+  if (cached?.kind === 'excel') return
+
+  const bundle = await createExcelAdapterBundle()
+  cached = { kind: 'excel', ...bundle }
+}
+
+export function setInMemoryExcelCatalogForTests(source: ExcelCatalogReaderSource): void {
+  cached = createInMemoryExcelBundle(source)
+}
+
 export function getErpAdapters(): ErpAdapterBundle {
   if (cached) {
     return cached
@@ -53,11 +83,12 @@ export function getErpAdapters(): ErpAdapterBundle {
       cached = { kind, ...bundle }
       return cached
     }
-    case 'excel':
+    case 'excel': {
       throw new ErpIntegrationError(
-        'ERP_NOT_IMPLEMENTED',
-        'ERP_ADAPTER=excel is not implemented yet (see OpenSpec change #29)',
+        'ERP_UNAVAILABLE',
+        'ERP_ADAPTER=excel requires preloadExcelAdapter() at startup or an in-memory import via catalog-import apply',
       )
+    }
     case 'api':
       throw new ErpIntegrationError(
         'ERP_NOT_IMPLEMENTED',

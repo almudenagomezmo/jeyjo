@@ -73,6 +73,66 @@ export type Database = {
         }
         Relationships: []
       }
+      abandoned_cart_snapshots: {
+        Row: {
+          id: string
+          web_profile_id: string
+          customer_id: string
+          lines: Json
+          last_activity_at: string
+          status: string
+          first_email_sent_at: string | null
+          second_email_sent_at: string | null
+          recovery_coupon_id: string | null
+          converted_order_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          web_profile_id: string
+          customer_id: string
+          lines?: Json
+          last_activity_at?: string
+          status?: string
+          first_email_sent_at?: string | null
+          second_email_sent_at?: string | null
+          recovery_coupon_id?: string | null
+          converted_order_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          web_profile_id?: string
+          customer_id?: string
+          lines?: Json
+          last_activity_at?: string
+          status?: string
+          first_email_sent_at?: string | null
+          second_email_sent_at?: string | null
+          recovery_coupon_id?: string | null
+          converted_order_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'abandoned_cart_snapshots_web_profile_id_fkey'
+            columns: ['web_profile_id']
+            isOneToOne: true
+            referencedRelation: 'web_profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'abandoned_cart_snapshots_customer_id_fkey'
+            columns: ['customer_id']
+            isOneToOne: false
+            referencedRelation: 'customers'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       erp_sync_runs: {
         Row: {
           adapter: string
@@ -81,6 +141,7 @@ export type Database = {
           id: string
           pricing_rows_upserted: number
           products_updated: number
+          source: string | null
           started_at: string
           status: string
           suppliers_updated: number
@@ -92,6 +153,7 @@ export type Database = {
           id?: string
           pricing_rows_upserted?: number
           products_updated?: number
+          source?: string | null
           started_at?: string
           status: string
           suppliers_updated?: number
@@ -103,9 +165,60 @@ export type Database = {
           id?: string
           pricing_rows_upserted?: number
           products_updated?: number
+          source?: string | null
           started_at?: string
           status?: string
           suppliers_updated?: number
+        }
+        Relationships: []
+      }
+      storefront_cart_activity: {
+        Row: {
+          line_count: number
+          session_id: string
+          total_qty: number
+          updated_at: string
+        }
+        Insert: {
+          line_count?: number
+          session_id: string
+          total_qty?: number
+          updated_at?: string
+        }
+        Update: {
+          line_count?: number
+          session_id?: string
+          total_qty?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'storefront_cart_activity_session_id_fkey'
+            columns: ['session_id']
+            isOneToOne: true
+            referencedRelation: 'storefront_sessions'
+            referencedColumns: ['session_id']
+          },
+        ]
+      }
+      storefront_sessions: {
+        Row: {
+          first_seen_at: string
+          last_seen_at: string
+          session_id: string
+          user_agent_hash: string | null
+        }
+        Insert: {
+          first_seen_at?: string
+          last_seen_at?: string
+          session_id: string
+          user_agent_hash?: string | null
+        }
+        Update: {
+          first_seen_at?: string
+          last_seen_at?: string
+          session_id?: string
+          user_agent_hash?: string | null
         }
         Relationships: []
       }

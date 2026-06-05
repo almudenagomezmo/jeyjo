@@ -1,7 +1,12 @@
 import { ErpIntegrationError } from '@jeyjo/erp-ports'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 
-import { getErpAdapters, resetErpAdapterCache, resolveErpAdapterKind } from '@/erp/registry'
+import {
+  getErpAdapters,
+  resetErpAdapterCache,
+  resolveErpAdapterKind,
+  setInMemoryExcelCatalogForTests,
+} from '@/erp/registry'
 
 describe('ERP adapter registry', () => {
   afterEach(() => {
@@ -26,7 +31,29 @@ describe('ERP adapter registry', () => {
     expect(() => resolveErpAdapterKind()).toThrow(/Unsupported ERP_ADAPTER/)
   })
 
-  it('throws ERP_NOT_IMPLEMENTED for excel before change #29', () => {
+  it('resolves excel adapter when preloaded in memory', () => {
+    vi.stubEnv('ERP_ADAPTER', 'excel')
+    vi.stubEnv('NODE_ENV', 'development')
+    resetErpAdapterCache()
+
+    setInMemoryExcelCatalogForTests({
+      products: [
+        {
+          skuErp: 'REF-001',
+          p1Price: 10,
+          p2Price: 8,
+          vatRate: 21,
+        },
+      ],
+      suppliers: [],
+    })
+
+    const bundle = getErpAdapters()
+    expect(bundle.kind).toBe('excel')
+    expect(bundle.catalogReader).toBeDefined()
+  })
+
+  it('throws ERP_UNAVAILABLE for excel without preload', () => {
     vi.stubEnv('ERP_ADAPTER', 'excel')
     vi.stubEnv('NODE_ENV', 'development')
     resetErpAdapterCache()
@@ -34,7 +61,7 @@ describe('ERP adapter registry', () => {
     try {
       getErpAdapters()
     } catch (e) {
-      expect((e as ErpIntegrationError).code).toBe('ERP_NOT_IMPLEMENTED')
+      expect((e as ErpIntegrationError).code).toBe('ERP_UNAVAILABLE')
     }
   })
 })

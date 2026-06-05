@@ -120,7 +120,7 @@ The minicart footer and full cart page SHALL show a shipping preview banner: fre
 
 ### Requirement: Full cart page at /cart
 
-The storefront SHALL provide a `/cart` route listing all cart lines with quantity controls, subtotal, shipping preview, discount coupon input (demo validation until marketing module), and primary CTAs that navigate to `/checkout` when the cart has lines. The checkout flow implementation lives in `storefront-checkout-shipping`; this capability only links to it.
+The storefront SHALL provide a `/cart` route listing all cart lines with quantity controls, subtotal, shipping preview, discount coupon input validated via `POST /api/cart/coupon`, and primary CTAs that navigate to `/checkout` when the cart has lines. The checkout flow implementation lives in `storefront-checkout-shipping`; this capability only links to it.
 
 #### Scenario: Empty cart page
 
@@ -136,7 +136,7 @@ The storefront SHALL provide a `/cart` route listing all cart lines with quantit
 
 - **WHEN** a user clicks "Tramitar pedido" with at least one cart line
 - **THEN** the browser navigates to `/checkout`
-- **AND** any applied demo coupon code is available to checkout via client persistence
+- **AND** any applied coupon code validated by the API is available to checkout via client persistence
 
 #### Scenario: Minicart Tramitar navigates to checkout
 

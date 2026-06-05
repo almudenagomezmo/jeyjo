@@ -1,0 +1,23 @@
+{
+  "name": "@jeyjo/erp-excel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Avansuite ImportaciónArticulos.xlsx parser and Excel ERP catalog adapter (US-15)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@jeyjo/erp-ports": "workspace:*",
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "4.0.18"
+  }
+}

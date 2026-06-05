@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { formatShippingLine } from '@/lib/checkout/shipping-copy'
 import { isCheckoutEnabled } from '@/lib/checkout/enabled'
 import { signCheckoutPrepare } from '@/lib/checkout/prepare-token'
-import { resolveServerCheckoutCart } from '@/lib/checkout/server-cart'
+import { CouponValidationError, resolveServerCheckoutCart } from '@/lib/checkout/server-cart'
 import type { DeliveryMethod } from '@/lib/checkout/totals'
 import type { CartLine } from '@/lib/types'
 
@@ -56,6 +56,9 @@ export async function POST(request: Request) {
       expiresAt: payload.exp,
     })
   } catch (err) {
+    if (err instanceof CouponValidationError) {
+      return NextResponse.json({ error: err.message, couponError: err.code }, { status: 400 })
+    }
     const message = err instanceof Error ? err.message : 'Prepare failed'
     return NextResponse.json({ error: message }, { status: 500 })
   }
