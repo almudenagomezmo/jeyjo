@@ -151,6 +151,15 @@ function buildSubtree(
   }
 }
 
+/** Slugs of the node and every descendant in the navigation tree (for PLP category filtering). */
+export function collectDescendantSlugs(node: NavNode): string[] {
+  const slugs = [node.slug]
+  for (const child of node.children) {
+    slugs.push(...collectDescendantSlugs(child))
+  }
+  return slugs
+}
+
 export function buildNavigationTree(docs: CmsCategoryDoc[], maxDepth = 3): NavNode[] {
   const validDocs = docs.filter((doc) => isValidSlug(doc.slug))
   const byId = new Map(validDocs.map((doc) => [String(doc.id), doc]))

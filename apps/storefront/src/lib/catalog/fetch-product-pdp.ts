@@ -1,4 +1,4 @@
-import { resolveCatalogImage, resolveSeoImage } from '@jeyjo/catalog-images'
+import { resolveCatalogImage, resolvePdpGalleryUrls, resolveSeoImage } from '@jeyjo/catalog-images'
 import { unstable_cache } from 'next/cache'
 
 import { absoluteMediaUrl, absoluteMediaUrlOrNull, cmsBaseUrl } from '@/lib/catalog/absolute-media-url'
@@ -31,6 +31,11 @@ export type CmsPdpProductDoc = CmsProductSnapshot &
     metaDescription?: string | null
     providerImageUrl?: string | null
     ownImage?: CmsMediaRef | string | number | null
+    additionalImages?:
+      | Array<{
+          image?: CmsMediaRef | string | number | null
+        }>
+      | null
     attachments?: Array<{
       label?: string | null
       file?: CmsMediaRef | string | number | null
@@ -50,6 +55,17 @@ function resolveCatalogImageUrl(doc: CmsPdpProductDoc): string | null {
     providerImageUrl: doc.providerImageUrl,
   })
   return absoluteMediaUrlOrNull(raw)
+}
+
+function resolvePdpGalleryAbsoluteUrls(doc: CmsPdpProductDoc): string[] {
+  const raw = resolvePdpGalleryUrls({
+    ownImage: doc.ownImage,
+    providerImageUrl: doc.providerImageUrl,
+    additionalImages: doc.additionalImages,
+  })
+  return raw
+    .map((url) => absoluteMediaUrlOrNull(url))
+    .filter((url): url is string => Boolean(url))
 }
 
 function primaryCategoryName(categories: CmsPdpProductDoc['categories']): string {
@@ -128,6 +144,7 @@ export function mapPdpDocToView(doc: CmsPdpProductDoc): PdpProductView | null {
     categoryName: primaryCategoryName(doc.categories),
     categorySlugs: mapDocToRow(doc)?.categorySlugs ?? [],
     imageUrl: resolveCatalogImageUrl(doc),
+    galleryUrls: resolvePdpGalleryAbsoluteUrls(doc),
     metaTitle: doc.meta?.title?.trim() || null,
     seoImageUrl: absoluteMediaUrlOrNull(
       resolveSeoImage({

@@ -12,6 +12,8 @@ interface ProductImageProps {
   className?: string;
   showEco?: boolean;
   alt?: string;
+  variant?: "default" | "thumb";
+  priority?: boolean;
 }
 
 /**
@@ -24,13 +26,17 @@ export function ProductImage({
   className,
   showEco = true,
   alt = "Producto",
+  variant = "default",
+  priority = false,
 }: ProductImageProps) {
   const hasImage = Boolean(imageUrl?.trim());
+  const isThumb = variant === "thumb";
 
   return (
     <div
       className={cn(
         "relative grid aspect-square place-items-center overflow-hidden rounded-md bg-surface-subtle",
+        isThumb && "h-full w-full min-h-0",
         className,
       )}
       style={
@@ -47,8 +53,9 @@ export function ProductImage({
           src={imageUrl!}
           alt={alt}
           fill
-          className="object-contain p-4"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          className={cn("object-contain", isThumb ? "p-1" : "p-4")}
+          sizes={isThumb ? "80px" : "(max-width: 768px) 100vw, 50vw"}
+          priority={priority}
         />
       ) : (
         <ProductGlyph

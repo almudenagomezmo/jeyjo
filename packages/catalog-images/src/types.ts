@@ -8,3 +8,11 @@ export type CatalogImageFields = {
 export type SeoImageFields = CatalogImageFields & {
   metaImage?: MediaLike
 }
+
+export type PdpGalleryImageEntry = {
+  image?: MediaLike
+}
+
+export type PdpGalleryFields = CatalogImageFields & {
+  additionalImages?: PdpGalleryImageEntry[] | null
+}

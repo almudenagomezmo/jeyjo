@@ -408,6 +408,15 @@ export interface Product {
    */
   ownImage?: (number | null) | Media;
   /**
+   * Fotos extra visibles solo en la ficha de producto. La imagen principal sigue siendo «Imagen propia» (o URL de proveedor si no hay propia).
+   */
+  additionalImages?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Valor mostrado en filtros del listado de productos (RF-010).
    */
   facetColor?: string | null;
@@ -2083,6 +2092,12 @@ export interface ProductsSelect<T extends boolean = true> {
       };
   providerImageUrl?: T;
   ownImage?: T;
+  additionalImages?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
   facetColor?: T;
   facetMaterial?: T;
   ecoLabel?: T;

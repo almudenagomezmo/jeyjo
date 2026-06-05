@@ -79,6 +79,9 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     supplier: true,
     providerImageUrl: true,
     ownImage: true,
+    additionalImages: {
+      image: true,
+    },
     meta: {
       title: true,
       description: true,

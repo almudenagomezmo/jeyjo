@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveCatalogImage, resolveSeoImage } from '../src/index.js'
+import { resolveCatalogImage, resolvePdpGalleryUrls, resolveSeoImage } from '../src/index.js'
 
 describe('resolveCatalogImage', () => {
   it('prefers own image over provider URL', () => {
@@ -52,5 +52,55 @@ describe('resolveSeoImage', () => {
 
   it('returns null when all inputs are empty', () => {
     expect(resolveSeoImage({})).toBeNull()
+  })
+})
+
+describe('resolvePdpGalleryUrls', () => {
+  it('returns primary plus additional images in order', () => {
+    expect(
+      resolvePdpGalleryUrls({
+        ownImage: { url: 'https://cdn.jeyjo.local/own.jpg' },
+        providerImageUrl: 'https://provider.example/p.jpg',
+        additionalImages: [
+          { image: { url: 'https://cdn.jeyjo.local/extra-1.jpg' } },
+          { image: { url: 'https://cdn.jeyjo.local/extra-2.jpg' } },
+        ],
+      }),
+    ).toEqual([
+      'https://cdn.jeyjo.local/own.jpg',
+      'https://cdn.jeyjo.local/extra-1.jpg',
+      'https://cdn.jeyjo.local/extra-2.jpg',
+    ])
+  })
+
+  it('uses provider URL as primary when own image is missing', () => {
+    expect(
+      resolvePdpGalleryUrls({
+        ownImage: null,
+        providerImageUrl: 'https://provider.example/p.jpg',
+        additionalImages: [{ image: { url: 'https://cdn.jeyjo.local/extra.jpg' } }],
+      }),
+    ).toEqual(['https://provider.example/p.jpg', 'https://cdn.jeyjo.local/extra.jpg'])
+  })
+
+  it('deduplicates when additional image matches primary', () => {
+    expect(
+      resolvePdpGalleryUrls({
+        ownImage: { url: 'https://cdn.jeyjo.local/own.jpg' },
+        additionalImages: [{ image: { url: 'https://cdn.jeyjo.local/own.jpg' } }],
+      }),
+    ).toEqual(['https://cdn.jeyjo.local/own.jpg'])
+  })
+
+  it('returns only additional images when catalog image is missing', () => {
+    expect(
+      resolvePdpGalleryUrls({
+        additionalImages: [{ image: { url: 'https://cdn.jeyjo.local/extra.jpg' } }],
+      }),
+    ).toEqual(['https://cdn.jeyjo.local/extra.jpg'])
+  })
+
+  it('returns empty array when no images exist', () => {
+    expect(resolvePdpGalleryUrls({})).toEqual([])
   })
 })

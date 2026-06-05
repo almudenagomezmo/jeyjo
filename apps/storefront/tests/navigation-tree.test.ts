@@ -4,6 +4,7 @@ import { readCategorySnapshot } from '@/lib/catalog/category-snapshot'
 import { buildBreadcrumbsFromPath } from '@/lib/catalog/build-breadcrumbs'
 import {
   buildNavigationTree,
+  collectDescendantSlugs,
   type CmsCategoryDoc,
   type NavNode,
 } from '@/lib/catalog/fetch-navigation-tree'
@@ -35,6 +36,25 @@ const DEMO_TREE: NavNode[] = [
     children: [],
   },
 ]
+
+describe('collectDescendantSlugs', () => {
+  it('returns node slug and all descendant slugs for a three-level tree', () => {
+    const root = DEMO_TREE[0]!
+    expect(collectDescendantSlugs(root).sort()).toEqual(
+      ['boligrafos', 'escritura', 'gel', 'rotuladores', 'tinta'].sort(),
+    )
+  })
+
+  it('returns only the leaf slug for a node without children', () => {
+    const leaf = DEMO_TREE[0]!.children[1]!
+    expect(collectDescendantSlugs(leaf)).toEqual(['rotuladores'])
+  })
+
+  it('returns subcategory and family slugs for a mid-level node', () => {
+    const sub = DEMO_TREE[0]!.children[0]!
+    expect(collectDescendantSlugs(sub).sort()).toEqual(['boligrafos', 'gel', 'tinta'].sort())
+  })
+})
 
 describe('buildNavigationTree', () => {
   it('builds parent/child hierarchy ordered by sortOrder', () => {

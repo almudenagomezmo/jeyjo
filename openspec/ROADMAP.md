@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **39 / 44** cambios completados (~89 %). Hito alcanzado: categorías storefront 100 % CMS (snapshot, familias PLP, sin catálogo demo embebido) (#44).
+**Progreso:** **41 / 46** cambios completados (~89 %). Hito reciente: galería multi-imagen PDP con carrusel y campo `additionalImages` en CMS (#46).
 
 
 | #   | Cambio                              | Depende de | US / RF principales          | Estado     | Fecha      |
@@ -55,10 +55,12 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 42  | `system-config-backoffice`          | 5, 30      | Alcance §1.36                | Completado | 2026-06-05 |
 | 43  | `seo-technical-auditor`             | 21, 34     | Alcance auditor SEO          | Pendiente  | —          |
 | 44  | `storefront-categories-cms-snapshot`| 9, 15      | RF-010, alcance §1.6, US-01  | Completado | 2026-06-05 |
+| 45  | `plp-category-tree-filter`          | 10, 44     | RF-010, US-01                | Completado | 2026-06-05 |
+| 46  | `pdp-additional-images-gallery`     | 11, 21     | RF-012, RF-024, US-16        | Completado | 2026-06-05 |
 
 
 **Siguiente cambio recomendado:** #40 `footer-eva-omnichannel-complete` (depende de #9, #32) o #43 `seo-technical-auditor` (depende de #34).
 
 **Portal B2B — estado actual:** operativo histórico (#23), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27), notificaciones (#28), avisos stock wishlist (#35), descargas catálogos (#41) y contabilidad documental (#37).
 
-Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live. Tras #44, taxonomía y slugs de catálogo en storefront provienen solo de Payload (+ snapshot); ejecutar `pnpm sync:categories` tras cambios en CMS.
+Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live; filtro por árbol en histórico B2B (#23, fuera de #45). Tras #44–#45, taxonomía y slugs de catálogo en storefront provienen solo de Payload (+ snapshot) y el PLP `/c/*` incluye productos de categorías descendientes; ejecutar `pnpm sync:categories` tras cambios en CMS.

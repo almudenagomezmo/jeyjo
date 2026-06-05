@@ -119,7 +119,7 @@ export async function listCachedPublicProductRows(): Promise<PlpProductRow[]> {
   return rows
 }
 
-function matchesCategorySlugs(row: PlpProductRow, slugs: string[]): boolean {
+export function matchesCategorySlugs(row: PlpProductRow, slugs: string[]): boolean {
   if (slugs.length === 0) return true
   return slugs.some((s) => row.categorySlugs.includes(s))
 }

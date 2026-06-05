@@ -5,7 +5,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ProductCatalog } from "@/components/product/ProductCatalog";
 import { buildBreadcrumbsFromPath } from "@/lib/catalog/build-breadcrumbs";
 import { findNavNodeBySlug } from "@/lib/catalog/find-nav-by-slug";
-import { getNavigationTree } from "@/lib/catalog/fetch-navigation-tree";
+import { collectDescendantSlugs, getNavigationTree } from "@/lib/catalog/fetch-navigation-tree";
 import { loadPlpPageFromCategory } from "@/lib/plp/load-plp-page";
 
 interface PageProps {
@@ -27,7 +27,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const node = findNavNodeBySlug(tree, category);
   if (!node) notFound();
 
-  const data = await loadPlpPageFromCategory([category], sp);
+  const data = await loadPlpPageFromCategory(collectDescendantSlugs(node), sp);
   const crumbs = buildBreadcrumbsFromPath(tree, `/c/${category}`);
 
   return (

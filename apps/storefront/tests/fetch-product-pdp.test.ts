@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { isPublicCatalogProduct } from '@/lib/catalog/public-product-filter'
-import { mapRelatedDocsToRows } from '@/lib/catalog/fetch-product-pdp'
+import { mapPdpDocToView, mapRelatedDocsToRows } from '@/lib/catalog/fetch-product-pdp'
 import type { CmsPdpProductDoc } from '@/lib/catalog/fetch-product-pdp'
 
 describe('PDP catalog visibility', () => {
@@ -48,5 +48,32 @@ describe('mapRelatedDocsToRows', () => {
     const rows = mapRelatedDocsToRows(related)
     expect(rows).toHaveLength(1)
     expect(rows[0]?.sku).toBe('OK-1')
+  })
+})
+
+describe('mapPdpDocToView galleryUrls', () => {
+  it('maps primary plus additional images with absolute URLs', () => {
+    vi.stubEnv('CMS_URL', 'http://cms.test')
+    const doc = {
+      skuErp: 'REF-1',
+      slug: 'ref-1',
+      title: 'Producto',
+      _status: 'published',
+      isWildcard: false,
+      supplier: { name: 'Marca' },
+      ownImage: { url: '/media/own.jpg' },
+      providerImageUrl: 'https://provider.example/p.jpg',
+      additionalImages: [
+        { image: { url: '/media/extra-1.jpg' } },
+        { image: { url: '/media/extra-2.jpg' } },
+      ],
+    } as CmsPdpProductDoc
+
+    const view = mapPdpDocToView(doc)
+    expect(view?.galleryUrls).toEqual([
+      'http://cms.test/media/own.jpg',
+      'http://cms.test/media/extra-1.jpg',
+      'http://cms.test/media/extra-2.jpg',
+    ])
   })
 })

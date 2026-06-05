@@ -2,8 +2,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Container } from "@/components/layout/Container";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
-import { Card } from "@/components/ui/Card";
-import { ProductImage } from "@/components/ui/ProductImage";
+import { ProductImageGallery } from "@/components/product/ProductImageGallery";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductBuyBox } from "@/components/product/ProductBuyBox";
 import { ProductTabs } from "@/components/product/ProductTabs";
@@ -91,36 +90,17 @@ export default async function ProductPage({ params }: PageProps) {
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
         <div>
-          <Card className="p-8">
-            <ProductImage
-              product={glyphProduct}
-              imageUrl={product.imageUrl}
-              glyphSize={300}
-              className="min-h-[360px]"
-              alt={product.title}
-            />
-          </Card>
-          <div className="mt-3 grid grid-cols-4 gap-2" aria-hidden>
-            {[0, 1, 2, 3].map((i) => (
-              <Card
-                key={i}
-                className={
-                  i === 0
-                    ? "grid aspect-square place-items-center border-primary p-2"
-                    : "grid aspect-square place-items-center p-2 opacity-60"
-                }
-              >
-                <ProductImage
-                  product={glyphProduct}
-                  imageUrl={product.imageUrl}
-                  glyphSize={44}
-                  showEco={false}
-                  className="border-0 bg-transparent"
-                  alt=""
-                />
-              </Card>
-            ))}
-          </div>
+          <ProductImageGallery
+            galleryUrls={
+              product.galleryUrls.length > 0
+                ? product.galleryUrls
+                : product.imageUrl
+                  ? [product.imageUrl]
+                  : []
+            }
+            glyphProduct={glyphProduct}
+            title={product.title}
+          />
         </div>
 
         <div>

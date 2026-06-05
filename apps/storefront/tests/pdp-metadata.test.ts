@@ -6,6 +6,7 @@ import {
   buildPdpMetadataFromView,
   buildPdpSeoImageUrl,
   buildProductJsonLd,
+  buildProductJsonLdFromView,
 } from '@/lib/seo/pdp-metadata'
 
 describe('pdp metadata helpers', () => {
@@ -69,5 +70,26 @@ describe('pdp metadata helpers', () => {
     })
     expect(meta.title).toBe('Grifo | Jeyjo')
     expect(meta.openGraph?.images).toEqual([{ url: 'https://cdn.example/resolved.jpg' }])
+  })
+
+  it('buildProductJsonLdFromView uses galleryUrls when multiple images exist', () => {
+    const ld = buildProductJsonLdFromView({
+      sku: 'REF-1',
+      title: 'Grifo',
+      metaTitle: null,
+      metaDescription: null,
+      longDescriptionHtml: null,
+      seoImageUrl: 'https://cdn.example/og.jpg',
+      galleryUrls: [
+        'https://cdn.example/1.jpg',
+        'https://cdn.example/2.jpg',
+        'https://cdn.example/3.jpg',
+      ],
+    })
+    expect(ld.image).toEqual([
+      'https://cdn.example/1.jpg',
+      'https://cdn.example/2.jpg',
+      'https://cdn.example/3.jpg',
+    ])
   })
 })

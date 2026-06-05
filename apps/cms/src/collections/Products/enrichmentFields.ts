@@ -55,6 +55,25 @@ export const enrichmentFields: Field[] = [
     },
   },
   {
+    name: 'additionalImages',
+    type: 'array',
+    label: 'Imágenes adicionales (galería PDP)',
+    maxRows: 8,
+    fields: [
+      {
+        name: 'image',
+        type: 'upload',
+        relationTo: 'media',
+        label: 'Imagen',
+        required: true,
+      },
+    ],
+    admin: {
+      description:
+        'Fotos extra visibles solo en la ficha de producto. La imagen principal sigue siendo «Imagen propia» (o URL de proveedor si no hay propia).',
+    },
+  },
+  {
     name: 'facetColor',
     type: 'text',
     label: 'Color (faceta PLP)',

@@ -62,6 +62,7 @@ export type PdpViewSeoFields = {
   metaDescription: string | null
   longDescriptionHtml: string | null
   seoImageUrl: string | null
+  galleryUrls?: string[]
 }
 
 export function buildPdpMetadataFromView(product: PdpViewSeoFields): Metadata {
@@ -77,7 +78,7 @@ export function buildPdpMetadataFromView(product: PdpViewSeoFields): Metadata {
 }
 
 export function buildProductJsonLdFromView(product: PdpViewSeoFields): Record<string, unknown> {
-  return buildProductJsonLd({
+  const jsonLd = buildProductJsonLd({
     sku: product.sku,
     title: product.title,
     metaTitle: product.metaTitle,
@@ -87,6 +88,12 @@ export function buildProductJsonLdFromView(product: PdpViewSeoFields): Record<st
     ownImage: null,
     providerImageUrl: null,
   })
+
+  if (product.galleryUrls && product.galleryUrls.length > 1) {
+    return { ...jsonLd, image: product.galleryUrls }
+  }
+
+  return jsonLd
 }
 
 export function buildProductJsonLd(source: PdpSeoSource & { sku: string }): Record<string, unknown> {
