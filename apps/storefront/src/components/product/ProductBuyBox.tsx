@@ -14,8 +14,9 @@ import { BoxIcon, HeartIcon } from "@/components/ui/icons";
 import { getDualPrice, getPriceViewFromQuote } from "@/lib/utils/price";
 import { formatMoney } from "@/lib/utils/format";
 import { trackViewItem } from "@/lib/analytics/ga4";
+import { cn } from "@/lib/utils/cn";
 import { useUiStore } from "@/lib/store/ui-store";
-import { useWishlistToggle } from "@/lib/hooks/useWishlistToggle";
+import { useWishlistItem } from "@/lib/hooks/useWishlistToggle";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import type { PublicStockIndicator } from "@/lib/stock/types";
 
@@ -46,8 +47,7 @@ export function ProductBuyBox({
 }) {
   const hydrated = useHydrated();
   const priceMode = useUiStore((s) => s.priceMode);
-  const { toggleWithSync, has } = useWishlistToggle(productTitle ?? refLabel);
-  const wishlisted = has(sku);
+  const { wishlisted, toggleWithSync } = useWishlistItem(sku, productTitle ?? refLabel);
   const [qty, setQty] = useState(packUnit > 0 ? packUnit : 1);
   const [backorderNotice, setBackorderNotice] = useState(false);
   const [stockAlertNotice, setStockAlertNotice] = useState(false);
@@ -140,7 +140,7 @@ export function ProductBuyBox({
         <button
           type="button"
           onClick={() => {
-            const added = toggleWithSync(sku);
+            const added = toggleWithSync();
             if (
               added &&
               b2bValidatedForAlerts &&
@@ -151,7 +151,10 @@ export function ProductBuyBox({
           }}
           aria-label="Añadir a favoritos"
           aria-pressed={wishlisted}
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-border text-text-secondary"
+          className={cn(
+            "grid h-12 w-12 shrink-0 place-items-center rounded-md border border-border",
+            hydrated && wishlisted ? "text-danger" : "text-text-secondary",
+          )}
         >
           <HeartIcon
             size={18}

@@ -5,8 +5,9 @@ import { AnalyticsBeacon } from "@/components/analytics/AnalyticsBeacon";
 import { Ga4PageView } from "@/components/analytics/Ga4PageView";
 import { Ga4Script } from "@/components/analytics/Ga4Script";
 import { EvaWidgetShell } from "@/components/eva/EvaWidgetShell";
-import { WishlistSyncBootstrap } from "@/components/wishlist/WishlistSyncBootstrap";
+import { WishlistRoot } from "@/components/wishlist/WishlistRoot";
 import { NavigationShell } from "@/components/layout/NavigationShell";
+import { getCustomerContext } from "@/lib/auth/customer-context";
 import { MiniCart } from "@/components/cart/MiniCart";
 import { themeInitScript } from "@/components/layout/ThemeToggle";
 import "./globals.css";
@@ -34,7 +35,9 @@ export const metadata: Metadata = {
     "Más de 30.000 referencias de material de oficina y reciclaje para particulares y empresas. Envío en 24-48 h y tarifas personalizadas B2B.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const ctx = await getCustomerContext();
+
   return (
     <html lang="es" className={`${manrope.variable} ${jetbrains.variable}`} suppressHydrationWarning>
       <head>
@@ -47,9 +50,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Ga4PageView />
         </Suspense>
         <AnalyticsBeacon />
-        <WishlistSyncBootstrap />
-        <NavigationShell>{children}</NavigationShell>
-        <MiniCart />
+        <WishlistRoot hasSession={Boolean(ctx)}>
+          <NavigationShell>{children}</NavigationShell>
+          <MiniCart />
+        </WishlistRoot>
         <EvaWidgetShell />
       </body>
     </html>

@@ -15,6 +15,7 @@ import type { NavNode } from "@/lib/catalog/fetch-navigation-tree";
 import { selectCartCount, useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
 import { useHydrated } from "@/lib/hooks/useHydrated";
+import { cn } from "@/lib/utils/cn";
 
 interface HeaderProps {
   tree: NavNode[];
@@ -57,11 +58,12 @@ export function Header({
         <button
           type="button"
           onClick={() => setMegaOpen((o) => !o)}
-          onMouseEnter={() => {
-            if (window.matchMedia("(min-width: 1024px)").matches) setMegaOpen(true);
-          }}
-          className="hidden items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold hover:bg-surface-muted md:inline-flex"
+          className={cn(
+            "hidden items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold md:inline-flex",
+            megaOpen ? "bg-surface-muted text-text" : "text-text-secondary hover:bg-surface-muted hover:text-text",
+          )}
           aria-expanded={megaOpen}
+          aria-haspopup="true"
         >
           <MenuIcon size={18} /> Categorías
           <ChevronDownIcon size={14} className="text-text-tertiary" />
