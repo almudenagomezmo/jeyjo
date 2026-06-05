@@ -101,6 +101,18 @@ export const ShieldIcon = createIcon(
   <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z" />,
   "ShieldIcon",
 );
+export const BuildingIcon = createIcon(
+  <>
+    <path d="M4 21V5a1 1 0 0 1 1-1h5v17" />
+    <path d="M14 21V9a1 1 0 0 1 1-1h5v13" />
+    <path d="M2 21h20" />
+    <path d="M7 8h1" />
+    <path d="M7 12h1" />
+    <path d="M17 12h1" />
+    <path d="M17 16h1" />
+  </>,
+  "BuildingIcon",
+);
 export const SparklesIcon = createIcon(
   <>
     <path d="M12 3v4" />

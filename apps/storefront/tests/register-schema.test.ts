@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { isCompanyRegisterIntent } from '@/components/auth/RegisterForm'
 import { registerSchema } from '@/lib/auth/register-schema'
 
 describe('registerSchema', () => {
@@ -28,5 +29,13 @@ describe('registerSchema', () => {
   it('accepts company with tax_id', () => {
     const result = registerSchema.safeParse({ ...base, isCompany: true, taxId: 'B12345678' })
     expect(result.success).toBe(true)
+  })
+})
+
+describe('isCompanyRegisterIntent', () => {
+  it('detects empresa query param', () => {
+    expect(isCompanyRegisterIntent(new URLSearchParams('empresa=1'))).toBe(true)
+    expect(isCompanyRegisterIntent(new URLSearchParams('empresa=true'))).toBe(true)
+    expect(isCompanyRegisterIntent(new URLSearchParams())).toBe(false)
   })
 })

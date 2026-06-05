@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 
+export function isCompanyRegisterIntent(searchParams: URLSearchParams): boolean {
+  const value = searchParams.get("empresa")?.trim().toLowerCase();
+  return value === "1" || value === "true" || value === "si" || value === "sí";
+}
+
 export function RegisterForm() {
   const router = useRouter();
-  const [isCompany, setIsCompany] = useState(false);
+  const searchParams = useSearchParams();
+  const [isCompany, setIsCompany] = useState(() => isCompanyRegisterIntent(searchParams));
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
