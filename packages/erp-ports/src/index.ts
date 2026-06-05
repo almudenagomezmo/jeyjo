@@ -38,5 +38,6 @@ export {
   createStubPricingReader,
   createStubPurchaseHistoryReader,
   STUB_PURCHASE_HISTORY,
+  STUB_INVOICES_BY_CUSTOMER,
   type StubAdapterBundle,
 } from './adapters/stub/index.js'

@@ -78,6 +78,7 @@ export interface Config {
     suppliers: Supplier;
     media: Media;
     quotes: Quote;
+    'rma-incidents': RmaIncident;
     forms: Form;
     'form-submissions': FormSubmission;
     addresses: Address;
@@ -113,6 +114,7 @@ export interface Config {
     suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     quotes: QuotesSelect<false> | QuotesSelect<true>;
+    'rma-incidents': RmaIncidentsSelect<false> | RmaIncidentsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
@@ -253,6 +255,7 @@ export interface Order {
     | (
         | 'pending'
         | 'pending_payment'
+        | 'pending_company_approval'
         | 'pending_confirmation'
         | 'confirmed'
         | 'preparing'
@@ -265,6 +268,11 @@ export interface Order {
    * UUID de public.customers hasta enlace formal en #16
    */
   customerRef?: string | null;
+  /**
+   * web_profiles.id del subusuario que envió el pedido
+   */
+  submittedByUserId?: string | null;
+  submittedByEmail?: string | null;
   validatedEva?: boolean | null;
   stockValidationPending?: boolean | null;
   exportedToErpAt?: string | null;
@@ -1278,6 +1286,25 @@ export interface Quote {
   createdAt: string;
 }
 /**
+ * Bandeja operativa: /admin/rma
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rma-incidents".
+ */
+export interface RmaIncident {
+  id: number;
+  rmaNumber?: string | null;
+  status?: ('requested' | 'in_review' | 'authorized' | 'rejected') | null;
+  customerRef: string;
+  articleSku: string;
+  deliveryNoteNumber: string;
+  reason: 'wrong_item' | 'defective' | 'wrong_qty' | 'other';
+  observations?: string | null;
+  emailSentAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
@@ -1341,6 +1368,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'quotes';
         value: number | Quote;
+      } | null)
+    | ({
+        relationTo: 'rma-incidents';
+        value: number | RmaIncident;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1700,6 +1731,22 @@ export interface QuotesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rma-incidents_select".
+ */
+export interface RmaIncidentsSelect<T extends boolean = true> {
+  rmaNumber?: T;
+  status?: T;
+  customerRef?: T;
+  articleSku?: T;
+  deliveryNoteNumber?: T;
+  reason?: T;
+  observations?: T;
+  emailSentAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms_select".
  */
 export interface FormsSelect<T extends boolean = true> {
@@ -2021,6 +2068,8 @@ export interface OrdersSelect<T extends boolean = true> {
   origin?: T;
   jeyjoStatus?: T;
   customerRef?: T;
+  submittedByUserId?: T;
+  submittedByEmail?: T;
   validatedEva?: T;
   stockValidationPending?: T;
   exportedToErpAt?: T;

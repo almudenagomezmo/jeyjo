@@ -77,6 +77,24 @@ Non-implemented intranet sections SHALL render a structured scaffold with busine
 - **THEN** the purchase history list with filters and repeat-to-cart actions is shown
 - **AND** the scaffold empty state and "Próximamente" badge are not shown
 
+#### Scenario: Pedido rápido production view
+
+- **WHEN** a validated B2B user opens `/intranet/pedido-rapido` after quick order is implemented
+- **THEN** the quick order form with reference lookup and Excel upload is shown
+- **AND** the scaffold empty state and "Próximamente" badge are not shown
+
+#### Scenario: Precios especiales production view
+
+- **WHEN** a validated B2B user opens `/intranet/precios` after custom tariffs are implemented
+- **THEN** the special prices table with validity status and group offers section is shown
+- **AND** the scaffold empty state and "Próximamente" badge are not shown
+
+#### Scenario: RMA e incidencias production view
+
+- **WHEN** a validated B2B user opens `/intranet/rma` after RMA incidents are implemented
+- **THEN** the RMA request form, authorization notice, and incidents list are shown
+- **AND** the scaffold empty state and "Próximamente" badge are not shown
+
 #### Scenario: Financial scaffold does not expose documents
 
 - **WHEN** a user opens `/intranet/contabilidad/facturas`
@@ -118,10 +136,56 @@ The intranet sidebar and Contabilidad sub-navigation SHALL highlight the item ma
 
 ### Requirement: Portal top bar includes shop return and logout
 
-The portal top bar SHALL include a link to the public catalog home, a read-only B2B price mode indicator, and a logout control that clears the session.
+The portal top bar SHALL include a link to the public catalog home, a read-only B2B price mode indicator, a notification bell with unread badge (see `storefront-b2b-notification-center`), and a logout control that clears the session.
 
 #### Scenario: Logout from portal
 
 - **WHEN** a user activates logout in the portal top bar
 - **THEN** the session is cleared
 - **AND** subsequent `/intranet` requests redirect to login
+
+#### Scenario: Notification bell visible on intranet
+
+- **WHEN** a validated B2B user loads any `/intranet/*` route
+- **THEN** the portal top bar includes the notification bell control
+
+### Requirement: Mi cuenta is no longer a scaffold
+
+The route `/intranet/mi-cuenta` SHALL render notification preferences and account summary instead of an `IntranetScaffoldPage` placeholder.
+
+#### Scenario: Mi cuenta shows preferences form
+
+- **WHEN** a user opens `/intranet/mi-cuenta`
+- **THEN** notification preference controls are visible
+- **AND** the "Próximamente" scaffold badge is not shown
+
+### Requirement: Mi cuenta section is production subuser management
+
+The portal SHALL render production functionality at `/intranet/mi-cuenta` for B2B superadmin per `storefront-b2b-subusers`, replacing the roadmap scaffold for subuser management.
+
+#### Scenario: Mi cuenta no longer shows subuser scaffold
+
+- **WHEN** a B2B superadmin opens `/intranet/mi-cuenta`
+- **THEN** the subuser management UI is shown
+- **AND** the scaffold copy referencing change #26 is not displayed
+
+#### Scenario: Navigation config omits forbidden items for subusers
+
+- **WHEN** intranet navigation is rendered for a subuser lacking `orders` permission
+- **THEN** Histórico de pedidos and Pedido rápido items are omitted from the sidebar
+- **AND** permitted items retain correct hrefs
+
+### Requirement: Dashboard shows pending approval badge for superadmin
+
+When the company has orders in `pending_company_approval`, the intranet dashboard SHALL show a non-blocking badge or card linking to the approval queue for `b2b_superadmin` only.
+
+#### Scenario: Superadmin sees pending count
+
+- **WHEN** a superadmin loads `/intranet` and two orders await company approval
+- **THEN** a visible indicator shows pending approvals count
+- **AND** activating it navigates to the approval UI in mi-cuenta or dedicated panel
+
+#### Scenario: Subuser does not see approval badge
+
+- **WHEN** a subuser loads `/intranet`
+- **THEN** the superadmin approval badge is not rendered

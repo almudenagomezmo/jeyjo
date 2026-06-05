@@ -13,6 +13,7 @@ import {
   type JeyjoOrderStatus,
 } from '@/collections/Orders/status-transitions'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
+import { notifyOrderStatusChange } from '@/lib/notifications/order-status-hook'
 import {
   staffCreateAccess,
   staffDeleteAccess,
@@ -24,6 +25,7 @@ import { isCollectionHidden } from '@/access/staffRoles'
 const JEYJO_ORDER_STATUSES = [
   { label: 'Pendiente', value: 'pending' },
   { label: 'Pendiente de pago', value: 'pending_payment' },
+  { label: 'Pendiente aprobación empresa', value: 'pending_company_approval' },
   { label: 'Pendiente de confirmación', value: 'pending_confirmation' },
   { label: 'Confirmado', value: 'confirmed' },
   { label: 'En preparación', value: 'preparing' },
@@ -86,6 +88,21 @@ const jeyjoOrderFields: Field[] = [
       position: 'sidebar',
       description: 'UUID de public.customers hasta enlace formal en #16',
     },
+  },
+  {
+    name: 'submittedByUserId',
+    type: 'text',
+    label: 'Subusuario (UUID)',
+    admin: {
+      position: 'sidebar',
+      description: 'web_profiles.id del subusuario que envió el pedido',
+    },
+  },
+  {
+    name: 'submittedByEmail',
+    type: 'text',
+    label: 'Email subusuario',
+    admin: { position: 'sidebar' },
   },
   {
     name: 'validatedEva',
@@ -341,6 +358,7 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
     afterChange: [
       ...(defaultCollection?.hooks?.afterChange ?? []),
       ...orderAuditHooks.afterChange,
+      notifyOrderStatusChange,
     ],
     afterDelete: [
       ...(defaultCollection?.hooks?.afterDelete ?? []),

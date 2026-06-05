@@ -39,7 +39,10 @@ export async function NavigationShell({ children }: { children: React.ReactNode 
         >
           Ir al contenido
         </a>
-        <PortalTopBar commercialName={ctx?.commercialName ?? "Portal B2B"} />
+        <PortalTopBar
+          commercialName={ctx?.commercialName ?? "Portal B2B"}
+          profileId={ctx?.userId ?? ""}
+        />
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>

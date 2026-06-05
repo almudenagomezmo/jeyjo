@@ -133,6 +133,20 @@ pnpm --filter @jeyjo/stock-ports test
 pnpm test:int stock
 ```
 
+## B2B notifications (`notifications-center-email`, ROADMAP #28)
+
+- **Tablas Supabase:** `notifications`, `notification_preferences`, `erp_invoice_sync_state`
+- **Despacho:** `src/lib/notifications/dispatch.ts` (hooks Orders/Quotes + cron facturas)
+- **Env:** `NOTIFICATIONS_ENABLED=true` (sin esto los hooks y sync no envían avisos)
+- **Cron:** `GET /api/cron/invoice-sync` cada 5 min; `GET /api/cron/quote-expiry-notifications` diario — mismo `CRON_SECRET`
+- **Storefront:** campana en portal, APIs `/api/intranet/notifications` y `notification-preferences`
+
+```bash
+curl http://localhost:3001/api/cron/invoice-sync -H "Authorization: Bearer $CRON_SECRET"
+curl http://localhost:3001/api/cron/quote-expiry-notifications -H "Authorization: Bearer $CRON_SECRET"
+pnpm test:int notifications
+```
+
 ## Search indexer Qdrant (`search-events-qdrant-worker`, ROADMAP #13)
 
 - **Worker:** `src/search-indexer/` — poll `search_events` → embeddings (`@xenova/transformers`) → upsert/delete Qdrant (`products`, `categories`).

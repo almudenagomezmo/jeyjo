@@ -2,16 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { INTRANET_PRIMARY_NAV } from "@/lib/intranet/navigation";
+import { INTRANET_PRIMARY_NAV, type IntranetNavItem } from "@/lib/intranet/navigation";
 import { isIntranetNavItemActive } from "@/lib/intranet/nav-active";
 import { cn } from "@/lib/utils/cn";
 
-export function IntranetNav() {
+type IntranetNavProps = {
+  items?: IntranetNavItem[];
+};
+
+export function IntranetNav({ items = INTRANET_PRIMARY_NAV }: IntranetNavProps) {
   const pathname = usePathname();
 
   return (
     <nav className="flex flex-col gap-1 text-sm" aria-label="Menú intranet">
-      {INTRANET_PRIMARY_NAV.map((link) => {
+      {items.map((link) => {
         const active = isIntranetNavItemActive(pathname, link.href);
         return (
           <Link

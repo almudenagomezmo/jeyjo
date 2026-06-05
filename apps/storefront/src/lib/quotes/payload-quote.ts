@@ -64,6 +64,7 @@ export async function createPayloadQuote(
 
 export async function fetchCustomerQuotes(
   customerId: string,
+  options?: { includeNotes?: boolean },
 ): Promise<
   {
     id: number
@@ -71,6 +72,7 @@ export async function fetchCustomerQuotes(
     status: string | null
     amount: number | null
     createdAt: string
+    customerNotes?: string | null
   }[]
 > {
   const base = payloadBaseUrl()
@@ -78,6 +80,7 @@ export async function fetchCustomerQuotes(
   if (!base || !apiKey) return []
 
   const params = new URLSearchParams({ customerRef: customerId })
+  if (options?.includeNotes) params.set('includeNotes', '1')
 
   const res = await fetch(`${base.replace(/\/$/, '')}/api/quotes/storefront-mine?${params}`, {
     headers: { Authorization: `Bearer ${apiKey}` },
@@ -93,6 +96,7 @@ export async function fetchCustomerQuotes(
       status?: string | null
       amount?: number | null
       createdAt: string
+      customerNotes?: string | null
     }[]
   }
 
@@ -102,7 +106,44 @@ export async function fetchCustomerQuotes(
     status: d.status ?? null,
     amount: d.amount ?? null,
     createdAt: d.createdAt,
+    customerNotes: d.customerNotes ?? null,
   }))
+}
+
+export async function createPriceReviewQuote(input: {
+  customerId: string
+  sku: string
+  productName: string
+  customerNotes: string
+}): Promise<{ quoteNumber: string; id: number } | null> {
+  const base = payloadBaseUrl()
+  const apiKey = process.env.STOREFRONT_PAYLOAD_API_KEY
+  if (!base || !apiKey) return null
+
+  const res = await fetch(`${base.replace(/\/$/, '')}/api/quotes/storefront-price-review`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      customerRef: input.customerId,
+      skuErp: input.sku,
+      productName: input.productName,
+      customerNotes: input.customerNotes,
+    }),
+    signal: AbortSignal.timeout(8000),
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Payload price review failed (${res.status}): ${text.slice(0, 200)}`)
+  }
+
+  const data = (await res.json()) as { doc?: { id?: number; quoteNumber?: string } }
+  const doc = data.doc
+  if (!doc?.quoteNumber) return null
+  return { quoteNumber: doc.quoteNumber, id: doc.id ?? 0 }
 }
 
 export function segmentFromPrepare(prepare: QuotePreparePayload): CheckoutSegment {

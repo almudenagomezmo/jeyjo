@@ -45,8 +45,20 @@ Local tras `supabase start`: API `http://127.0.0.1:54321`, Postgres `postgresql:
 | `20250604120002_search_events_audit_log.sql` | Cola RF-009, audit log |
 | `20250604120003_row_level_security.sql` | RLS + `current_customer_id()` |
 | `20250604120004_storage_buckets.sql` | `catalog-media`, `private-documents` |
+| `20250604140000_b2b_subusers_permissions.sql` | `display_name`, `is_active`, RLS subusers, `create_b2b_subuser` RPC |
 
 Nueva migración: `npx supabase migration new <nombre>`.
+
+## Subusuarios B2B (RF-003, cambio #26)
+
+Tras migrar, el superadmin B2B gestiona subusuarios en `/intranet/mi-cuenta`. Para prueba local:
+
+1. Autenticarse como `b2b-demo@jeyjo.local` (superadmin, ver seed).
+2. En **Mi cuenta → Nuevo subusuario**, crear p. ej. `compras@empresa.local` con permisos solo **Pedidos** (sin finanzas).
+3. Cerrar sesión e iniciar con el subusuario: el menú **Contabilidad** no aparece y `/intranet/contabilidad/facturas` redirige al dashboard con aviso.
+4. Opcional: marcar **Pedidos requieren aprobación** y completar checkout B2B → el pedido queda en `pending_company_approval` hasta que el superadmin lo apruebe en Mi cuenta.
+
+Variable opcional en storefront: `B2B_PERMISSIONS_ENABLED=false` desactiva guards de permisos (rollback).
 
 ## Seed y prueba manual de RLS
 

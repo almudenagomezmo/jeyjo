@@ -70,12 +70,6 @@ export const INTRANET_PRIMARY_NAV: IntranetNavItem[] = [
   {
     href: '/intranet/mi-cuenta',
     label: 'Mi cuenta',
-    scaffold: {
-      title: 'Mi cuenta',
-      description:
-        'Datos de empresa, usuarios subordinados y preferencias de acceso. La gestión de subusuarios llegará en una fase posterior.',
-      roadmapRef: '#26 b2b-subusers-permissions',
-    },
   },
   {
     href: '/intranet/contabilidad',
@@ -89,29 +83,14 @@ export const INTRANET_PRIMARY_NAV: IntranetNavItem[] = [
   {
     href: '/intranet/pedido-rapido',
     label: 'Pedido rápido',
-    scaffold: {
-      title: 'Pedido rápido',
-      description: 'Introduce referencias manualmente o importa un Excel para reabastecer tu stock en minutos.',
-      roadmapRef: '#24 quick-order-excel',
-    },
   },
   {
     href: '/intranet/precios',
     label: 'Precios especiales',
-    scaffold: {
-      title: 'Precios especiales',
-      description: 'Consulta tus tarifas pactadas y descuentos aplicables artículo a artículo.',
-      roadmapRef: '#25 custom-tariffs-view',
-    },
   },
   {
     href: '/intranet/rma',
     label: 'RMA e incidencias',
-    scaffold: {
-      title: 'RMA e incidencias',
-      description: 'Abre y sigue devoluciones o incidencias de entrega desde el portal.',
-      roadmapRef: '#27 rma-incidents',
-    },
   },
   {
     href: '/intranet/stock',

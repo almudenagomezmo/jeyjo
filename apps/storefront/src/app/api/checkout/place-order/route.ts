@@ -6,6 +6,8 @@ import { createPayloadCheckoutOrder } from '@/lib/checkout/payload-order'
 import { verifyCheckoutPrepare } from '@/lib/checkout/prepare-token'
 import { resolveCheckoutSegment } from '@/lib/checkout/segment'
 import type { DeliveryMethod } from '@/lib/checkout/totals'
+import { canAccessSection, requiresOrderCompanyApproval } from '@/lib/b2b/permissions'
+import { isB2bPermissionsEnabled } from '@/lib/b2b/env'
 import { isPaymentsEnabled } from '@/lib/payments/enabled'
 import {
   PaymentMethodDisabledError,
@@ -69,6 +71,10 @@ export async function POST(request: Request) {
   const ctx = await getCustomerContext()
   const segment = resolveCheckoutSegment(ctx)
 
+  if (segment === 'b2b' && ctx && isB2bPermissionsEnabled() && !canAccessSection(ctx, 'orders')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   if (!ctx && !body.guestEmail?.trim()) {
     return NextResponse.json({ error: 'Guest email is required' }, { status: 400 })
   }
@@ -103,6 +109,14 @@ export async function POST(request: Request) {
       : null
 
   try {
+    const needsCompanyApproval = segment === 'b2b' && ctx && requiresOrderCompanyApproval(ctx)
+    const jeyjoStatus =
+      segment === 'b2b'
+        ? needsCompanyApproval
+          ? 'pending_company_approval'
+          : 'pending_confirmation'
+        : 'pending_payment'
+
     const order = await createPayloadCheckoutOrder({
       prepare,
       segment,
@@ -117,6 +131,9 @@ export async function POST(request: Request) {
       billingAddressSnapshot: body.billingAddressSnapshot ?? null,
       pickupStoreLabel,
       alternateAddressId: body.alternateAddressId ?? null,
+      jeyjoStatus,
+      submittedByUserId: needsCompanyApproval ? ctx!.userId : null,
+      submittedByEmail: needsCompanyApproval ? ctx!.email : null,
     })
 
     if (!order) {
@@ -126,7 +143,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const status = segment === 'b2b' ? 'pending_confirmation' : 'pending_payment'
+    const status = jeyjoStatus
     let nextStep = null
 
     if (segment === 'b2c' && isPaymentsEnabled()) {
@@ -149,6 +166,7 @@ export async function POST(request: Request) {
       orderNumber: order.orderNumber,
       orderId: order.id,
       status,
+      pendingCompanyApproval: status === 'pending_company_approval',
       nextStep,
     })
   } catch (err) {

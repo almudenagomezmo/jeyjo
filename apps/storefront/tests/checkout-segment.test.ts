@@ -21,6 +21,10 @@ function ctx(partial: Partial<CustomerContext>): CustomerContext {
     billingPostalCode: null,
     billingCountry: 'ES',
     defaultPaymentMethod: null,
+    displayName: null,
+    permissionsRaw: {},
+    isActive: true,
+    parentCustomerId: null,
     ...partial,
   }
 }

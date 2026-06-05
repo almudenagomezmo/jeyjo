@@ -43,12 +43,18 @@ Quote confirmation emails SHALL use the same Payload email transport as other tr
 - **WHEN** `RESEND_API_KEY` is set in production
 - **THEN** quote confirmation is sent via Resend SMTP using `RESEND_FROM_EMAIL`
 
-### Requirement: Status change email hook deferred
+### Requirement: Quote status change sends customer email when enabled
 
-The system MAY expose an internal hook or function to send emails on quote status changes, but v1 SHALL NOT send customer emails on status transitions beyond the initial request confirmation.
+When staff transitions a B2B-linked quote to `sent`, `accepted`, or `cancelled`, the CMS SHALL send a transactional email to the customer contact (profile email or `guestEmail`) if quote notification channel is `email`, using the same transport as quote request confirmation.
 
-#### Scenario: Status change to sent does not email in v1
+#### Scenario: Sent status emails B2B customer
 
-- **WHEN** staff moves a quote from `in_review` to `sent`
-- **THEN** no customer email is sent in this change
-- **AND** the transition is still persisted
+- **WHEN** staff moves quote P-2026-00005 to `sent` for customerRef with email channel
+- **THEN** an email is sent including quote number and status Enviado
+- **AND** the quote document update is not rolled back on email failure
+
+#### Scenario: Portal-only skips email on status change
+
+- **WHEN** the customer profile has `quote_channel` `portal`
+- **THEN** no status change email is sent
+- **AND** in-app notification is still created

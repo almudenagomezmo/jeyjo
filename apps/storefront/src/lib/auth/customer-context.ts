@@ -1,4 +1,4 @@
-import type { Database } from '@jeyjo/database-types'
+import type { Database, Json } from '@jeyjo/database-types'
 
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
 import { isSupabaseConfigured } from '@/lib/supabase/env'
@@ -21,6 +21,10 @@ export type CustomerContext = {
   billingPostalCode: string | null
   billingCountry: string | null
   defaultPaymentMethod: string | null
+  displayName: string | null
+  permissionsRaw: Json
+  isActive: boolean
+  parentCustomerId: string | null
 }
 
 /** Effective group for pricing: pending B2B uses B2C (group 1) until validated. */
@@ -57,7 +61,7 @@ export async function getCustomerContext(userId?: string | null): Promise<Custom
   const { data: profile } = await admin
     .from('web_profiles')
     .select(
-      'id, customer_id, email, role, mfa_enabled, customers!web_profiles_customer_id_fkey ( commercial_name, tax_id, phone, customer_group, validated_at, is_company, billing_address_line1, billing_city, billing_postal_code, billing_country, default_payment_method )',
+      'id, customer_id, email, role, mfa_enabled, display_name, permissions, is_active, parent_customer_id, customers!web_profiles_customer_id_fkey ( commercial_name, tax_id, phone, customer_group, validated_at, is_company, billing_address_line1, billing_city, billing_postal_code, billing_country, default_payment_method )',
     )
     .eq('id', uid)
     .maybeSingle()
@@ -96,5 +100,9 @@ export async function getCustomerContext(userId?: string | null): Promise<Custom
     billingPostalCode: customer.billing_postal_code,
     billingCountry: customer.billing_country,
     defaultPaymentMethod: customer.default_payment_method,
+    displayName: profile.display_name ?? null,
+    permissionsRaw: profile.permissions ?? {},
+    isActive: profile.is_active ?? true,
+    parentCustomerId: profile.parent_customer_id ?? null,
   }
 }

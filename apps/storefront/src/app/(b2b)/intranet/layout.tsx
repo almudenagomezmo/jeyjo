@@ -4,13 +4,17 @@ import { IntranetBreadcrumb } from "@/components/intranet/IntranetBreadcrumb";
 import { IntranetNav } from "@/components/intranet/IntranetNav";
 import { getCustomerContext } from "@/lib/auth/customer-context";
 import { isB2bValidated } from "@/lib/auth/redirect";
+import { filterIntranetNav } from "@/lib/b2b/permissions";
+import { INTRANET_PRIMARY_NAV } from "@/lib/intranet/navigation";
 
 export default async function IntranetLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getCustomerContext();
   if (!ctx) redirect("/login?next=/intranet");
+  if (!ctx.isActive) redirect("/login?error=disabled");
   if (!isB2bValidated(ctx)) redirect("/cuenta?error=forbidden");
 
   const showMfaBanner = ctx.role === "b2b_superadmin" && !ctx.mfaEnabled;
+  const navItems = filterIntranetNav(INTRANET_PRIMARY_NAV, ctx);
 
   return (
     <Container className="py-8">
@@ -30,7 +34,7 @@ export default async function IntranetLayout({ children }: { children: React.Rea
       <IntranetBreadcrumb />
 
       <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-        <IntranetNav />
+        <IntranetNav items={navItems} />
         <div className="min-w-0">{children}</div>
       </div>
     </Container>

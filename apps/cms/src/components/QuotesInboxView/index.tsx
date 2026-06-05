@@ -103,6 +103,7 @@ export const QuotesInboxView: React.FC = () => {
       <nav className={`${baseClass}__nav`}>
         <a href="/admin/oms">Bandeja OMS</a>
         <a href="/admin/quotes">Presupuestos</a>
+        <a href="/admin/rma">RMA e incidencias</a>
         <a href="/admin/collections/quotes">Colección Presupuestos</a>
       </nav>
       <h1>Bandeja de presupuestos</h1>

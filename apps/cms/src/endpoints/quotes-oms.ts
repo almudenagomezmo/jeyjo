@@ -387,6 +387,7 @@ export const quotesStorefrontMineEndpoint: Endpoint = {
     const url = new URL(req.url ?? 'http://local', 'http://local')
     const customerRef = url.searchParams.get('customerRef')?.trim()
     if (!customerRef) throw new APIError('customerRef required', 400)
+    const includeNotes = url.searchParams.get('includeNotes') === '1'
 
     const found = await req.payload.find({
       collection: 'quotes',
@@ -404,7 +405,80 @@ export const quotesStorefrontMineEndpoint: Endpoint = {
         status: q.status,
         amount: q.amount,
         createdAt: q.createdAt,
+        ...(includeNotes ? { customerNotes: q.customerNotes ?? null } : {}),
       })),
+    })
+  },
+}
+
+export const quotesStorefrontPriceReviewEndpoint: Endpoint = {
+  path: '/quotes/storefront-price-review',
+  method: 'post',
+  handler: async (req) => {
+    if (!isStorefrontQuoteApiKey(req)) {
+      throw new APIError('Unauthorized', 401)
+    }
+
+    let body: {
+      customerRef?: string | null
+      skuErp?: string
+      productName?: string
+      customerNotes?: string | null
+    }
+    try {
+      body = (await req.json?.()) as typeof body
+    } catch {
+      throw new APIError('Invalid JSON body', 400)
+    }
+
+    const customerRef = body.customerRef?.trim()
+    const skuErp = body.skuErp?.trim()
+    const productName = body.productName?.trim() || skuErp
+    if (!customerRef || !skuErp) {
+      throw new APIError('customerRef and skuErp required', 400)
+    }
+
+    const notes = body.customerNotes?.trim() ?? null
+    if (!notes || notes.length > 500) {
+      throw new APIError('customerNotes required (max 500 characters)', 400)
+    }
+
+    const input: StorefrontQuoteCreateInput = {
+      segment: 'b2b',
+      customerRef,
+      guestEmail: null,
+      deliveryMethod: 'home',
+      pickupStoreLabel: null,
+      shippingAddressSnapshot: null,
+      billingAddressSnapshot: null,
+      customerNotes: notes,
+      subtotal: 0,
+      shippingCost: 0,
+      amount: 0,
+      lineSnapshots: [
+        {
+          lineId: `price-review-${skuErp}`,
+          skuErp,
+          name: productName ?? skuErp,
+          qty: 1,
+          unitPrice: 0,
+          lineTotal: 0,
+        },
+      ],
+    }
+
+    const created = await req.payload.create({
+      collection: 'quotes',
+      data: mapStorefrontInputToQuoteData(input) as never,
+      req,
+      overrideAccess: true,
+    })
+
+    return Response.json({
+      doc: {
+        id: created.id,
+        quoteNumber: created.quoteNumber,
+      },
     })
   },
 }
@@ -412,6 +486,7 @@ export const quotesStorefrontMineEndpoint: Endpoint = {
 export const quotesOmsEndpoints: Endpoint[] = [
   quotesStorefrontCreateEndpoint,
   quotesStorefrontMineEndpoint,
+  quotesStorefrontPriceReviewEndpoint,
   quotesInboxSummaryEndpoint,
   quotesStatusPatchEndpoint,
   quotesConvertToOrderEndpoint,

@@ -28,6 +28,10 @@ const validatedB2b: CustomerContext = {
   billingPostalCode: null,
   billingCountry: 'ES',
   defaultPaymentMethod: null,
+  displayName: null,
+  permissionsRaw: {},
+  isActive: true,
+  parentCustomerId: null,
 }
 
 describe('intranet navigation config', () => {
@@ -41,7 +45,7 @@ describe('intranet navigation config', () => {
 
   it('provides scaffolds for pending leaf routes', () => {
     expect(getScaffoldForPath('/intranet/pedidos')).toBeFalsy()
-    expect(getScaffoldForPath('/intranet/pedido-rapido')?.roadmapRef).toContain('#24')
+    expect(getScaffoldForPath('/intranet/pedido-rapido')).toBeFalsy()
     expect(getScaffoldForPath('/intranet/contabilidad/facturas')?.roadmapRef).toContain('#37')
   })
 })

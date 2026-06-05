@@ -11,7 +11,7 @@ type RepeatBody = {
 }
 
 export async function POST(request: Request) {
-  const guard = await requireB2bApiSession()
+  const guard = await requireB2bApiSession({ section: 'orders' })
   if ('error' in guard) return guard.error
 
   let body: RepeatBody

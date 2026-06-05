@@ -98,9 +98,19 @@ describe('stub ErpCatalogWriter', () => {
 })
 
 describe('stub ErpDocumentsReader', () => {
-  it('throws ERP_NOT_IMPLEMENTED', async () => {
+  it('lists invoices by customer for B2B-EMPRESA1', async () => {
     const docs = createStubDocumentsReader()
-    await expect(docs.listInvoices()).rejects.toMatchObject({
+    const rows = await docs.listInvoicesByCustomer('B2B-EMPRESA1')
+    expect(rows.length).toBeGreaterThanOrEqual(2)
+    expect(rows[0]).toMatchObject({
+      currency: 'EUR',
+      customerErpCode: 'B2B-EMPRESA1',
+    })
+  })
+
+  it('throws ERP_NOT_IMPLEMENTED for delivery notes', async () => {
+    const docs = createStubDocumentsReader()
+    await expect(docs.listDeliveryNotes()).rejects.toMatchObject({
       code: 'ERP_NOT_IMPLEMENTED',
     })
   })

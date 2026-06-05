@@ -19,6 +19,15 @@ describe('stub ErpPricingReader', () => {
     expect(page.items.some((s) => s.skuErp === 'REF-004' && s.netPrice === 5)).toBe(true)
   })
 
+  it('lists expired special price with RF-020 fields for empresa2', async () => {
+    const reader = createStubPricingReader()
+    const page = await reader.listSpecialPrices('B2B-EMPRESA2')
+    const expired = page.items.find((s) => s.skuErp === 'REF-002')
+    expect(expired?.validTo).toBe('2025-12-31')
+    expect(expired?.recommendedNetPrice).toBe(10)
+    expect(expired?.discount1Pct).toBe(15)
+  })
+
   it('lists active group offer for REF-003', async () => {
     const reader = createStubPricingReader()
     const page = await reader.listGroupOffers()

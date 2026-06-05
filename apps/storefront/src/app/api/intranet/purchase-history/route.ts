@@ -4,7 +4,7 @@ import { requireB2bApiSession } from '@/lib/intranet/b2b-api-guard'
 import { buildPurchaseHistoryPage } from '@/lib/intranet/purchase-history/service'
 
 export async function GET(request: Request) {
-  const guard = await requireB2bApiSession()
+  const guard = await requireB2bApiSession({ section: 'orders' })
   if ('error' in guard) return guard.error
 
   const url = new URL(request.url)

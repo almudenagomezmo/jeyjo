@@ -17,6 +17,7 @@ import sharp from 'sharp'
 
 import { Categories } from '@/collections/Categories'
 import { Quotes } from '@/collections/Quotes'
+import { RmaIncidents } from '@/collections/RmaIncidents'
 import { Media } from '@/collections/Media'
 import { Pages } from '@/collections/Pages'
 import { Suppliers } from '@/collections/Suppliers'
@@ -31,6 +32,7 @@ import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
 import { pimHealthEndpoint } from '@/endpoints/pim-health'
 import { ordersOmsEndpoints } from '@/endpoints/orders-oms'
 import { quotesOmsEndpoints } from '@/endpoints/quotes-oms'
+import { rmaOmsEndpoints } from '@/endpoints/rma-oms'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
 import { qdrantCollections } from '@/lib/qdrant-collections'
@@ -106,11 +108,15 @@ export default buildConfig({
           Component: '@/components/QuotesInboxView#QuotesInboxView',
           path: '/quotes',
         },
+        rmaInbox: {
+          Component: '@/components/RmaInboxView#RmaInboxView',
+          path: '/rma',
+        },
       },
     },
     user: Users.slug,
   },
-  collections: [Users, Pages, Categories, Suppliers, Media, Quotes],
+  collections: [Users, Pages, Categories, Suppliers, Media, Quotes, RmaIncidents],
   cors: corsOrigins,
   csrf: corsOrigins,
   db: postgresAdapter({
@@ -168,6 +174,7 @@ export default buildConfig({
     pimHealthEndpoint,
     ...ordersOmsEndpoints,
     ...quotesOmsEndpoints,
+    ...rmaOmsEndpoints,
   ],
   globals: [Header, Footer, Home, PaymentSettings],
   plugins,

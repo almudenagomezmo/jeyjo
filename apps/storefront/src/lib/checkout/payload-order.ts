@@ -17,6 +17,9 @@ export type PlaceOrderInput = {
   billingAddressSnapshot: Record<string, unknown> | null
   pickupStoreLabel: string | null
   alternateAddressId: string | null
+  jeyjoStatus?: string
+  submittedByUserId?: string | null
+  submittedByEmail?: string | null
 }
 
 function payloadBaseUrl(): string | null {
@@ -36,9 +39,10 @@ export async function createPayloadCheckoutOrder(
   if (!base || !apiKey) return null
 
   const { prepare, segment } = input
-  const jeyjoStatus = segment === 'b2b' ? 'pending_confirmation' : 'pending_payment'
+  const jeyjoStatus =
+    input.jeyjoStatus ?? (segment === 'b2b' ? 'pending_confirmation' : 'pending_payment')
 
-  const body = {
+  const body: Record<string, unknown> = {
     origin: segment,
     jeyjoStatus,
     customerRef: input.customerId,
@@ -59,6 +63,9 @@ export async function createPayloadCheckoutOrder(
     orderLineSnapshots: prepare.lineSnapshots,
     items: [],
   }
+
+  if (input.submittedByUserId) body.submittedByUserId = input.submittedByUserId
+  if (input.submittedByEmail) body.submittedByEmail = input.submittedByEmail
 
   const res = await fetch(`${base.replace(/\/$/, '')}/api/orders`, {
     method: 'POST',

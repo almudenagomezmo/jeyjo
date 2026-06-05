@@ -142,6 +142,124 @@ export type Database = {
         }
         Relationships: []
       }
+      erp_invoice_sync_state: {
+        Row: {
+          customer_id: string
+          known_invoice_ids: Json
+          last_synced_at: string
+        }
+        Insert: {
+          customer_id: string
+          known_invoice_ids?: Json
+          last_synced_at?: string
+        }
+        Update: {
+          customer_id?: string
+          known_invoice_ids?: Json
+          last_synced_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'erp_invoice_sync_state_customer_id_fkey'
+            columns: ['customer_id']
+            isOneToOne: true
+            referencedRelation: 'customers'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          email_disabled_at: string | null
+          invoice_channel: Database['public']['Enums']['notification_channel']
+          order_channel: Database['public']['Enums']['notification_channel']
+          quote_channel: Database['public']['Enums']['notification_channel']
+          updated_at: string
+          web_profile_id: string
+        }
+        Insert: {
+          email_disabled_at?: string | null
+          invoice_channel?: Database['public']['Enums']['notification_channel']
+          order_channel?: Database['public']['Enums']['notification_channel']
+          quote_channel?: Database['public']['Enums']['notification_channel']
+          updated_at?: string
+          web_profile_id: string
+        }
+        Update: {
+          email_disabled_at?: string | null
+          invoice_channel?: Database['public']['Enums']['notification_channel']
+          order_channel?: Database['public']['Enums']['notification_channel']
+          quote_channel?: Database['public']['Enums']['notification_channel']
+          updated_at?: string
+          web_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notification_preferences_web_profile_id_fkey'
+            columns: ['web_profile_id']
+            isOneToOne: true
+            referencedRelation: 'web_profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          customer_id: string
+          email_sent_at: string | null
+          id: string
+          idempotency_key: string
+          payload: Json
+          read_at: string | null
+          title: string
+          type: Database['public']['Enums']['notification_type']
+          web_profile_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          customer_id: string
+          email_sent_at?: string | null
+          id?: string
+          idempotency_key: string
+          payload?: Json
+          read_at?: string | null
+          title: string
+          type: Database['public']['Enums']['notification_type']
+          web_profile_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          customer_id?: string
+          email_sent_at?: string | null
+          id?: string
+          idempotency_key?: string
+          payload?: Json
+          read_at?: string | null
+          title?: string
+          type?: Database['public']['Enums']['notification_type']
+          web_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_customer_id_fkey'
+            columns: ['customer_id']
+            isOneToOne: false
+            referencedRelation: 'customers'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_web_profile_id_fkey'
+            columns: ['web_profile_id']
+            isOneToOne: false
+            referencedRelation: 'web_profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       customers: {
         Row: {
           billing_address_line1: string | null
@@ -408,9 +526,11 @@ export type Database = {
         Row: {
           created_at: string
           customer_id: string
+          display_name: string | null
           email: string
           failed_login_count: number
           id: string
+          is_active: boolean
           last_login_at: string | null
           locked_until: string | null
           mfa_enabled: boolean
@@ -422,9 +542,11 @@ export type Database = {
         Insert: {
           created_at?: string
           customer_id: string
+          display_name?: string | null
           email: string
           failed_login_count?: number
           id: string
+          is_active?: boolean
           last_login_at?: string | null
           locked_until?: string | null
           mfa_enabled?: boolean
@@ -436,9 +558,11 @@ export type Database = {
         Update: {
           created_at?: string
           customer_id?: string
+          display_name?: string | null
           email?: string
           failed_login_count?: number
           id?: string
+          is_active?: boolean
           last_login_at?: string | null
           locked_until?: string | null
           mfa_enabled?: boolean
@@ -469,9 +593,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_b2b_subuser: {
+        Args: {
+          p_customer_id: string
+          p_display_name: string
+          p_email: string
+          p_permissions?: Json
+          p_user_id: string
+        }
+        Returns: string
+      }
       current_customer_id: { Args: never; Returns: string }
+      is_b2b_superadmin_of_company: {
+        Args: { p_company_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      notification_channel: "email" | "portal" | "off"
+      notification_type:
+        | "invoice_new"
+        | "order_status"
+        | "quote_status"
+        | "quote_expiring"
       search_event_status: "pending" | "processing" | "done" | "error"
       web_profile_role: "b2c" | "b2b_superadmin" | "b2b_subuser" | "pending"
     }

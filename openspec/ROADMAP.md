@@ -6,6 +6,8 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
+**Progreso:** **28 / 43** cambios completados (~65 %). Hito alcanzado: portal B2B con histórico, pedido rápido, tarifas, subusuarios, RMA y centro de notificaciones operativos.
+
 | # | Cambio | Depende de | US / RF principales | Estado | Fecha |
 |---|--------|------------|---------------------|--------|-------|
 | 1 | `foundation-monorepo-design-system` | — | RNF-017, RNF-014 | Completado | 2026-06-04 |
@@ -31,11 +33,11 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 21 | `pim-seo-dual-images` | 3, 5 | RF-024, US-16 | Completado | 2026-06-04 |
 | 22 | `portal-b2b-shell` | 16, 6 | RF-001, RF-011, US-07 | Completado | 2026-06-04 |
 | 23 | `purchase-history-repeat` | 6, 12, 22 | RF-018, US-10 | Completado | 2026-06-04 |
-| 24 | `quick-order-excel` | 12, 22 | RF-019, US-11 | Pendiente | — |
-| 25 | `custom-tariffs-view` | 6, 22, 4 | RF-020, US-14 | Pendiente | — |
-| 26 | `b2b-subusers-permissions` | 16, 22 | RF-003, US-12 | Pendiente | — |
-| 27 | `rma-incidents` | 20, 22 | RF-021, US-13 | Pendiente | — |
-| 28 | `notifications-center-email` | 20, 22 | RF-022, US-21 | Pendiente | — |
+| 24 | `quick-order-excel` | 12, 22 | RF-019, US-11 | Completado | 2026-06-04 |
+| 25 | `custom-tariffs-view` | 6, 22, 4 | RF-020, US-14 | Completado | 2026-06-04 |
+| 26 | `b2b-subusers-permissions` | 16, 22 | RF-003, US-12 | Completado | 2026-06-04 |
+| 27 | `rma-incidents` | 20, 22 | RF-021, US-13 | Completado | 2026-06-04 |
+| 28 | `notifications-center-email` | 20, 22 | RF-022, US-21 | Completado | 2026-06-04 |
 | 29 | `excel-importer-exporter` | 4, 5 | RF-023, US-15 | Pendiente | — |
 | 30 | `dashboard-kpis-alerts` | 5, 7, 20 | RF-026, US-19 | Pendiente | — |
 | 31 | `marketing-coupons-abandoned-cart` | 17, 20 | RF-027, US-18, US-23 | Pendiente | — |
@@ -52,6 +54,8 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 42 | `system-config-backoffice` | 5, 30 | Alcance §1.36 | Pendiente | — |
 | 43 | `seo-technical-auditor` | 21, 34 | Alcance auditor SEO | Pendiente | — |
 
-**Siguiente cambio recomendado:** #24 `quick-order-excel` o #25 `custom-tariffs-view` (dependencias #6, #12, #20, #22 y #23 ya completadas).
+**Siguiente cambio recomendado:** #29 `excel-importer-exporter` (RF-023, US-15) o #35 `wishlist-stock-alerts` (reutiliza notificaciones #28).
+
+**Portal B2B — estado actual:** operativo histórico (#23), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27) y notificaciones (#28); pendientes avisos stock PDP (#35), descargas (#41) y contabilidad documental (#37).
 
 Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live.

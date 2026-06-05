@@ -1,6 +1,7 @@
 export const JEYJO_ORDER_STATUS_VALUES = [
   'pending',
   'pending_payment',
+  'pending_company_approval',
   'pending_confirmation',
   'confirmed',
   'preparing',
@@ -20,6 +21,7 @@ export const EXPORTABLE_JEYJO_STATUSES: JeyjoOrderStatus[] = [
 
 const STAFF_STATUS_TRANSITIONS: Partial<Record<JeyjoOrderStatus, JeyjoOrderStatus[]>> = {
   pending_payment: ['confirmed', 'cancelled'],
+  pending_company_approval: ['pending_confirmation', 'cancelled'],
   pending_confirmation: ['confirmed', 'cancelled'],
   confirmed: ['preparing', 'cancelled'],
   preparing: ['shipped', 'cancelled'],
@@ -28,6 +30,7 @@ const STAFF_STATUS_TRANSITIONS: Partial<Record<JeyjoOrderStatus, JeyjoOrderStatu
 
 const STOREFRONT_STATUS_TRANSITIONS: Partial<Record<JeyjoOrderStatus, JeyjoOrderStatus[]>> = {
   pending_payment: ['confirmed', 'pending_payment'],
+  pending_company_approval: ['pending_confirmation', 'cancelled'],
 }
 
 export function isJeyjoOrderStatus(value: string | null | undefined): value is JeyjoOrderStatus {

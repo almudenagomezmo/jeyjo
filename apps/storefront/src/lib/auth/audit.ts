@@ -27,3 +27,29 @@ export async function writeCustomerLoginAudit(input: {
     source_ip: input.sourceIp ?? null,
   })
 }
+
+export async function writeSubuserAudit(input: {
+  actorUserId: string
+  actorEmail: string
+  action: 'SUBUSER_CREATED' | 'SUBUSER_UPDATED' | 'SUBUSER_DEACTIVATED'
+  subuserId: string
+  customerId: string
+  metadata?: Record<string, unknown>
+  sourceIp?: string | null
+}): Promise<void> {
+  const supabase = getSupabaseAdminClient()
+  if (!supabase) return
+
+  await supabase.from('audit_log').insert({
+    actor_user_id: input.actorUserId,
+    actor_name: input.actorEmail,
+    action: input.action,
+    entity_type: 'web_profile',
+    entity_id: input.subuserId,
+    new_value: {
+      customerId: input.customerId,
+      ...(input.metadata ?? {}),
+    } as Json,
+    source_ip: input.sourceIp ?? null,
+  })
+}

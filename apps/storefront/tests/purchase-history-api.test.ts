@@ -44,6 +44,14 @@ describe('purchase history API', () => {
     expect(res?.status).toBe(401)
   })
 
+  it('GET returns 403 without orders permission', async () => {
+    requireB2bApiSession.mockResolvedValue({
+      error: Response.json({ error: 'Forbidden' }, { status: 403 }),
+    })
+    const res = await GET(new Request('http://localhost/api/intranet/purchase-history'))
+    expect(res?.status).toBe(403)
+  })
+
   it('GET returns REF-010 with current price not equal to historical (CA-B2B-004)', async () => {
     requireB2bApiSession.mockResolvedValue({
       ctx: {},

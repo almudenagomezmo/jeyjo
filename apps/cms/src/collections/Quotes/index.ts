@@ -8,6 +8,7 @@ import {
 } from '@/access/staffAccess'
 import { isCollectionHidden } from '@/access/staffRoles'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
+import { notifyQuoteStatusChange } from '@/lib/notifications/quote-status-hook'
 
 import { assignNextQuoteNumber } from './quote-number'
 import {
@@ -102,7 +103,7 @@ export const Quotes: CollectionConfig = {
         return data
       },
     ],
-    afterChange: [...quoteAuditHooks.afterChange],
+    afterChange: [...quoteAuditHooks.afterChange, notifyQuoteStatusChange],
     afterDelete: [...quoteAuditHooks.afterDelete],
   },
   fields: [

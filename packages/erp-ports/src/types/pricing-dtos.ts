@@ -5,6 +5,11 @@ export type ErpSpecialPriceDto = {
   netPrice: number
   validFrom: string
   validTo?: string | null
+  /** P2 / recommended sale price for RF-020 display. */
+  recommendedNetPrice?: number
+  discount1Pct?: number | null
+  discount2Pct?: number | null
+  minQty?: number | null
 }
 
 /** Normalized group offer from ERP. */

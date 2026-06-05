@@ -78,6 +78,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Perfil de cliente no encontrado' }, { status: 500 })
   }
 
+  if (!ctx.isActive) {
+    await supabase.auth.signOut()
+    return NextResponse.json(
+      { error: 'Tu cuenta ha sido desactivada. Contacta con el administrador de tu empresa.' },
+      { status: 403 },
+    )
+  }
+
   const sourceIp = extractSourceIp(request)
   await writeCustomerLoginAudit({
     userId,

@@ -28,6 +28,22 @@ describe('order status transitions', () => {
       assertAllowedStatusTransition('pending_payment', 'confirmed', { storefrontApi: true }),
     ).not.toThrow()
   })
+
+  it('allows storefront company approval transitions', () => {
+    expect(isStorefrontStatusTransition('pending_company_approval', 'pending_confirmation')).toBe(
+      true,
+    )
+    expect(isStorefrontStatusTransition('pending_company_approval', 'cancelled')).toBe(true)
+    expect(() =>
+      assertAllowedStatusTransition('pending_company_approval', 'pending_confirmation', {
+        storefrontApi: true,
+      }),
+    ).not.toThrow()
+  })
+
+  it('rejects skip from company approval to confirmed', () => {
+    expect(isStorefrontStatusTransition('pending_company_approval', 'confirmed')).toBe(false)
+  })
 })
 
 describe('isOrderExportable', () => {

@@ -22,6 +22,11 @@ import type { PaymentSettings } from "@/lib/payments/settings";
 import { formatMoney } from "@/lib/utils/format";
 import { WalletPayButtons } from "@/components/checkout/WalletPayButtons";
 import { isQuotesEnabledClient } from "@/lib/quotes/enabled";
+import {
+  clearUncataloguedRequests,
+  loadUncataloguedRequests,
+  mergeCustomerNotesWithUncatalogued,
+} from "@/lib/checkout/uncatalogued-requests";
 
 const PAYMENT_LABELS: Record<string, string> = {
   card: "Tarjeta",
@@ -220,7 +225,11 @@ export function CheckoutPage({
           deliveryMethod,
           paymentMethodCode: segment === "b2c" ? paymentMethodCode : undefined,
           guestEmail: isLoggedIn ? null : guestEmail.trim(),
-          customerNotes: customerNotes.trim() || null,
+          customerNotes:
+            mergeCustomerNotesWithUncatalogued(
+              customerNotes.trim(),
+              loadUncataloguedRequests(),
+            ) || null,
           billingAddressSnapshot: billingSnapshot(),
           shippingAddressSnapshot: shippingSnapshot(),
           alternateAddressId,
@@ -240,6 +249,7 @@ export function CheckoutPage({
       };
       if (!res.ok) throw new Error(body.error ?? "Error al confirmar");
       clearCart();
+      clearUncataloguedRequests();
       sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
       sessionStorage.removeItem("jeyjo-checkout-draft");
 

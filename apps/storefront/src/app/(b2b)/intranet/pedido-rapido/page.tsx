@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { IntranetScaffoldPage } from "@/components/intranet/IntranetScaffoldPage";
-import { getScaffoldForPath } from "@/lib/intranet/navigation";
+import { QuickOrderPanel } from "@/components/intranet/QuickOrderPanel";
+import { guardIntranetPage } from "@/lib/b2b/guard-page";
 
-const PATH = "/intranet/pedido-rapido";
-const scaffold = getScaffoldForPath(PATH)!;
+export const metadata: Metadata = { title: "Pedido rápido" };
 
-export const metadata: Metadata = { title: scaffold.title };
-
-export default function PedidoRapidoPage() {
-  return <IntranetScaffoldPage pathname={PATH} />;
+export default async function PedidoRapidoPage() {
+  await guardIntranetPage("/intranet/pedido-rapido");
+  return <QuickOrderPanel />;
 }

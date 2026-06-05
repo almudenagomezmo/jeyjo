@@ -11,6 +11,14 @@
     {
       "path": "/api/cron/search-indexer",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/invoice-sync",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/quote-expiry-notifications",
+      "schedule": "0 7 * * *"
     }
   ]
 }
