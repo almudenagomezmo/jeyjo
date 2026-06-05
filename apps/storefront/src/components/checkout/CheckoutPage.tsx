@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CustomerAddress } from "@jeyjo/database-types";
 import { Container } from "@/components/layout/Container";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
@@ -15,6 +15,7 @@ import type { CheckoutSegment } from "@/lib/checkout/segment";
 import type { DeliveryMethod } from "@/lib/checkout/totals";
 import type { CheckoutTotals } from "@/lib/checkout/totals";
 import { useCartSummary } from "@/lib/hooks/useCartSummary";
+import { trackBeginCheckout } from "@/lib/analytics/ga4";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { submitRedirectForm } from "@/lib/payments/submit-redirect-form";
@@ -86,6 +87,7 @@ export function CheckoutPage({
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<{ code: string; label: string }[]>([]);
+  const beginCheckoutTracked = useRef(false);
 
   useEffect(() => {
     if (segment !== "b2c") return;
@@ -110,6 +112,22 @@ export function CheckoutPage({
       router.replace("/cart");
     }
   }, [hydrated, lines.length, router]);
+
+  useEffect(() => {
+    if (!hydrated || beginCheckoutTracked.current || summary.lines.length === 0) return;
+    beginCheckoutTracked.current = true;
+    trackBeginCheckout(
+      summary.lines
+        .filter((line) => !line.unavailable && line.snapshot)
+        .map((line) => ({
+          item_id: line.snapshot!.skuErp,
+          item_name: line.snapshot!.name,
+          price: line.unitPrice,
+          quantity: line.qty,
+        })),
+      summary.total,
+    );
+  }, [hydrated, summary]);
 
   useEffect(() => {
     if (!isLoggedIn) return;

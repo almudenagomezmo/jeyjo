@@ -1,0 +1,47 @@
+.eva-widget {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 85;
+}
+
+.eva-widget__launcher {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  border: none;
+  background: var(--brand);
+  color: var(--neutral-0);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+}
+
+.eva-widget__launcher:hover {
+  background: var(--brand-hover);
+}
+
+.eva-widget__panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(3.5rem + 0.75rem);
+  width: min(20rem, calc(100vw - 2.5rem));
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.9rem;
+}
+
+.eva-widget__muted {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}

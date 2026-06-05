@@ -7,6 +7,7 @@ interface WishlistState {
   ids: string[];
   toggle: (id: string) => void;
   has: (id: string) => boolean;
+  setIds: (ids: string[]) => void;
 }
 
 export const useWishlistStore = create<WishlistState>()(
@@ -20,6 +21,7 @@ export const useWishlistStore = create<WishlistState>()(
             : [...state.ids, id],
         })),
       has: (id) => get().ids.includes(id),
+      setIds: (ids) => set({ ids }),
     }),
     { name: "jeyjo-wishlist" },
   ),

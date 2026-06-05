@@ -95,11 +95,6 @@ export const INTRANET_PRIMARY_NAV: IntranetNavItem[] = [
   {
     href: '/intranet/stock',
     label: 'Avisos de stock',
-    scaffold: {
-      title: 'Avisos de stock',
-      description: 'Recibe avisos cuando vuelva a haber stock de referencias que sigues.',
-      roadmapRef: '#28 notifications-center-email',
-    },
   },
   {
     href: '/intranet/descargas',

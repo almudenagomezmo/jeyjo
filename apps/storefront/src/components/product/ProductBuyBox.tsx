@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useState } from "react";
 import type { PriceQuote } from "@jeyjo/pricing";
 
@@ -12,8 +13,9 @@ import { PackQtyStepper } from "@/components/product/PackQtyStepper";
 import { BoxIcon, HeartIcon } from "@/components/ui/icons";
 import { getDualPrice, getPriceViewFromQuote } from "@/lib/utils/price";
 import { formatMoney } from "@/lib/utils/format";
+import { trackViewItem } from "@/lib/analytics/ga4";
 import { useUiStore } from "@/lib/store/ui-store";
-import { useWishlistStore } from "@/lib/store/wishlist-store";
+import { useWishlistToggle } from "@/lib/hooks/useWishlistToggle";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import type { PublicStockIndicator } from "@/lib/stock/types";
 
@@ -28,6 +30,8 @@ export function ProductBuyBox({
   quote,
   stock,
   vatRate,
+  productTitle,
+  b2bValidatedForAlerts = false,
 }: {
   /** Canonical slug stored in cart lines. */
   productId: string;
@@ -37,17 +41,32 @@ export function ProductBuyBox({
   quote: PriceQuote;
   stock: PublicStockIndicator;
   vatRate: number;
+  productTitle?: string;
+  b2bValidatedForAlerts?: boolean;
 }) {
   const hydrated = useHydrated();
   const priceMode = useUiStore((s) => s.priceMode);
-  const wishlisted = useWishlistStore((s) => s.ids.includes(sku));
-  const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const { toggleWithSync, has } = useWishlistToggle(productTitle ?? refLabel);
+  const wishlisted = has(sku);
   const [qty, setQty] = useState(packUnit > 0 ? packUnit : 1);
   const [backorderNotice, setBackorderNotice] = useState(false);
+  const [stockAlertNotice, setStockAlertNotice] = useState(false);
 
   const mode = hydrated ? priceMode : "b2c";
   const view = getPriceViewFromQuote(quote);
   const dual = getDualPrice(view, mode);
+  const viewedRef = useRef(false);
+
+  useEffect(() => {
+    if (viewedRef.current) return;
+    viewedRef.current = true;
+    trackViewItem({
+      item_id: sku,
+      item_name: productTitle ?? refLabel,
+      price: view.priceWithVat,
+      quantity: 1,
+    });
+  }, [sku, productTitle, refLabel, view.priceWithVat]);
   const onOffer =
     quote.listUnit != null && quote.listUnit > quote.netUnit;
 
@@ -88,10 +107,21 @@ export function ProductBuyBox({
         </p>
       )}
 
+      {stockAlertNotice && (
+        <p className="mt-3 rounded-md border border-border-subtle bg-surface-muted px-3 py-2 text-xs text-text-secondary" role="status">
+          Te avisaremos en el portal y por email cuando haya stock de esta referencia.
+        </p>
+      )}
+
       <div className="mt-4 flex items-center gap-3">
         <PackQtyStepper packUnit={packUnit} value={qty} onChange={setQty} />
         <AddToCartButton
           product={{ id: productId, packSize: packUnit, stock: cartStock }}
+          analytics={{
+            item_id: sku,
+            item_name: productTitle ?? refLabel,
+            price: view.priceWithVat,
+          }}
           qty={qty}
           size="lg"
           className="flex-1"
@@ -109,7 +139,16 @@ export function ProductBuyBox({
         />
         <button
           type="button"
-          onClick={() => toggleWishlist(sku)}
+          onClick={() => {
+            const added = toggleWithSync(sku);
+            if (
+              added &&
+              b2bValidatedForAlerts &&
+              stock.level === "limited"
+            ) {
+              setStockAlertNotice(true);
+            }
+          }}
           aria-label="Añadir a favoritos"
           aria-pressed={wishlisted}
           className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-border text-text-secondary"

@@ -4,6 +4,7 @@ import {
 } from '@jeyjo/stock-ports'
 import { createLocalReq, type Payload, type PayloadRequest } from 'payload'
 
+import { processWishlistStockAlerts } from '@/lib/notifications/wishlist-stock-alerts'
 import { getStockSourceReaders } from '@/stock/registry'
 import { recalculateStockIndicatorsForAllProducts } from '@/stock/recalculateIndicators'
 import { getSupabaseServerClient, writeAuditLog } from '@/lib/supabase-server'
@@ -148,6 +149,16 @@ export async function runStockSync({
       actorName,
       fatalError: null,
     })
+
+    if (
+      (result.status === 'success' || result.status === 'partial') &&
+      (result.productsUpdated > 0 || indicatorResult.productsUpdated > 0)
+    ) {
+      await processWishlistStockAlerts(payload, {
+        transitions: indicatorResult.transitions,
+        syncRunId,
+      })
+    }
 
     return result
   } catch (e) {

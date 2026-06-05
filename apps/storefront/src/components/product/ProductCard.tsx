@@ -20,7 +20,7 @@ import type { PlpProductRow } from "@/lib/plp/types";
 import { cn } from "@/lib/utils/cn";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
-import { useWishlistStore } from "@/lib/store/wishlist-store";
+import { useWishlistToggle } from "@/lib/hooks/useWishlistToggle";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import type { PublicStockIndicator } from "@/lib/stock/types";
 import type { Product } from "@/lib/types";
@@ -51,8 +51,9 @@ export function ProductCard(props: ProductCardProps) {
   const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
   const addItem = useCartStore((s) => s.addItem);
   const wishlistId = props.row?.sku ?? props.product?.id ?? "";
-  const wishlisted = useWishlistStore((s) => s.ids.includes(wishlistId));
-  const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const productName = props.row?.title ?? props.product?.name ?? "";
+  const { toggleWithSync, has } = useWishlistToggle(productName);
+  const wishlisted = has(wishlistId);
 
   const product =
     props.product ?? (props.row ? plpRowToProduct(props.row, props.quote) : null);
@@ -102,7 +103,7 @@ export function ProductCard(props: ProductCardProps) {
         </div>
         <button
           type="button"
-          onClick={() => toggleWishlist(wishlistId)}
+          onClick={() => toggleWithSync(wishlistId)}
           aria-label="Añadir a favoritos"
           aria-pressed={wishlisted}
           className={cn(

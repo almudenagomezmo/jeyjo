@@ -138,6 +138,18 @@ const jeyjoOrderFields: Field[] = [
     },
   },
   {
+    name: 'skaiExternalId',
+    type: 'text',
+    label: 'ID externo SKAI',
+    unique: true,
+    index: true,
+    admin: {
+      position: 'sidebar',
+      condition: (data) => data?.origin === 'eva',
+      readOnly: true,
+    },
+  },
+  {
     name: 'deliveryMethod',
     type: 'select',
     label: 'Método de entrega',

@@ -76,3 +76,15 @@ pnpm typecheck
 ```
 
 Desde la raíz del monorepo: `pnpm dev:storefront`
+
+## Analytics GA4 y beacons (#30 / #34)
+
+- **Beacons internos (dashboard US-19):** `AnalyticsBeacon` → `POST /api/analytics/heartbeat` cuando `NEXT_PUBLIC_ANALYTICS_BEACONS_ENABLED` ≠ `false`. Alimentan KPIs del backoffice; no sustituyen GA4.
+- **Google Analytics 4 (RF-028):** `Ga4Script` + eventos e-commerce (`page_view`, `view_item`, `add_to_cart`, `begin_checkout`, `purchase`) solo en la tienda pública — **no** en `/intranet`.
+- Variables: `NEXT_PUBLIC_GA4_ENABLED` (defecto desactivado en `.env.example`), `NEXT_PUBLIC_GA4_MEASUREMENT_ID`, `GA4_API_SECRET` (opcional, Measurement Protocol en confirmación de pedido).
+
+### Checklist manual RF-028
+
+1. Activar GA4 test property + `NEXT_PUBLIC_GA4_ENABLED=true`.
+2. DebugView: navegar PLP/PDP → `view_item`; añadir al carrito → `add_to_cart`; checkout → `begin_checkout`.
+3. Completar pedido de prueba con `paid=1` → evento `purchase` con `transaction_id` = número de pedido.

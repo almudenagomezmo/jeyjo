@@ -191,7 +191,9 @@ export const DashboardKpisView: React.FC = () => {
             <section className={`${baseClass}__section`}>
               <h2>
                 Monitorización EVA
-                <span className={`${baseClass}__preview-badge`}>preview</span>
+                {!data.eva.isLive && (
+                  <span className={`${baseClass}__preview-badge`}>preview</span>
+                )}
               </h2>
               <p className={`${baseClass}__empty`}>
                 Conversaciones activas: {data.eva.activeConversations}

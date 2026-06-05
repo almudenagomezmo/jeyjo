@@ -222,6 +222,44 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_watches: {
+        Row: {
+          created_at: string
+          id: string
+          last_indicator: string | null
+          last_notified_at: string | null
+          product_title: string | null
+          sku: string
+          web_profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_indicator?: string | null
+          last_notified_at?: string | null
+          product_title?: string | null
+          sku: string
+          web_profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_indicator?: string | null
+          last_notified_at?: string | null
+          product_title?: string | null
+          sku?: string
+          web_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'stock_watches_web_profile_id_fkey'
+            columns: ['web_profile_id']
+            isOneToOne: false
+            referencedRelation: 'web_profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       stock_sync_runs: {
         Row: {
           arnoia_status: string
@@ -287,6 +325,7 @@ export type Database = {
           invoice_channel: Database['public']['Enums']['notification_channel']
           order_channel: Database['public']['Enums']['notification_channel']
           quote_channel: Database['public']['Enums']['notification_channel']
+          wishlist_channel: Database['public']['Enums']['notification_channel']
           updated_at: string
           web_profile_id: string
         }
@@ -295,6 +334,7 @@ export type Database = {
           invoice_channel?: Database['public']['Enums']['notification_channel']
           order_channel?: Database['public']['Enums']['notification_channel']
           quote_channel?: Database['public']['Enums']['notification_channel']
+          wishlist_channel?: Database['public']['Enums']['notification_channel']
           updated_at?: string
           web_profile_id: string
         }
@@ -303,6 +343,7 @@ export type Database = {
           invoice_channel?: Database['public']['Enums']['notification_channel']
           order_channel?: Database['public']['Enums']['notification_channel']
           quote_channel?: Database['public']['Enums']['notification_channel']
+          wishlist_channel?: Database['public']['Enums']['notification_channel']
           updated_at?: string
           web_profile_id?: string
         }
@@ -729,6 +770,7 @@ export type Database = {
         | "order_status"
         | "quote_status"
         | "quote_expiring"
+        | "stock_available"
       search_event_status: "pending" | "processing" | "done" | "error"
       web_profile_role: "b2c" | "b2b_superadmin" | "b2b_subuser" | "pending"
     }

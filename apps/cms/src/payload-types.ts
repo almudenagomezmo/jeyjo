@@ -142,6 +142,8 @@ export interface Config {
     home: Home;
     paymentSettings: PaymentSetting;
     marketingSettings: MarketingSetting;
+    skaiSettings: SkaiSetting;
+    analyticsSettings: AnalyticsSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
@@ -149,6 +151,8 @@ export interface Config {
     home: HomeSelect<false> | HomeSelect<true>;
     paymentSettings: PaymentSettingsSelect<false> | PaymentSettingsSelect<true>;
     marketingSettings: MarketingSettingsSelect<false> | MarketingSettingsSelect<true>;
+    skaiSettings: SkaiSettingsSelect<false> | SkaiSettingsSelect<true>;
+    analyticsSettings: AnalyticsSettingsSelect<false> | AnalyticsSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -283,6 +287,7 @@ export interface Order {
   stockValidationPending?: boolean | null;
   exportedToErpAt?: string | null;
   evaRejectionReason?: string | null;
+  skaiExternalId?: string | null;
   deliveryMethod?: ('home' | 'alternate_address' | 'pickup_alfaro' | 'pickup_rincon') | null;
   shippingCost?: number | null;
   pickupStoreLabel?: string | null;
@@ -2133,6 +2138,7 @@ export interface OrdersSelect<T extends boolean = true> {
   stockValidationPending?: T;
   exportedToErpAt?: T;
   evaRejectionReason?: T;
+  skaiExternalId?: T;
   deliveryMethod?: T;
   shippingCost?: T;
   pickupStoreLabel?: T;
@@ -2391,6 +2397,59 @@ export interface MarketingSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skaiSettings".
+ */
+export interface SkaiSetting {
+  id: number;
+  enabled?: boolean | null;
+  businessHours?: string | null;
+  outOfHoursMessage?: string | null;
+  fallbackPhone?: string | null;
+  fallbackEmail?: string | null;
+  fallbackWhatsapp?: string | null;
+  knowledgeDocuments?:
+    | {
+        filename: string;
+        uploadedAt?: string | null;
+        storagePath?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analyticsSettings".
+ */
+export interface AnalyticsSetting {
+  id: number;
+  /**
+   * Documentación operativa. En runtime la tienda usa NEXT_PUBLIC_GA4_MEASUREMENT_ID y NEXT_PUBLIC_GA4_ENABLED (ver apps/storefront/.env.example).
+   */
+  ga4MeasurementId?: string | null;
+  /**
+   * Kill switch además de MERCHANT_FEED_ENABLED en Vercel. URL pública: /api/feeds/merchant-center.xml
+   */
+  merchantFeedEnabled?: boolean | null;
+  lastFeedGeneratedAt?: string | null;
+  feedOmittedCounts?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  consecutiveFeedFailures?: number | null;
+  lastFeedErrorAt?: string | null;
+  lastFeedErrorMessage?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -2499,6 +2558,45 @@ export interface MarketingSettingsSelect<T extends boolean = true> {
         code?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skaiSettings_select".
+ */
+export interface SkaiSettingsSelect<T extends boolean = true> {
+  enabled?: T;
+  businessHours?: T;
+  outOfHoursMessage?: T;
+  fallbackPhone?: T;
+  fallbackEmail?: T;
+  fallbackWhatsapp?: T;
+  knowledgeDocuments?:
+    | T
+    | {
+        filename?: T;
+        uploadedAt?: T;
+        storagePath?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analyticsSettings_select".
+ */
+export interface AnalyticsSettingsSelect<T extends boolean = true> {
+  ga4MeasurementId?: T;
+  merchantFeedEnabled?: T;
+  lastFeedGeneratedAt?: T;
+  feedOmittedCounts?: T;
+  consecutiveFeedFailures?: T;
+  lastFeedErrorAt?: T;
+  lastFeedErrorMessage?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

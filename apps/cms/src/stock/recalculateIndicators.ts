@@ -1,15 +1,26 @@
 import {
   parseStockLowThreshold,
   resolveStockIndicator,
+  STOCK_INDICATOR_LABELS,
   type StockIndicatorLevel,
 } from '@jeyjo/stock-ports'
 import { createLocalReq, type Payload, type PayloadRequest } from 'payload'
 
 import type { Product } from '@/payload-types'
 
+export type StockIndicatorTransition = {
+  sku: string
+  previousIndicator: StockIndicatorLevel | null
+  newIndicator: StockIndicatorLevel
+  productTitle: string
+  slug: string
+  stockLabel: string
+}
+
 export type RecalculateIndicatorsResult = {
   productsUpdated: number
   errors: string[]
+  transitions: StockIndicatorTransition[]
 }
 
 function stockThreshold(): number {
@@ -29,7 +40,7 @@ export async function recalculateStockIndicatorsForSkus({
   staleDistrisantiago?: boolean
   staleArnoia?: boolean
 }): Promise<RecalculateIndicatorsResult> {
-  const result: RecalculateIndicatorsResult = { productsUpdated: 0, errors: [] }
+  const result: RecalculateIndicatorsResult = { productsUpdated: 0, errors: [], transitions: [] }
   const unique = [...new Set(skus.filter(Boolean))]
   if (unique.length === 0) return result
 
@@ -49,6 +60,8 @@ export async function recalculateStockIndicatorsForSkus({
       const doc = found.docs[0] as Product | undefined
       if (!doc?.id) continue
 
+      const previousIndicator = (doc.stockIndicator as StockIndicatorLevel | null | undefined) ?? null
+
       const indicator = resolveStockIndicator({
         erpStock: doc.erpStock ?? null,
         distrisantiagoStock: doc.distrisantiagoStock ?? null,
@@ -58,14 +71,32 @@ export async function recalculateStockIndicatorsForSkus({
         staleArnoia,
       })
 
-      await payload.update({
-        collection: 'products',
-        id: doc.id,
-        data: { stockIndicator: indicator.level as StockIndicatorLevel },
-        overrideAccess: true,
-        req: syncReq,
-      })
-      result.productsUpdated += 1
+      const newIndicator = indicator.level as StockIndicatorLevel
+
+      if (
+        previousIndicator === 'limited' &&
+        (newIndicator === 'available' || newIndicator === 'low')
+      ) {
+        result.transitions.push({
+          sku,
+          previousIndicator,
+          newIndicator,
+          productTitle: String(doc.title ?? sku),
+          slug: String(doc.slug ?? sku),
+          stockLabel: STOCK_INDICATOR_LABELS[newIndicator],
+        })
+      }
+
+      if (previousIndicator !== newIndicator) {
+        await payload.update({
+          collection: 'products',
+          id: doc.id,
+          data: { stockIndicator: newIndicator },
+          overrideAccess: true,
+          req: syncReq,
+        })
+        result.productsUpdated += 1
+      }
     } catch (e) {
       result.errors.push(`${sku}: ${formatError(e)}`)
     }

@@ -12,12 +12,14 @@ function mapPrefs(row: {
   invoice_channel: Channel
   order_channel: Channel
   quote_channel: Channel
+  wishlist_channel: Channel
   email_disabled_at: string | null
 }): NotificationPreferences {
   return {
     invoiceChannel: row.invoice_channel,
     orderChannel: row.order_channel,
     quoteChannel: row.quote_channel,
+    wishlistChannel: row.wishlist_channel ?? 'email',
     emailDisabledAt: row.email_disabled_at,
   }
 }
@@ -26,6 +28,7 @@ const DEFAULT_PREFS: NotificationPreferences = {
   invoiceChannel: 'email',
   orderChannel: 'email',
   quoteChannel: 'email',
+  wishlistChannel: 'email',
   emailDisabledAt: null,
 }
 
@@ -41,7 +44,7 @@ export async function GET() {
   const supabase = await createSupabaseServerClient()
   const { data, error } = await supabase
     .from('notification_preferences')
-    .select('invoice_channel, order_channel, quote_channel, email_disabled_at')
+    .select('invoice_channel, order_channel, quote_channel, wishlist_channel, email_disabled_at')
     .eq('web_profile_id', guard.ctx.userId)
     .maybeSingle()
 
@@ -58,17 +61,20 @@ export async function PATCH(request: Request) {
     invoiceChannel?: unknown
     orderChannel?: unknown
     quoteChannel?: unknown
+    wishlistChannel?: unknown
   }
 
   const patch: Partial<{
     invoice_channel: Channel
     order_channel: Channel
     quote_channel: Channel
+    wishlist_channel: Channel
   }> = {}
 
   const invoice = parseChannel(body.invoiceChannel)
   const order = parseChannel(body.orderChannel)
   const quote = parseChannel(body.quoteChannel)
+  const wishlist = parseChannel(body.wishlistChannel)
   if (body.invoiceChannel !== undefined && !invoice) {
     return NextResponse.json({ error: 'Invalid invoiceChannel' }, { status: 400 })
   }
@@ -78,9 +84,13 @@ export async function PATCH(request: Request) {
   if (body.quoteChannel !== undefined && !quote) {
     return NextResponse.json({ error: 'Invalid quoteChannel' }, { status: 400 })
   }
+  if (body.wishlistChannel !== undefined && !wishlist) {
+    return NextResponse.json({ error: 'Invalid wishlistChannel' }, { status: 400 })
+  }
   if (invoice) patch.invoice_channel = invoice
   if (order) patch.order_channel = order
   if (quote) patch.quote_channel = quote
+  if (wishlist) patch.wishlist_channel = wishlist
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
@@ -103,10 +113,11 @@ export async function PATCH(request: Request) {
         invoice_channel: invoice ?? 'email',
         order_channel: order ?? 'email',
         quote_channel: quote ?? 'email',
+        wishlist_channel: wishlist ?? 'email',
       })
 
   const { data, error } = await write
-    .select('invoice_channel, order_channel, quote_channel, email_disabled_at')
+    .select('invoice_channel, order_channel, quote_channel, wishlist_channel, email_disabled_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

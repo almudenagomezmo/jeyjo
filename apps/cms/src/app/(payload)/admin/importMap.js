@@ -35,6 +35,8 @@ import { EvaOrdersQueueView as EvaOrdersQueueView_a7a9f0e2bc60731d8b0674605c616d
 import { QuotesInboxView as QuotesInboxView_32842f000502387a81d1e28fa6fedb2b } from '@/components/QuotesInboxView'
 import { RmaInboxView as RmaInboxView_6281e42023e8d04db95a29ce524735ac } from '@/components/RmaInboxView'
 import { CatalogImportView as CatalogImportView_5a92596baa578057d7b607306215db64 } from '@/components/CatalogImportView'
+import { SkaiConfigView as SkaiConfigView_6b8f93d88b4c1ba61bfad5f63e57900f } from '@/components/SkaiConfigView'
+import { AnalyticsConfigView as AnalyticsConfigView_01cd52b7f539f708150433bd79f6eeaf } from '@/components/AnalyticsConfigView'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -76,5 +78,7 @@ export const importMap = {
   "@/components/QuotesInboxView#QuotesInboxView": QuotesInboxView_32842f000502387a81d1e28fa6fedb2b,
   "@/components/RmaInboxView#RmaInboxView": RmaInboxView_6281e42023e8d04db95a29ce524735ac,
   "@/components/CatalogImportView#CatalogImportView": CatalogImportView_5a92596baa578057d7b607306215db64,
+  "@/components/SkaiConfigView#SkaiConfigView": SkaiConfigView_6b8f93d88b4c1ba61bfad5f63e57900f,
+  "@/components/AnalyticsConfigView#AnalyticsConfigView": AnalyticsConfigView_01cd52b7f539f708150433bd79f6eeaf,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

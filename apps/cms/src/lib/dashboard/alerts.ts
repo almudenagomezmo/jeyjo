@@ -23,6 +23,7 @@ export async function buildSystemAlerts(input: {
   const showErp = hasStaffRole(user, ['superadmin', 'administracion', 'mantenimiento'])
   const showPendingCustomers = hasStaffRole(user, ['superadmin', 'administracion'])
   const showTopSales = hasStaffRole(user, ['superadmin', 'administracion', 'catalogo'])
+  const showAnalytics = hasStaffRole(user, ['superadmin', 'mantenimiento'])
 
   if (showErp && supabase) {
     const { data: syncRuns } = await supabase
@@ -103,6 +104,27 @@ export async function buildSystemAlerts(input: {
         timestamp: now.toISOString(),
         href: productHref,
       })
+    }
+  }
+
+  if (showAnalytics) {
+    try {
+      const analytics = await payload.findGlobal({ slug: 'analyticsSettings', overrideAccess: true })
+      const failures = analytics.consecutiveFeedFailures ?? 0
+      if (failures >= 2) {
+        alerts.push({
+          id: 'merchant-feed-cron',
+          severity: 'error',
+          title: 'Error de generación del feed Merchant Center',
+          description:
+            analytics.lastFeedErrorMessage?.trim() ||
+            `El cron del feed ha fallado ${failures} veces consecutivas.`,
+          timestamp: analytics.lastFeedErrorAt ?? now.toISOString(),
+          href: '/admin/analytics-config',
+        })
+      }
+    } catch {
+      // analytics global may not exist yet during bootstrap
     }
   }
 

@@ -3,12 +3,14 @@
 import { Button } from "@/components/ui/Button";
 import { CartIcon } from "@/components/ui/icons";
 import { useCartStore } from "@/lib/store/cart-store";
+import type { CartAddAnalytics } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
 import type { ButtonProps } from "@/components/ui/Button";
 import type { Product } from "@/lib/types";
 
 interface AddToCartButtonProps extends Omit<ButtonProps, "onClick"> {
   product: Pick<Product, "id" | "packSize" | "stock">;
+  analytics?: CartAddAnalytics;
   qty?: number;
   label?: string;
   openCart?: boolean;
@@ -18,6 +20,7 @@ interface AddToCartButtonProps extends Omit<ButtonProps, "onClick"> {
 
 export function AddToCartButton({
   product,
+  analytics,
   qty,
   label = "Añadir al carrito",
   openCart = true,
@@ -35,7 +38,7 @@ export function AddToCartButton({
       iconStart={<CartIcon size={16} />}
       disabled={disabled}
       onClick={() => {
-        addItem(product.id, qty ?? product.packSize);
+        addItem(product.id, qty ?? product.packSize, analytics);
         onAdded?.();
         if (openCart) setMiniCartOpen(true);
       }}

@@ -10,7 +10,7 @@ const CHANNEL_OPTIONS: { value: NotificationChannel; label: string }[] = [
   { value: "off", label: "Desactivado" },
 ];
 
-type CategoryKey = "invoiceChannel" | "orderChannel" | "quoteChannel";
+type CategoryKey = "invoiceChannel" | "orderChannel" | "quoteChannel" | "wishlistChannel";
 
 const CATEGORIES: { key: CategoryKey; label: string; description: string }[] = [
   {
@@ -27,6 +27,11 @@ const CATEGORIES: { key: CategoryKey; label: string; description: string }[] = [
     key: "quoteChannel",
     label: "Presupuestos",
     description: "Actualizaciones y avisos de caducidad de presupuestos",
+  },
+  {
+    key: "wishlistChannel",
+    label: "Avisos de stock",
+    description: "Cuando una referencia que sigues vuelve a tener stock",
   },
 ];
 
@@ -55,6 +60,7 @@ export function NotificationPreferencesForm() {
           invoiceChannel: next.invoiceChannel,
           orderChannel: next.orderChannel,
           quoteChannel: next.quoteChannel,
+          wishlistChannel: next.wishlistChannel,
         }),
       });
       if (!res.ok) {

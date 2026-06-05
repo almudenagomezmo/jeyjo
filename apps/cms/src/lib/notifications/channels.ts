@@ -2,7 +2,7 @@ import type { NotificationChannel, NotificationType } from './types'
 
 export function channelFieldForType(
   type: NotificationType,
-): 'invoice_channel' | 'order_channel' | 'quote_channel' {
+): 'invoice_channel' | 'order_channel' | 'quote_channel' | 'wishlist_channel' {
   switch (type) {
     case 'invoice_new':
       return 'invoice_channel'
@@ -11,6 +11,8 @@ export function channelFieldForType(
     case 'quote_status':
     case 'quote_expiring':
       return 'quote_channel'
+    case 'stock_available':
+      return 'wishlist_channel'
   }
 }
 

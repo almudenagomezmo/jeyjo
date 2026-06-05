@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **31 / 43** cambios completados (~72 %). Hito alcanzado: cupones reales y recuperación de carrito abandonado (#31); portal B2B operativo.
+**Progreso:** **34 / 43** cambios completados (~79 %). Hito alcanzado: GA4 e-commerce y feed Google Merchant Center (#34).
 
 | # | Cambio | Depende de | US / RF principales | Estado | Fecha |
 |---|--------|------------|---------------------|--------|-------|
@@ -41,10 +41,10 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 29 | `excel-importer-exporter` | 4, 5 | RF-023, US-15 | Completado | 2026-06-05 |
 | 30 | `dashboard-kpis-alerts` | 5, 7, 20 | RF-026, US-19 | Completado | 2026-06-05 |
 | 31 | `marketing-coupons-abandoned-cart` | 17, 20 | RF-027, US-18, US-23 | Completado | 2026-06-05 |
-| 32 | `eva-skai-widget-integration` | 9, 16, 20 | RI-005, US-20, US-22 | Pendiente | — |
+| 32 | `eva-skai-widget-integration` | 9, 16, 20 | RI-005, US-20, US-22 | Completado | 2026-06-05 |
 | 33 | `blog-payload-frontend` | 3, 9 | US-24 | Pendiente | — |
-| 34 | `analytics-ga4-merchant-feed` | 10, 11, 20 | RF-028 | Pendiente | — |
-| 35 | `wishlist-stock-alerts` | 8, 16, 28 | Alcance wishlist | Pendiente | — |
+| 34 | `analytics-ga4-merchant-feed` | 10, 11, 20 | RF-028 | Completado | 2026-06-05 |
+| 35 | `wishlist-stock-alerts` | 8, 16, 28 | Alcance wishlist | Completado | 2026-06-05 |
 | 36 | `erp-api-write-implementation` | 4, 29 | RF-023, RI-001 | Pendiente | — |
 | 37 | `area-documental-financiera` | 4, 22, 28 | RF-016, RF-017, US-08, US-09 | Pendiente | — |
 | 38 | `product-comparison-plp` | 10 | US-06 | Pendiente | — |
@@ -54,8 +54,8 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 42 | `system-config-backoffice` | 5, 30 | Alcance §1.36 | Pendiente | — |
 | 43 | `seo-technical-auditor` | 21, 34 | Alcance auditor SEO | Pendiente | — |
 
-**Siguiente cambio recomendado:** #32 `eva-skai-widget-integration` (RI-005, US-20, US-22) o #35 `wishlist-stock-alerts` (reutiliza notificaciones #28).
+**Siguiente cambio recomendado:** #43 `seo-technical-auditor` (depende de #34) o #33 `blog-payload-frontend` (US-24).
 
-**Portal B2B — estado actual:** operativo histórico (#23), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27) y notificaciones (#28); pendientes avisos stock PDP (#35), descargas (#41) y contabilidad documental (#37).
+**Portal B2B — estado actual:** operativo histórico (#23), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27), notificaciones (#28) y avisos stock wishlist (#35); pendientes descargas (#41) y contabilidad documental (#37).
 
 Gaps conscientes: búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live.

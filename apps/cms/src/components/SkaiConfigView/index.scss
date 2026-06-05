@@ -1,0 +1,60 @@
+.skai-config-view {
+  padding: var(--base);
+
+  &__error {
+    color: var(--theme-error-500);
+    margin-bottom: var(--base);
+  }
+
+  &__grid {
+    display: grid;
+    gap: var(--base);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    margin-bottom: calc(var(--base) * 1.5);
+  }
+
+  &__card {
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-m);
+    padding: var(--base);
+    background: var(--theme-elevation-50);
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--theme-elevation-500);
+    margin-bottom: 0.25rem;
+  }
+
+  &__value {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  &__list {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  &__test-panel {
+    border: 1px dashed var(--theme-elevation-300);
+    border-radius: var(--style-radius-m);
+    padding: var(--base);
+    margin-top: var(--base);
+  }
+
+  &__form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: var(--base);
+
+    input,
+    textarea {
+      width: 100%;
+      max-width: 480px;
+    }
+  }
+}

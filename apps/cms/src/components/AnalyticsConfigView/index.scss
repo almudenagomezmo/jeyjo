@@ -1,0 +1,58 @@
+.analytics-config-view {
+  padding: var(--gutter-h, 2rem);
+  max-width: 720px;
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__help {
+    color: var(--theme-elevation-600, #666);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__panel {
+    border: 1px solid var(--theme-elevation-150, #e5e5e5);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+
+      input[type='text'] {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        padding: 0.5rem;
+      }
+    }
+  }
+
+  &__checkbox {
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+
+    input {
+      width: auto;
+    }
+  }
+
+  &__error {
+    color: var(--theme-error-500, #c0392b);
+  }
+
+  button {
+    margin-top: 0.5rem;
+  }
+}

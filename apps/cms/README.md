@@ -198,6 +198,25 @@ curl http://localhost:3001/api/cron/search-indexer -H "Authorization: Bearer $CR
 pnpm test:int search-indexer
 ```
 
+## GA4 y Merchant Center feed (`analytics-ga4-merchant-feed`, ROADMAP #34, RF-028)
+
+- **Feed XML:** `GET /api/feeds/merchant-center.xml` — catálogo publicado P1+IVA, imagen dual, stock semáforo.
+- **Cron diario:** `GET /api/cron/merchant-feed` con `Authorization: Bearer $CRON_SECRET` (Vercel 03:00 UTC).
+- **Admin:** `/admin/analytics-config` (roles `superadmin`, `mantenimiento`) — estado del feed, omitidos, checklist.
+- **GA4:** configuración runtime en storefront (`NEXT_PUBLIC_GA4_*`); global Payload `analyticsSettings` es referencia operativa.
+- **Env CMS:** `MERCHANT_FEED_ENABLED`, `MERCHANT_FEED_BASE_URL` (URL tienda para links del feed).
+
+```bash
+curl http://localhost:3001/api/feeds/merchant-center.xml
+curl http://localhost:3001/api/cron/merchant-feed -H "Authorization: Bearer $CRON_SECRET"
+pnpm test:int merchant-feed
+```
+
+### Checklist manual RI-008
+
+1. Ejecutar cron o abrir feed URL; validar XML en Google Merchant Center / Content API test tool.
+2. Confirmar producto de prueba con `g:image_link`, `g:price`, `link` absoluto a `/p/{slug}`.
+
 ## Scripts
 
 ```bash

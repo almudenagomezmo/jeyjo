@@ -48,6 +48,7 @@ export type EvaUnresolvedItem = {
 export type EvaPanel = {
   activeConversations: number
   unresolvedQueries: EvaUnresolvedItem[]
+  isLive: boolean
 }
 
 export type SystemAlertSeverity = 'error' | 'warning' | 'info'

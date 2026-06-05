@@ -121,5 +121,6 @@ describe('dashboard summary integration', () => {
     expect(summary.conversion.rate).toBe(0.05)
     expect(summary.roleScope).toBe('full')
     expect(summary.eva.unresolvedQueries.length).toBe(1)
+    expect(summary.eva.isLive).toBe(false)
   })
 })

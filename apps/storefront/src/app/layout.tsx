@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { Manrope, JetBrains_Mono } from "next/font/google";
+import { Suspense } from "react";
 import { AnalyticsBeacon } from "@/components/analytics/AnalyticsBeacon";
+import { Ga4PageView } from "@/components/analytics/Ga4PageView";
+import { Ga4Script } from "@/components/analytics/Ga4Script";
+import { EvaWidgetShell } from "@/components/eva/EvaWidgetShell";
+import { WishlistSyncBootstrap } from "@/components/wishlist/WishlistSyncBootstrap";
 import { NavigationShell } from "@/components/layout/NavigationShell";
 import { MiniCart } from "@/components/cart/MiniCart";
 import { themeInitScript } from "@/components/layout/ThemeToggle";
@@ -37,9 +42,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="antialiased">
+        <Ga4Script />
+        <Suspense fallback={null}>
+          <Ga4PageView />
+        </Suspense>
         <AnalyticsBeacon />
+        <WishlistSyncBootstrap />
         <NavigationShell>{children}</NavigationShell>
         <MiniCart />
+        <EvaWidgetShell />
       </body>
     </html>
   );

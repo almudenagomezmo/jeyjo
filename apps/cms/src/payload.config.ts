@@ -28,6 +28,8 @@ import { Header } from '@/globals/Header'
 import { Home } from '@/globals/Home'
 import { MarketingSettings } from '@/globals/MarketingSettings'
 import { PaymentSettings } from '@/globals/PaymentSettings'
+import { SkaiSettings } from '@/globals/SkaiSettings'
+import { AnalyticsSettings } from '@/globals/AnalyticsSettings'
 import { auditLogEndpoint } from '@/endpoints/audit-log'
 import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
 import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
@@ -37,6 +39,16 @@ import { ordersOmsEndpoints } from '@/endpoints/orders-oms'
 import { quotesOmsEndpoints } from '@/endpoints/quotes-oms'
 import { rmaOmsEndpoints } from '@/endpoints/rma-oms'
 import { catalogImportEndpoints } from '@/endpoints/catalog-import'
+import {
+  evaContextEndpoint,
+  evaOrdersWebhookEndpoint,
+  skaiStatusEndpoint,
+  skaiTestTokenEndpoint,
+} from '@/endpoints/eva'
+import {
+  analyticsStatusEndpoint,
+  analyticsStatusUpdateEndpoint,
+} from '@/endpoints/analytics-status'
 import { preloadExcelAdapter } from '@/erp/registry'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
@@ -125,6 +137,14 @@ export default buildConfig({
           Component: '@/components/CatalogImportView#CatalogImportView',
           path: '/catalog-import',
         },
+        skaiConfig: {
+          Component: '@/components/SkaiConfigView#SkaiConfigView',
+          path: '/skai-config',
+        },
+        analyticsConfig: {
+          Component: '@/components/AnalyticsConfigView#AnalyticsConfigView',
+          path: '/analytics-config',
+        },
       },
     },
     user: Users.slug,
@@ -190,8 +210,14 @@ export default buildConfig({
     ...quotesOmsEndpoints,
     ...rmaOmsEndpoints,
     ...catalogImportEndpoints,
+    evaContextEndpoint,
+    evaOrdersWebhookEndpoint,
+    skaiStatusEndpoint,
+    skaiTestTokenEndpoint,
+    analyticsStatusEndpoint,
+    analyticsStatusUpdateEndpoint,
   ],
-  globals: [Header, Footer, Home, PaymentSettings, MarketingSettings],
+  globals: [Header, Footer, Home, PaymentSettings, MarketingSettings, SkaiSettings, AnalyticsSettings],
   plugins,
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL,

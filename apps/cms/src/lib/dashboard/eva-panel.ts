@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 
+import { getSkaiAdapter, resolveSkaiAdapterKind } from '@/eva/registry'
 import type { EvaPanel } from '@/lib/dashboard/types'
 
 const EVA_QUEUE_LIMIT = 5
@@ -20,14 +21,36 @@ export async function buildEvaPanel(payload: Payload): Promise<EvaPanel> {
     overrideAccess: true,
   })
 
-  const unresolvedQueries = found.docs.map((order) => ({
+  const pendingOrders = found.docs.map((order) => ({
     id: String(order.id),
     label: `${order.orderNumber ?? order.id} — pendiente de validación`,
     adminUrl: `/admin/collections/orders/${order.id}`,
   }))
 
+  let activeConversations = 0
+  let skaiUnresolved: EvaPanel['unresolvedQueries'] = []
+  let isLive = false
+
+  const adapterKind = resolveSkaiAdapterKind()
+  if (adapterKind === 'live') {
+    const adapter = getSkaiAdapter()
+    const health = await adapter.validateConnection()
+    if (health.ok) {
+      isLive = true
+      const metrics = await adapter.getConversationMetrics()
+      activeConversations = metrics.activeConversations
+      skaiUnresolved = metrics.unresolvedQueries.map((q) => ({
+        id: q.id,
+        label: q.label,
+      }))
+    }
+  }
+
+  const merged: EvaPanel['unresolvedQueries'] = [...skaiUnresolved, ...pendingOrders]
+
   return {
-    activeConversations: 0,
-    unresolvedQueries,
+    activeConversations,
+    unresolvedQueries: merged,
+    isLive,
   }
 }

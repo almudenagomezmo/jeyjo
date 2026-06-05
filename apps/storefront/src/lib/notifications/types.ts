@@ -14,5 +14,6 @@ export type NotificationPreferences = {
   invoiceChannel: NotificationChannel
   orderChannel: NotificationChannel
   quoteChannel: NotificationChannel
+  wishlistChannel: NotificationChannel
   emailDisabledAt: string | null
 }

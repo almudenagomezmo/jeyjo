@@ -21,6 +21,7 @@ type PreferencesRow = {
   invoice_channel: string
   order_channel: string
   quote_channel: string
+  wishlist_channel: string
   email_disabled_at: string | null
 }
 
@@ -57,7 +58,7 @@ export async function dispatchNotification(
   const profileIds = b2bProfiles.map((p) => p.id)
   const { data: prefsRows } = await supabase
     .from('notification_preferences')
-    .select('web_profile_id, invoice_channel, order_channel, quote_channel, email_disabled_at')
+    .select('web_profile_id, invoice_channel, order_channel, quote_channel, wishlist_channel, email_disabled_at')
     .in('web_profile_id', profileIds)
 
   const prefsByProfile = new Map(

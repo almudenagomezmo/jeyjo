@@ -6,6 +6,7 @@ import { getCustomerContext } from "@/lib/auth/customer-context";
 import { isB2bValidated } from "@/lib/auth/redirect";
 import { filterIntranetNav } from "@/lib/b2b/permissions";
 import { INTRANET_PRIMARY_NAV } from "@/lib/intranet/navigation";
+import { EvaWidgetShell } from "@/components/eva/EvaWidgetShell";
 
 export default async function IntranetLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getCustomerContext();
@@ -37,6 +38,7 @@ export default async function IntranetLayout({ children }: { children: React.Rea
         <IntranetNav items={navItems} />
         <div className="min-w-0">{children}</div>
       </div>
+      <EvaWidgetShell channel="intranet" />
     </Container>
   );
 }

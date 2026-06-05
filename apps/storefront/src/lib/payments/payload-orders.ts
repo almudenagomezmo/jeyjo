@@ -6,7 +6,10 @@ export type PayloadOrderDoc = {
   paymentMethodCode?: string
   amount?: number
   total?: number
+  shippingCost?: number
   gateway?: string
+  orderLineSnapshots?: unknown
+  paidAmount?: number | null
 }
 
 function payloadBaseUrl(): string | null {

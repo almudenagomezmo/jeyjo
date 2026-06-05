@@ -57,6 +57,19 @@ function buildHtml(args: SendProactiveEmailArgs): { subject: string; html: strin
           ${link}
         `,
       }
+    case 'stock_available': {
+      const sku = String(p.sku ?? '')
+      const title = String(p.productTitle ?? sku)
+      const stockLabel = String(p.stockLabel ?? 'Disponible')
+      return {
+        subject: `Ya hay stock de ${escapeHtml(sku)} en Jeyjo`,
+        html: `
+          <h1>Stock disponible</h1>
+          <p>El producto <strong>${escapeHtml(title)}</strong> (${escapeHtml(sku)}) ya tiene stock: <strong>${escapeHtml(stockLabel)}</strong>.</p>
+          ${link}
+        `,
+      }
+    }
   }
 }
 

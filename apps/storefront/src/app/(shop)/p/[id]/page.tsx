@@ -11,6 +11,8 @@ import { StarIcon } from "@/components/ui/icons";
 import { appendCrumb, buildBreadcrumbsFromPath } from "@/lib/catalog/build-breadcrumbs";
 import { getNavigationTree } from "@/lib/catalog/fetch-navigation-tree";
 import { listPublishedProductSlugs } from "@/lib/catalog/fetch-product-pdp";
+import { getCustomerContext } from "@/lib/auth/customer-context";
+import { isB2bValidated } from "@/lib/auth/redirect";
 import { loadPdpPage } from "@/lib/pdp/load-pdp-page";
 import { buildPdpMetadataFromView, buildProductJsonLdFromView } from "@/lib/seo/pdp-metadata";
 import { plpRowToProduct } from "@/lib/plp/row-to-product";
@@ -44,6 +46,8 @@ export default async function ProductPage({ params }: PageProps) {
   }
 
   const { product, quote, stock, relatedRows, quotesBySku, stockBySku } = payload;
+  const ctx = await getCustomerContext();
+  const b2bValidatedForAlerts = ctx ? isB2bValidated(ctx) : false;
   const tree = await getNavigationTree();
   const categorySlug = product.categorySlugs[0] ?? "general";
   const baseCrumbs = buildBreadcrumbsFromPath(tree, `/c/${categorySlug}`);
@@ -73,6 +77,12 @@ export default async function ProductPage({ params }: PageProps) {
 
   return (
     <Container className="pt-6">
+      <span
+        className="sr-only"
+        data-eva-product-sku={product.sku}
+        data-eva-product-name={product.title}
+        aria-hidden
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
@@ -150,11 +160,13 @@ export default async function ProductPage({ params }: PageProps) {
             <ProductBuyBox
               productId={product.slug}
               sku={product.sku}
+              productTitle={product.title}
               refLabel={product.sku}
               packUnit={product.packUnit}
               quote={quote}
               stock={stock}
               vatRate={product.vatRate}
+              b2bValidatedForAlerts={b2bValidatedForAlerts}
             />
           </div>
         </div>

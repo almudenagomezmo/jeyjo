@@ -40,7 +40,7 @@ describe('dashboard role scope', () => {
     conversion: { uniqueVisitors: 10, completedOrders: 2, rate: 0.2 },
     realtime: { activeVisitors: 1, activeCarts: 1 },
     recentOrders: [],
-    eva: { activeConversations: 0, unresolvedQueries: [] },
+    eva: { activeConversations: 0, unresolvedQueries: [], isLive: false },
     alerts: [
       {
         id: 'erp-sync-latest',

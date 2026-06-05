@@ -262,3 +262,17 @@ Shipping cost rules SHALL apply to merchandise subtotal after coupon discount, c
 - **WHEN** checkout segment is B2C and merchandise subtotal after coupon is 38.00 €
 - **THEN** the shipping line shows "Gastos de envío: 5,00 € (IVA incluido)"
 - **AND** order total is 43.00 €
+
+### Requirement: Checkout emits GA4 begin_checkout when flow starts
+
+When GA4 is enabled, entering the checkout flow with a non-empty cart SHALL emit a GA4 `begin_checkout` event once per checkout attempt with cart value and items, per **RF-028**.
+
+#### Scenario: User opens checkout with items
+
+- **WHEN** GA4 is enabled and the user navigates to checkout with two cart lines
+- **THEN** a `begin_checkout` event is sent with aggregate value and two items
+
+#### Scenario: Empty cart redirected without begin_checkout
+
+- **WHEN** the user reaches checkout with an empty cart and is redirected away
+- **THEN** no `begin_checkout` event is sent

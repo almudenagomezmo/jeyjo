@@ -1,53 +1,45 @@
-"use client";
-
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Container } from "@/components/layout/Container";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 
-function ConfirmacionContent() {
-  const params = useSearchParams();
-  const orderNumber = params.get("order")?.trim();
-  const paid = params.get("paid") === "1";
+import { PurchaseTracker } from "@/components/analytics/PurchaseTracker";
+import { mapOrderLineSnapshots } from "@/lib/analytics/ga4-purchase";
+import { findPayloadOrderByNumber } from "@/lib/payments/payload-orders";
+
+import { ConfirmacionClient } from "./ConfirmacionClient";
+
+type PageProps = {
+  searchParams: Promise<{ order?: string; paid?: string }>;
+};
+
+export default async function CheckoutConfirmacionPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const orderNumber = params.order?.trim();
+  const paid = params.paid === "1";
+
+  let snapshot = null;
+  if (orderNumber) {
+    const order = await findPayloadOrderByNumber(orderNumber);
+    if (!order) notFound();
+    snapshot = mapOrderLineSnapshots(
+      order.orderNumber ?? orderNumber,
+      order.amount ?? order.total,
+      order.shippingCost,
+      order.orderLineSnapshots,
+      paid,
+    );
+  }
 
   return (
-    <Container className="py-12">
-      <Card className="mx-auto max-w-lg p-10 text-center">
-        <h1 className="text-2xl font-extrabold">
-          {paid ? "Pago confirmado" : "Pedido recibido"}
-        </h1>
-        {orderNumber ? (
-          <p className="mt-3 text-text-secondary">
-            Número de pedido: <strong className="text-ink">{orderNumber}</strong>
-          </p>
-        ) : (
-          <p className="mt-3 text-text-secondary">Tu pedido se ha registrado correctamente.</p>
-        )}
-        <p className="mt-2 text-sm text-text-tertiary">
-          {paid
-            ? "Tu pago se ha autorizado correctamente. Recibirás la confirmación por email cuando esté disponible."
-            : "Si elegiste transferencia, completa el pago con las instrucciones indicadas. El email de confirmación llegará en una próxima versión."}
-        </p>
-        <Button size="lg" className="mt-6" asChild>
-          <Link href="/">Seguir comprando</Link>
-        </Button>
-      </Card>
-    </Container>
-  );
-}
-
-export default function CheckoutConfirmacionPage() {
-  return (
-    <Suspense
-      fallback={
-        <Container className="py-12">
-          <div className="mx-auto h-40 max-w-lg animate-pulse rounded-lg bg-surface-muted" />
-        </Container>
-      }
-    >
-      <ConfirmacionContent />
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <PurchaseTracker snapshot={snapshot} paid={paid} />
+      </Suspense>
+      <ConfirmacionClient
+        orderNumber={orderNumber ?? null}
+        paid={paid}
+        lineItems={snapshot?.items ?? []}
+        total={snapshot?.total}
+      />
+    </>
   );
 }
