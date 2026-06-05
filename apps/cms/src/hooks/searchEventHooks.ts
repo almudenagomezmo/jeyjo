@@ -1,10 +1,29 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, CollectionSlug } from 'payload'
 
 import { enqueueSearchEvent, type SearchEntityType } from '@/lib/supabase-server'
+import { isSearchIndexOnSaveEnabled } from '@/search-indexer/config'
 
 const SEARCH_INDEXED: Partial<Record<CollectionSlug, SearchEntityType>> = {
   products: 'producto',
   categories: 'categoria',
+}
+
+async function triggerDevIndexerBatch(req: Parameters<CollectionAfterChangeHook>[0]['req']): Promise<void> {
+  if (!isSearchIndexOnSaveEnabled()) return
+
+  try {
+    const { runSearchIndexerBatch } = await import('@/search-indexer/worker')
+    void runSearchIndexerBatch({
+      payload: req.payload,
+      req,
+      batchSize: 5,
+      logger: req.payload.logger,
+    }).catch((error) => {
+      req.payload.logger.error({ err: error }, 'Dev post-save search indexer failed')
+    })
+  } catch (error) {
+    req.payload.logger.error({ err: error }, 'Dev post-save search indexer import failed')
+  }
 }
 
 export function buildSearchPayload(doc: Record<string, unknown>): Record<string, unknown> {
@@ -39,6 +58,7 @@ export function createSearchEventAfterChangeHook(
         action: operation === 'create' ? 'create' : 'update',
         payload: buildSearchPayload(doc as Record<string, unknown>),
       })
+      await triggerDevIndexerBatch(req)
     } catch (error) {
       req.payload.logger.error(
         { err: error, collection: collectionSlug, id: doc.id },

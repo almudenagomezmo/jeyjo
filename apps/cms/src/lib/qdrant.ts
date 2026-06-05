@@ -55,3 +55,33 @@ export async function deletePoints(collectionName: string, ids: (string | number
     points: ids,
   });
 }
+
+export type QdrantScrollPoint = {
+  id: string | number
+  payload?: Record<string, unknown> | null
+}
+
+export async function scrollPointBatch(
+  collectionName: string,
+  options?: { limit?: number; offset?: string | number | Record<string, unknown> | null },
+): Promise<{ points: QdrantScrollPoint[]; nextOffset: string | number | Record<string, unknown> | null }> {
+  const result = await qdrant.scroll(collectionName, {
+    limit: options?.limit ?? 256,
+    offset: options?.offset ?? undefined,
+    with_payload: true,
+    with_vector: false,
+  })
+
+  return {
+    points: (result.points ?? []).map((point) => ({
+      id: point.id,
+      payload: (point.payload ?? null) as Record<string, unknown> | null,
+    })),
+    nextOffset: result.next_page_offset ?? null,
+  }
+}
+
+export async function getCollectionPointCount(collectionName: string): Promise<number> {
+  const result = await qdrant.count(collectionName, { exact: true })
+  return result.count
+}

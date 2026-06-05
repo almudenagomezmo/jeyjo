@@ -1,11 +1,13 @@
 import type { Json } from '@jeyjo/database-types'
 
-import { getSupabaseServerClient } from '@/lib/supabase-server'
+import { payloadIdToUuid } from '@/lib/entity-uuid'
+import { getSupabaseServerClient, type SearchEntityType } from '@/lib/supabase-server'
 
 import type { SearchEventPayload, SearchEventRow } from './types'
 
 const STALE_PROCESSING_MS = 10 * 60 * 1000
 const MAX_INDEX_ATTEMPTS = 3
+const MAX_RECONCILE_ATTEMPTS = 3
 const DEFAULT_BATCH_SIZE = 50
 
 function parsePayload(payload: Json): SearchEventPayload {
@@ -140,4 +142,100 @@ export async function failSearchEvent(
 
 export function eventPayload(event: SearchEventRow): SearchEventPayload {
   return parsePayload(event.payload)
+}
+
+export async function hasActiveSearchEvent(
+  entityType: SearchEntityType,
+  entityId: string | number,
+): Promise<boolean> {
+  const supabase = getSupabaseServerClient()
+  if (!supabase) return false
+
+  const entityUuid = payloadIdToUuid(entityType, entityId)
+  const { count, error } = await supabase
+    .from('search_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('entity_type', entityType)
+    .eq('entity_id', entityUuid)
+    .in('status', ['pending', 'processing'])
+
+  if (error) {
+    throw new Error(`search_events active check failed: ${error.message}`)
+  }
+
+  return (count ?? 0) > 0
+}
+
+export async function getLastDoneProcessedAtByEntityIds(
+  entityType: SearchEntityType,
+  entityUuids: string[],
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  if (!entityUuids.length) return map
+
+  const supabase = getSupabaseServerClient()
+  if (!supabase) return map
+
+  const { data, error } = await supabase
+    .from('search_events')
+    .select('entity_id, processed_at')
+    .eq('entity_type', entityType)
+    .eq('status', 'done')
+    .in('entity_id', entityUuids)
+    .order('processed_at', { ascending: false })
+
+  if (error) {
+    throw new Error(`search_events done lookup failed: ${error.message}`)
+  }
+
+  for (const row of data ?? []) {
+    if (!row.processed_at || map.has(row.entity_id)) continue
+    map.set(row.entity_id, row.processed_at)
+  }
+
+  return map
+}
+
+export async function resetRecentErrorEventsForReconcile(
+  errorWindowHours: number,
+): Promise<number> {
+  const supabase = getSupabaseServerClient()
+  if (!supabase) return 0
+
+  const cutoff = new Date(Date.now() - errorWindowHours * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase
+    .from('search_events')
+    .select('*')
+    .eq('status', 'error')
+    .gte('processed_at', cutoff)
+
+  if (error) {
+    throw new Error(`search_events error select failed: ${error.message}`)
+  }
+
+  let reset = 0
+  for (const row of data ?? []) {
+    const payload = parsePayload(row.payload)
+    const attempts = payload._reconcileAttempts ?? 0
+    if (attempts >= MAX_RECONCILE_ATTEMPTS) continue
+
+    const nextPayload: SearchEventPayload = { ...payload, _reconcileAttempts: attempts + 1 }
+    const { error: updateError } = await supabase
+      .from('search_events')
+      .update({
+        status: 'pending',
+        error_message: null,
+        processed_at: null,
+        payload: nextPayload as Json,
+      })
+      .eq('id', row.id)
+
+    if (updateError) {
+      throw new Error(`search_events error reset failed: ${updateError.message}`)
+    }
+
+    reset += 1
+  }
+
+  return reset
 }

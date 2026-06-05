@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **41 / 46** cambios completados (~89 %). Hito reciente: galería multi-imagen PDP con carrusel y campo `additionalImages` en CMS (#46).
+**Progreso:** **41 / 47** cambios completados (~87 %). Hito reciente: galería multi-imagen PDP con carrusel y campo `additionalImages` en CMS (#46).
 
 
 | #   | Cambio                              | Depende de | US / RF principales          | Estado     | Fecha      |
@@ -57,9 +57,10 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 44  | `storefront-categories-cms-snapshot`| 9, 15      | RF-010, alcance §1.6, US-01  | Completado | 2026-06-05 |
 | 45  | `plp-category-tree-filter`          | 10, 44     | RF-010, US-01                | Completado | 2026-06-05 |
 | 46  | `pdp-additional-images-gallery`     | 11, 21     | RF-012, RF-024, US-16        | Completado | 2026-06-05 |
+| 47  | `qdrant-search-reliability`         | 13, 14, 30, 42 | RF-009                    | Pendiente  | —          |
 
 
-**Siguiente cambio recomendado:** #40 `footer-eva-omnichannel-complete` (depende de #9, #32) o #43 `seo-technical-auditor` (depende de #34).
+**Siguiente cambio recomendado:** #47 `qdrant-search-reliability` (depende de #13, #14, #30, #42) o #40 `footer-eva-omnichannel-complete` (depende de #9, #32).
 
 **Portal B2B — estado actual:** operativo histórico (#23), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27), notificaciones (#28), avisos stock wishlist (#35), descargas catálogos (#41) y contabilidad documental (#37).
 

@@ -22,7 +22,9 @@ export function filterSummaryByRoleScope(
       realtime: { activeVisitors: 0, activeCarts: 0 },
       recentOrders: [],
       eva: { activeConversations: 0, unresolvedQueries: [], isLive: false },
-      alerts: summary.alerts.filter((a) => a.id.startsWith('erp-sync')),
+      alerts: summary.alerts.filter(
+        (a) => a.id.startsWith('erp-sync') || a.id.startsWith('search-index'),
+      ),
       roleScope: scope,
     }
   }
@@ -35,7 +37,10 @@ export function filterSummaryByRoleScope(
     recentOrders: [],
     eva: { activeConversations: 0, unresolvedQueries: [], isLive: false },
     alerts: summary.alerts.filter(
-      (a) => a.id.startsWith('top-sales-low-stock') || a.id.startsWith('erp-sync'),
+      (a) =>
+        a.id.startsWith('top-sales-low-stock') ||
+        a.id.startsWith('erp-sync') ||
+        a.id.startsWith('search-index'),
     ),
     roleScope: scope,
   }

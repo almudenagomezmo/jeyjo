@@ -20,6 +20,28 @@ export type SearchEventPayload = {
   priceHint?: number | null
   thumbnailUrl?: string | null
   _indexAttempts?: number
+  _reconcileAttempts?: number
+}
+
+export type SearchReconcileResult = {
+  staleProductsEnqueued: number
+  staleCategoriesEnqueued: number
+  skippedDuplicate: number
+  errorsReset: number
+  durationMs: number
+}
+
+export type SearchOrphanCleanupResult = {
+  orphansDeleted: number
+  scanned: number
+  durationMs: number
+}
+
+export type SearchBackfillResult = {
+  enqueuedProducts: number
+  enqueuedCategories: number
+  skippedDuplicate: number
+  durationMs: number
 }
 
 export type SearchIndexerBatchResult = {

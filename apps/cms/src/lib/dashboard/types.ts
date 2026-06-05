@@ -70,7 +70,22 @@ export type DashboardSummary = {
   recentOrders: RecentOrderRow[]
   eva: EvaPanel
   alerts: SystemAlert[]
+  searchQueue: SearchQueueKpis
+  qdrantCoverage: QdrantCoverageKpis
   roleScope: DashboardRoleScope
+}
+
+export type SearchQueueKpis = {
+  pending: number
+  processing: number
+  error: number
+  oldestPendingAgeSec: number
+}
+
+export type QdrantCoverageKpis = {
+  qdrantProductPoints: number | null
+  publishedProductCount: number
+  ratio: number | null
 }
 
 export type DashboardStaffUser = {

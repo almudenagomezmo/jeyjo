@@ -41,6 +41,8 @@ describe('dashboard role scope', () => {
     realtime: { activeVisitors: 1, activeCarts: 1 },
     recentOrders: [],
     eva: { activeConversations: 0, unresolvedQueries: [], isLive: false },
+    searchQueue: { pending: 0, processing: 0, error: 0, oldestPendingAgeSec: 0 },
+    qdrantCoverage: { qdrantProductPoints: null, publishedProductCount: 0, ratio: null },
     alerts: [
       {
         id: 'erp-sync-latest',
@@ -119,6 +121,26 @@ describe('dashboard ERP alert builder', () => {
             select: () => ({
               is: async () => ({ count: 0 }),
             }),
+          }
+        }
+        if (table === 'search_events') {
+          return {
+            select: (_cols: string, opts?: { count?: string; head?: boolean }) => {
+              if (opts?.head) {
+                return {
+                  eq: async () => ({ count: 0, error: null }),
+                }
+              }
+              return {
+                eq: () => ({
+                  order: () => ({
+                    limit: () => ({
+                      maybeSingle: async () => ({ data: null, error: null }),
+                    }),
+                  }),
+                }),
+              }
+            },
           }
         }
         return {

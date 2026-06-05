@@ -51,6 +51,26 @@ const mockSupabase = {
         }),
       }
     }
+    if (table === 'search_events') {
+      return {
+        select: (_cols: string, opts?: { count?: string; head?: boolean }) => {
+          if (opts?.head) {
+            return {
+              eq: async () => ({ count: 0, error: null }),
+            }
+          }
+          return {
+            eq: () => ({
+              order: () => ({
+                limit: () => ({
+                  maybeSingle: async () => ({ data: null, error: null }),
+                }),
+              }),
+            }),
+          }
+        },
+      }
+    }
     return {
       select: () => ({
         is: async () => ({ count: 0, error: null }),
@@ -66,6 +86,7 @@ vi.mock('@/lib/supabase-server', () => ({
 describe('dashboard summary integration', () => {
   beforeEach(() => {
     vi.resetModules()
+    vi.stubEnv('QDRANT_URL', '')
   })
 
   it('returns summary with conversion when sessions and orders exist', async () => {
@@ -73,6 +94,9 @@ describe('dashboard summary integration', () => {
 
     const summary = await buildDashboardSummary({
       payload: {
+        count: async ({ collection }: { collection: string }) => ({
+          totalDocs: collection === 'products' ? 5 : 0,
+        }),
         find: async ({ collection, where }: { collection: string; where?: { and?: unknown[] } }) => {
           if (collection === 'orders') {
             const hasEvaFilter = JSON.stringify(where ?? {}).includes('eva')
@@ -122,5 +146,7 @@ describe('dashboard summary integration', () => {
     expect(summary.roleScope).toBe('full')
     expect(summary.eva.unresolvedQueries.length).toBe(1)
     expect(summary.eva.isLive).toBe(false)
+    expect(summary.searchQueue.pending).toBe(0)
+    expect(summary.qdrantCoverage.publishedProductCount).toBe(5)
   })
 })

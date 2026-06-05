@@ -6,6 +6,7 @@ import type { Database } from '@jeyjo/database-types'
 
 import { getOperationalThresholds, aggregateTopSalesSkus } from '@/lib/dashboard/top-sales'
 import type { SystemAlert } from '@/lib/dashboard/types'
+import { getSearchQueueStats } from '@/search-indexer/queueStats'
 
 const ERP_ALERT_HOURS = 24
 
@@ -24,6 +25,36 @@ export async function buildSystemAlerts(input: {
   const showPendingCustomers = hasStaffRole(user, ['superadmin', 'administracion'])
   const showTopSales = hasStaffRole(user, ['superadmin', 'administracion', 'catalogo'])
   const showAnalytics = hasStaffRole(user, ['superadmin', 'mantenimiento'])
+  const showSearchOps = hasStaffRole(user, ['superadmin', 'mantenimiento', 'catalogo'])
+
+  if (showSearchOps && supabase) {
+    try {
+      const queue = await getSearchQueueStats(supabase)
+      const lag = queue.oldestPendingAgeSec
+
+      if (queue.error >= 10 || lag > 900) {
+        alerts.push({
+          id: 'search-index-queue-error',
+          severity: 'error',
+          title: 'Cola de indexación de búsqueda degradada',
+          description: `${queue.error} error(es), ${queue.pending} pendiente(s), lag ${lag}s`,
+          timestamp: now.toISOString(),
+          href: '/admin/pim-health',
+        })
+      } else if (queue.error > 0 || lag > 300) {
+        alerts.push({
+          id: 'search-index-queue-warning',
+          severity: 'warning',
+          title: 'Retraso en indexación Qdrant',
+          description: `${queue.error} error(es), ${queue.pending} pendiente(s), lag ${lag}s`,
+          timestamp: now.toISOString(),
+          href: '/admin/pim-health',
+        })
+      }
+    } catch {
+      // queue stats unavailable during bootstrap
+    }
+  }
 
   if (showErp && supabase) {
     const { data: syncRuns } = await supabase

@@ -33,6 +33,33 @@ El worker `src/search-indexer/` usa **Transformers.js** (`@xenova/transformers`)
 - **Dev local:** tras `pnpm dev`, ejecuta `POST /next/process-search-events` (admin) o `GET /api/cron/search-indexer` con `Authorization: Bearer $CRON_SECRET`.
 - **Producción:** cron Vercel cada minuto (`vercel.json` → `/api/cron/search-indexer`).
 
+### Fiabilidad del índice (search reliability)
+
+Además del indexer cada minuto, hay crons de reconciliación y limpieza:
+
+| Cron | Ruta | Schedule | Función |
+|---|---|---|---|
+| Indexer | `/api/cron/search-indexer` | cada minuto | Drena `search_events` pending → Qdrant |
+| Reconcile | `/api/cron/search-reconcile` | cada hora | Re-encola catálogo stale + reintenta `error` recientes |
+| Orphan cleanup | `/api/cron/search-orphan-cleanup` | 04:00 UTC | Elimina puntos Qdrant huérfanos |
+
+**Bootstrap Qdrant Cloud (primera vez):**
+
+1. Configurar `QDRANT_URL`, `QDRANT_API_KEY` y `CRON_SECRET`.
+2. Arrancar CMS (crea colecciones en `onInit`) o crearlas manualmente.
+3. Dev: `POST /next/search-backfill` (admin) para encolar todo el catálogo publicado.
+4. Drenar cola: `GET /api/cron/search-indexer` hasta `pending = 0` (dashboard KPIs).
+5. Verificar suggest en storefront.
+
+Variables opcionales:
+
+| Variable | Default | Uso |
+|---|---|---|
+| `SEARCH_RECONCILE_STALE_HOURS` | `2` | Margen antes de re-encolar entidades stale |
+| `SEARCH_RECONCILE_ERROR_WINDOW_HOURS` | `24` | Ventana de reintento de eventos `error` |
+| `ORPHAN_CLEANUP_MAX_DELETES` | `500` | Tope de borrados por ejecución diaria |
+| `SEARCH_INDEX_ON_SAVE` | — | Dev only: dispara batch indexer tras guardar |
+
 No se requiere API key externa para embeddings en desarrollo.
 
 ### Añadir una colección nueva

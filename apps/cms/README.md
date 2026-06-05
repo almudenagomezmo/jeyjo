@@ -206,14 +206,20 @@ pnpm test:int notifications
 
 - **Worker:** `src/search-indexer/` — poll `search_events` → embeddings (`@xenova/transformers`) → upsert/delete Qdrant (`products`, `categories`).
 - **Manual (dev):** `POST /next/process-search-events` (admin autenticado, deshabilitado en producción).
-- **Cron:** `GET /api/cron/search-indexer` con `Authorization: Bearer $CRON_SECRET` (Vercel cada minuto).
+- **Backfill (dev):** `POST /next/search-backfill` (admin) — encola todo el catálogo publicado.
+- **Cron:** `GET /api/cron/search-indexer` cada minuto; `GET /api/cron/search-reconcile` cada hora; `GET /api/cron/search-orphan-cleanup` diario — todos con `Authorization: Bearer $CRON_SECRET`.
 - **Exclusiones:** productos comodín (`isWildcard`) y no publicados no permanecen en el índice.
 - **Embeddings:** modelo `Xenova/multilingual-e5-small` (384 dims); primera ejecución descarga ~100 MB — ver `docs/qdrant.md`.
+- **Dashboard:** KPIs cola + alertas lag/error en `/admin` (RF-009).
 
 ```bash
 curl -X POST http://localhost:3001/next/process-search-events -H "Cookie: ..."   # admin session
+curl -X POST http://localhost:3001/next/search-backfill -H "Cookie: ..."       # admin session
 curl http://localhost:3001/api/cron/search-indexer -H "Authorization: Bearer $CRON_SECRET"
+curl http://localhost:3001/api/cron/search-reconcile -H "Authorization: Bearer $CRON_SECRET"
+curl http://localhost:3001/api/cron/search-orphan-cleanup -H "Authorization: Bearer $CRON_SECRET"
 pnpm test:int search-indexer
+pnpm test:int search-reconcile
 ```
 
 ## GA4 y Merchant Center feed (`analytics-ga4-merchant-feed`, ROADMAP #34, RF-028)

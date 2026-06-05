@@ -16,6 +16,7 @@ Añadir en **Project Settings > Environment Variables**:
 | `STRIPE_WEBHOOKS_SIGNING_SECRET` | `whsec_...` |
 | `QDRANT_URL` | `https://tu-cluster.cloud.qdrant.io:6333` |
 | `QDRANT_API_KEY` | API key de Qdrant Cloud |
+| `CRON_SECRET` | Secreto Bearer para crons (`search-indexer`, `search-reconcile`, `search-orphan-cleanup`, ERP, stock, …) |
 | `SUPABASE_ENDPOINT` | `https://xxxx.supabase.co/storage/v1/s3` |
 | `SUPABASE_ACCESS_KEY_ID` | S3 Access Key |
 | `SUPABASE_SECRET_ACCESS_KEY` | S3 Secret Key |
@@ -44,6 +45,12 @@ pnpm payload migrate
 
 # 2. Seed de datos (opcional)
 # POST https://tudominio.com/next/seed (con auth admin)
+
+# 3. Bootstrap búsqueda Qdrant (RF-009)
+# - Verificar QDRANT_URL + QDRANT_API_KEY + CRON_SECRET
+# - POST /next/search-backfill (staging con auth admin) o dejar que hooks + reconcile poblen el índice
+# - Monitorizar cola en dashboard admin (pending/error)
+# - Crons Vercel: search-indexer (1 min), search-reconcile (1 h), search-orphan-cleanup (diario)
 ```
 
 ## Notas

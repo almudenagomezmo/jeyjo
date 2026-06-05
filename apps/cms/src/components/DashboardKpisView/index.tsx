@@ -29,6 +29,12 @@ function formatPercent(rate: number | null): string {
   return `${(rate * 100).toFixed(1)} %`
 }
 
+function formatLag(seconds: number): string {
+  if (seconds <= 0) return '0 s'
+  if (seconds < 60) return `${seconds} s`
+  return `${Math.floor(seconds / 60)} min`
+}
+
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('es-ES')
 }
@@ -125,6 +131,42 @@ export const DashboardKpisView: React.FC = () => {
         <div className={`${baseClass}__minimal`}>
           <p>Bienvenido al backoffice Jeyjo. Los indicadores de ventas no están disponibles para tu rol.</p>
         </div>
+      )}
+
+      {data && (
+        <section className={`${baseClass}__section`}>
+          <h2>Cola indexación Qdrant (RF-009)</h2>
+          <div className={`${baseClass}__cards`}>
+            <div className={`${baseClass}__card`}>
+              <div className={`${baseClass}__card-label`}>Pendientes</div>
+              <div className={`${baseClass}__card-value`}>{data.searchQueue.pending}</div>
+            </div>
+            <div className={`${baseClass}__card`}>
+              <div className={`${baseClass}__card-label`}>Procesando</div>
+              <div className={`${baseClass}__card-value`}>{data.searchQueue.processing}</div>
+            </div>
+            <div className={`${baseClass}__card`}>
+              <div className={`${baseClass}__card-label`}>Errores</div>
+              <div className={`${baseClass}__card-value`}>{data.searchQueue.error}</div>
+            </div>
+            <div className={`${baseClass}__card`}>
+              <div className={`${baseClass}__card-label`}>Lag cola</div>
+              <div className={`${baseClass}__card-value`}>
+                {formatLag(data.searchQueue.oldestPendingAgeSec)}
+              </div>
+            </div>
+            <div className={`${baseClass}__card`}>
+              <div className={`${baseClass}__card-label`}>Cobertura Qdrant</div>
+              <div className={`${baseClass}__card-value`}>
+                {formatPercent(data.qdrantCoverage.ratio)}
+              </div>
+            </div>
+          </div>
+          <p className={`${baseClass}__empty`}>
+            Puntos Qdrant: {data.qdrantCoverage.qdrantProductPoints ?? '—'} · Publicados Payload:{' '}
+            {data.qdrantCoverage.publishedProductCount}
+          </p>
+        </section>
       )}
 
       {showFinancial && data && (

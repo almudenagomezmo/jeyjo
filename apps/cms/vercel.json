@@ -13,6 +13,14 @@
       "schedule": "* * * * *"
     },
     {
+      "path": "/api/cron/search-reconcile",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/search-orphan-cleanup",
+      "schedule": "0 4 * * *"
+    },
+    {
       "path": "/api/cron/invoice-sync",
       "schedule": "*/5 * * * *"
     },
