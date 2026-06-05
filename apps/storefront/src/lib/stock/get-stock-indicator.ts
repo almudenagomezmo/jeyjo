@@ -2,7 +2,6 @@ import { unstable_cache } from 'next/cache'
 
 import {
   STOCK_INDICATOR_LABELS,
-  parseStockLowThreshold,
   resolveStockIndicator,
 } from '@jeyjo/stock-ports'
 
@@ -11,6 +10,7 @@ import {
   isPublicCatalogProduct,
   type CmsProductSnapshot,
 } from '@/lib/catalog/public-product-filter'
+import { getCatalogStalenessMs, getStockLowThreshold } from '@/lib/system-config/fetch'
 
 import type { PublicStockIndicator } from '@/lib/stock/types'
 
@@ -20,18 +20,20 @@ type StockProductSnapshot = CmsProductSnapshot & {
   arnoiaStock?: number | null
 }
 
-const STALE_MS = 24 * 60 * 60 * 1000
-
-function isSourceStale(syncAt: string | null | undefined): boolean {
+function isSourceStale(syncAt: string | null | undefined, staleMs: number): boolean {
   if (!syncAt) return true
   const ts = Date.parse(syncAt)
   if (Number.isNaN(ts)) return true
-  return Date.now() - ts > STALE_MS
+  return Date.now() - ts > staleMs
 }
 
-function toPublicIndicator(doc: StockProductSnapshot): PublicStockIndicator {
-  const staleDistrisantiago = isSourceStale(doc.syncDistrisantiagoAt)
-  const staleArnoia = isSourceStale(doc.syncArnoiaAt)
+function toPublicIndicator(
+  doc: StockProductSnapshot,
+  threshold: number,
+  staleMs: number,
+): PublicStockIndicator {
+  const staleDistrisantiago = isSourceStale(doc.syncDistrisantiagoAt, staleMs)
+  const staleArnoia = isSourceStale(doc.syncArnoiaAt, staleMs)
 
   if (doc.stockIndicator && doc.stockIndicator in STOCK_INDICATOR_LABELS) {
     return {
@@ -46,7 +48,7 @@ function toPublicIndicator(doc: StockProductSnapshot): PublicStockIndicator {
     erpStock: doc.erpStock ?? null,
     distrisantiagoStock: doc.distrisantiagoStock ?? null,
     arnoiaStock: doc.arnoiaStock ?? null,
-    threshold: parseStockLowThreshold(process.env.STOCK_LOW_THRESHOLD),
+    threshold,
     staleDistrisantiago,
     staleArnoia,
   })
@@ -60,9 +62,13 @@ function toPublicIndicator(doc: StockProductSnapshot): PublicStockIndicator {
 }
 
 async function loadPublicStockIndicator(sku: string): Promise<PublicStockIndicator | null> {
-  const doc = (await fetchProductBySkuFromCms(sku)) as StockProductSnapshot | null
+  const [doc, threshold, staleMs] = await Promise.all([
+    fetchProductBySkuFromCms(sku) as Promise<StockProductSnapshot | null>,
+    getStockLowThreshold(),
+    getCatalogStalenessMs(),
+  ])
   if (!doc || !isPublicCatalogProduct(doc)) return null
-  return toPublicIndicator(doc)
+  return toPublicIndicator(doc, threshold, staleMs)
 }
 
 const cachedLoad = unstable_cache(

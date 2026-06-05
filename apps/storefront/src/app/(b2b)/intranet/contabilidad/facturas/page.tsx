@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { IntranetScaffoldPage } from "@/components/intranet/IntranetScaffoldPage";
-import { getScaffoldForPath } from "@/lib/intranet/navigation";
+import { InvoicesPanel } from "@/components/intranet/contabilidad/InvoicesPanel";
+import { guardIntranetPage } from "@/lib/b2b/guard-page";
 
-const PATH = "/intranet/contabilidad/facturas";
-const scaffold = getScaffoldForPath(PATH)!;
+export const metadata: Metadata = { title: "Facturas emitidas" };
 
-export const metadata: Metadata = { title: scaffold.title };
-
-export default function FacturasPage() {
-  return <IntranetScaffoldPage pathname={PATH} />;
+export default async function FacturasPage() {
+  await guardIntranetPage("/intranet/contabilidad/facturas");
+  return <InvoicesPanel />;
 }

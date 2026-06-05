@@ -1,5 +1,4 @@
 import {
-  parseStockLowThreshold,
   resolveStockIndicator,
   STOCK_INDICATOR_LABELS,
   type StockIndicatorLevel,
@@ -7,6 +6,7 @@ import {
 import { createLocalReq, type Payload, type PayloadRequest } from 'payload'
 
 import type { Product } from '@/payload-types'
+import { loadSystemSettingsDoc, resolveOperationalThresholds } from '@/lib/system-config/resolve'
 
 export type StockIndicatorTransition = {
   sku: string
@@ -23,8 +23,10 @@ export type RecalculateIndicatorsResult = {
   transitions: StockIndicatorTransition[]
 }
 
-function stockThreshold(): number {
-  return parseStockLowThreshold(process.env.STOCK_LOW_THRESHOLD)
+async function stockThreshold(payload: Payload): Promise<number> {
+  const doc = await loadSystemSettingsDoc(payload)
+  const thresholds = resolveOperationalThresholds(doc)
+  return thresholds.stockLowThreshold
 }
 
 export async function recalculateStockIndicatorsForSkus({
@@ -45,7 +47,7 @@ export async function recalculateStockIndicatorsForSkus({
   if (unique.length === 0) return result
 
   const syncReq = await stockSyncReq(payload, req)
-  const threshold = stockThreshold()
+  const threshold = await stockThreshold(payload)
 
   for (const sku of unique) {
     try {

@@ -8,12 +8,16 @@ import { getCustomerContext, pricingCustomerGroup } from "@/lib/auth/customer-co
 import { isB2bValidated } from "@/lib/auth/redirect";
 import { isPortalModeFromHeaders } from "@/lib/intranet/portal-mode";
 import { isB2BCustomerGroup } from "@jeyjo/pricing";
+import { getNewsletterSettings } from "@/lib/newsletter/settings";
+import { getContactConfig } from "@/lib/system-config/fetch";
 
 export async function NavigationShell({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
   const portalMode = isPortalModeFromHeaders(headersList);
   const tree = await getNavigationTree();
   const ctx = await getCustomerContext();
+  const newsletterSettings = await getNewsletterSettings();
+  const contact = await getContactConfig();
 
   let accountHref = "/login";
   let accountLabel = "Acceder";
@@ -69,7 +73,12 @@ export async function NavigationShell({ children }: { children: React.ReactNode 
       <main id="main-content" tabIndex={-1}>
         {children}
       </main>
-      <Footer tree={tree} />
+      <Footer
+        tree={tree}
+        newsletterSettings={newsletterSettings}
+        defaultEmail={ctx?.email}
+        contact={contact}
+      />
     </>
   );
 }

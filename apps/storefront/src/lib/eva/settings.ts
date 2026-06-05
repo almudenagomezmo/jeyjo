@@ -1,4 +1,5 @@
 import type { SkaiFallbackContact } from '@/lib/eva/types'
+import type { SystemConfigDto } from '@/lib/system-config/types'
 
 export type SkaiSettingsDoc = {
   enabled?: boolean
@@ -65,6 +66,19 @@ export function mapSkaiFallback(settings: SkaiSettingsDoc): SkaiFallbackContact 
     whatsapp: settings.fallbackWhatsapp ?? DEFAULT_FALLBACK.whatsapp,
     businessHours: settings.businessHours ?? DEFAULT_FALLBACK.businessHours,
     outOfHoursMessage: settings.outOfHoursMessage ?? DEFAULT_FALLBACK.outOfHoursMessage,
+  }
+}
+
+export function mergeSkaiFallbackWithSystemContact(
+  settings: SkaiSettingsDoc,
+  systemContact: SystemConfigDto['contact'],
+): SkaiFallbackContact {
+  const skai = mapSkaiFallback(settings)
+  return {
+    ...skai,
+    phone: settings.fallbackPhone?.trim() || systemContact.supportPhone || skai.phone,
+    email: settings.fallbackEmail?.trim() || systemContact.supportEmail || skai.email,
+    whatsapp: settings.fallbackWhatsapp?.trim() || systemContact.whatsapp || skai.whatsapp,
   }
 }
 

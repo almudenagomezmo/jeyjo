@@ -5,8 +5,9 @@ import { isEvaRateLimited } from '@/lib/eva/rate-limit'
 import {
   EVA_UNAVAILABLE_MESSAGE,
   fetchSkaiSettings,
-  mapSkaiFallback,
+  mergeSkaiFallbackWithSystemContact,
 } from '@/lib/eva/settings'
+import { getContactConfig } from '@/lib/system-config/fetch'
 import type { EvaContextChannel, EvaPageContext } from '@/lib/eva/types'
 import { getCustomerContext } from '@/lib/auth/customer-context'
 
@@ -37,16 +38,17 @@ export async function GET(request: Request) {
   }
 
   if (!isWidgetGloballyEnabled()) {
+    const contact = await getContactConfig()
     return NextResponse.json({
       enabled: false,
-      fallback: mapSkaiFallback({}),
+      fallback: mergeSkaiFallbackWithSystemContact({}, contact),
       unavailableMessage: EVA_UNAVAILABLE_MESSAGE,
     })
   }
 
   try {
-    const settings = await fetchSkaiSettings()
-    const fallback = mapSkaiFallback(settings)
+    const [settings, contact] = await Promise.all([fetchSkaiSettings(), getContactConfig()])
+    const fallback = mergeSkaiFallbackWithSystemContact(settings, contact)
 
     if (settings.enabled === false) {
       return NextResponse.json({

@@ -8,6 +8,7 @@ import { resolveCheckoutSegment } from '@/lib/checkout/segment'
 import { buildCheckoutTotals, type DeliveryMethod } from '@/lib/checkout/totals'
 import { fetchCartProductsByIds } from '@/lib/catalog/fetch-cart-products'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
+import { getShippingRules } from '@/lib/system-config/fetch'
 import type { CartLine } from '@/lib/types'
 
 export class CouponValidationError extends Error {
@@ -55,7 +56,9 @@ export async function resolveServerCheckoutCart(
     )
   }
 
-  const summary = computeCartSummary(lines, products, quotes, segment)
+  const shippingRules = await getShippingRules()
+
+  const summary = computeCartSummary(lines, products, quotes, segment, shippingRules)
   const totals = buildCheckoutTotals(
     lines,
     products,
@@ -63,6 +66,7 @@ export async function resolveServerCheckoutCart(
     segment,
     couponResult,
     deliveryMethod,
+    shippingRules,
   )
 
   const lineSnapshots = summary.lines

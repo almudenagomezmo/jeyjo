@@ -129,4 +129,4 @@ pnpm dev:storefront # tienda en :3000
 ## Buckets Storage
 
 - `catalog-media` — lectura pública; subidas vía CMS con `SUPABASE_BUCKET=catalog-media`
-- `private-documents` — solo `service_role`; URLs firmadas en cambio área documental (#37)
+- `private-documents` — solo `service_role`; PDFs de facturas/albaranes/347/presupuestos ERP cacheados on-demand en `{customer_id}/{document_type}/{document_id}.pdf` (cambio #37). El storefront sube vía service role y sirve descargas autenticadas B2B con permiso `finance`.

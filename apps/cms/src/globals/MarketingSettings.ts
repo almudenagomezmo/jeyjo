@@ -1,9 +1,6 @@
-import type { Access, GlobalConfig } from 'payload'
+import type { GlobalConfig } from 'payload'
 
-import { hasStaffRole } from '@/access/staffRoles'
-
-const marketingStaffUpdate: Access = ({ req: { user } }) =>
-  hasStaffRole(user, ['superadmin', 'marketing'])
+import { marketingStaffUpdate } from '@/access/marketingStaff'
 
 export const MarketingSettings: GlobalConfig = {
   slug: 'marketingSettings',

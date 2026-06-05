@@ -34,6 +34,7 @@ export const COLLECTION_ACCESS: Record<string, StaffRole[]> = {
   addresses: ['superadmin', 'administracion'],
   carts: ['superadmin', 'administracion'],
   coupons: ['superadmin', 'marketing'],
+  'b2b-catalog-downloads': ['superadmin', 'marketing', 'personalizacion'],
 }
 
 const CATALOG_WRITE_COLLECTIONS = new Set(['products', 'categories', 'suppliers'])
@@ -85,6 +86,10 @@ export function canWriteCollection(
 
   if (collection === 'coupons') {
     return hasStaffRole(user, ['superadmin', 'marketing'])
+  }
+
+  if (collection === 'b2b-catalog-downloads') {
+    return hasStaffRole(user, ['superadmin', 'marketing', 'personalizacion'])
   }
 
   if (['pages', 'forms', 'form-submissions', 'media'].includes(collection)) {

@@ -4,7 +4,7 @@ import type { Payload } from 'payload'
 import { hasStaffRole, type StaffUserLike } from '@/access/staffRoles'
 import type { Database } from '@jeyjo/database-types'
 
-import { getLowStockThreshold, aggregateTopSalesSkus } from '@/lib/dashboard/top-sales'
+import { getOperationalThresholds, aggregateTopSalesSkus } from '@/lib/dashboard/top-sales'
 import type { SystemAlert } from '@/lib/dashboard/types'
 
 const ERP_ALERT_HOURS = 24
@@ -89,7 +89,7 @@ export async function buildSystemAlerts(input: {
   }
 
   if (showTopSales) {
-    const threshold = getLowStockThreshold()
+    const { dashboardLowStockThreshold: threshold } = await getOperationalThresholds(payload)
     const topSkus = await aggregateTopSalesSkus(payload, now, 10)
     for (const row of topSkus) {
       if (row.availableStock >= threshold) continue

@@ -12,9 +12,20 @@ export type { ErpPageOptions, ErpPageResult } from './types/pagination.js'
 export type { ErpCatalogReader } from './ports/catalog-reader.js'
 export type { ErpCatalogWriter } from './ports/catalog-writer.js'
 export type {
+  ErpDocumentPdfResult,
+  ErpDocumentType,
   ErpDocumentsReader,
-  ErpInvoiceListItem,
   ErpDeliveryNoteListItem,
+  ErpDeliveryNoteStatus,
+  ErpDuePaymentListItem,
+  ErpErpQuoteListItem,
+  ErpErpQuoteStatus,
+  ErpForm347Summary,
+  ErpGetDocumentPdfInput,
+  ErpInvoiceListItem,
+  ErpInvoiceStatus,
+  ErpListInvoicesByCustomerOptions,
+  ErpListInvoicesFilterOptions,
 } from './ports/documents-reader.js'
 export type { ErpPricingReader } from './ports/pricing-reader.js'
 export type { ErpPurchaseHistoryReader } from './ports/purchase-history-reader.js'

@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 
 import { logSuggestTimings, runSuggestSearch } from '@/lib/search/run-suggest-search'
 import type { SuggestResponse } from '@/lib/search/types'
-import { isQdrantConfigured } from '@/lib/search/search-flags'
+import {
+  getMinQueryLength,
+  isPredictiveSearchEnabled,
+  isQdrantConfigured,
+} from '@/lib/search/search-flags'
 
 export async function POST(request: Request) {
   let body: { q?: string }
@@ -13,14 +17,15 @@ export async function POST(request: Request) {
   }
 
   const q = typeof body.q === 'string' ? body.q.trim() : ''
-  if (q.length < 3) {
+  const minLength = await getMinQueryLength()
+  if (q.length < minLength) {
     return NextResponse.json(
-      { error: 'Query must be at least 3 characters' },
+      { error: `Query must be at least ${minLength} characters` },
       { status: 400 },
     )
   }
 
-  if (!isQdrantConfigured()) {
+  if (!isQdrantConfigured() || !(await isPredictiveSearchEnabled())) {
     if (process.env.NODE_ENV === 'development') {
       return NextResponse.json({
         products: [],

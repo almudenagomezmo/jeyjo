@@ -1,6 +1,7 @@
 import type { PriceQuote } from '@jeyjo/pricing'
 
 import { computeShippingPreview } from '@/lib/cart/shipping'
+import { DEFAULT_SHIPPING_RULES, type ShippingRules } from '@/lib/system-config/defaults'
 import type { CartDetailedLine, CartProductSnapshot, CartSummary } from '@/lib/cart/types'
 import type { CartLine, PriceMode } from '@/lib/types'
 import { getDualPrice, getPriceViewFromQuote } from '@/lib/utils/price'
@@ -23,6 +24,7 @@ export function computeCartSummary(
   products: CartProductSnapshot[],
   quotes: Record<string, PriceQuote>,
   mode: PriceMode,
+  shippingRules: ShippingRules = DEFAULT_SHIPPING_RULES,
 ): CartSummary {
   const detailed: CartDetailedLine[] = lines.map((line) => {
     const snapshot = findCartSnapshot(line.productId, products)
@@ -57,7 +59,7 @@ export function computeCartSummary(
   const pricedLines = detailed.filter((l) => !l.unavailable)
   const subtotal = round2(pricedLines.reduce((s, l) => s + l.lineTotal, 0))
   const { shippingThreshold, shippingCost, amountToFreeShipping } =
-    computeShippingPreview(subtotal, mode)
+    computeShippingPreview(subtotal, mode, shippingRules)
 
   return {
     lines: detailed,

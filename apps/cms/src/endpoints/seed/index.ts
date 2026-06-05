@@ -6,6 +6,7 @@ import { seedCatalogDatabase } from './seed-catalog-database'
 import { seedStaffUsers } from './staff-users'
 import { seedDashboardFixtures } from './dashboard-fixtures'
 import { seedEvaPendingOrder } from './eva-order'
+import { seedB2bCatalogDownloads } from './b2b-catalog-downloads'
 import { seedMarketingCoupons } from './marketing-coupons'
 import { seedSampleQuotes } from './sample-quotes'
 import { productHatData } from './product-hat'
@@ -604,6 +605,7 @@ export const seed = async ({
   await seedDashboardFixtures(payload)
   await seedSampleQuotes({ payload, req })
   await seedMarketingCoupons(payload)
+  await seedB2bCatalogDownloads(payload)
 
   payload.logger.info('Seeded database successfully!')
 }

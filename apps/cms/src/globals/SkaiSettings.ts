@@ -8,8 +8,7 @@ export const SkaiSettings: GlobalConfig = {
   slug: 'skaiSettings',
   label: 'SKAI / EVA',
   admin: {
-    group: 'Configuración',
-    hidden: true,
+    group: 'Configuración del sistema',
   },
   access: {
     read: () => true,

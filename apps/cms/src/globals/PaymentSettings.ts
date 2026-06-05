@@ -9,7 +9,7 @@ export const PaymentSettings: GlobalConfig = {
   slug: 'paymentSettings',
   label: 'Pagos (B2C)',
   admin: {
-    group: 'Configuración',
+    group: 'Configuración del sistema',
   },
   access: {
     read: () => true,

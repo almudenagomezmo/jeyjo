@@ -7,6 +7,7 @@ import {
   createStubDocumentsReader,
   resetStubAdapterState,
   setStubSimulateUnavailable,
+  STUB_INVOICES_BY_CUSTOMER,
 } from '../src/index.js'
 
 describe('stub ErpCatalogReader', () => {
@@ -98,20 +99,82 @@ describe('stub ErpCatalogWriter', () => {
 })
 
 describe('stub ErpDocumentsReader', () => {
-  it('lists invoices by customer for B2B-EMPRESA1', async () => {
+  it('lists invoices by customer for B2B-EMPRESA1 with US-08 columns', async () => {
     const docs = createStubDocumentsReader()
     const rows = await docs.listInvoicesByCustomer('B2B-EMPRESA1')
-    expect(rows.length).toBeGreaterThanOrEqual(2)
+    expect(rows.length).toBeGreaterThanOrEqual(3)
     expect(rows[0]).toMatchObject({
       currency: 'EUR',
       customerErpCode: 'B2B-EMPRESA1',
+      status: 'updated',
     })
+    expect(rows.every((r) => r.invoiceNumber && r.netAmount > 0 && r.grossAmount > 0)).toBe(true)
+    expect(rows.some((r) => r.id === 'INV-2026-0001')).toBe(true)
   })
 
-  it('throws ERP_NOT_IMPLEMENTED for delivery notes', async () => {
+  it('excludes draft and invoices older than five years', async () => {
     const docs = createStubDocumentsReader()
-    await expect(docs.listDeliveryNotes()).rejects.toMatchObject({
-      code: 'ERP_NOT_IMPLEMENTED',
+    const rows = await docs.listInvoicesByCustomer('B2B-EMPRESA1')
+    expect(rows.some((r) => r.id === 'INV-DRAFT-001')).toBe(false)
+    expect(rows.some((r) => r.id === 'INV-2019-OLD')).toBe(false)
+  })
+
+  it('lists delivery notes by customer without ERP_NOT_IMPLEMENTED', async () => {
+    const docs = createStubDocumentsReader()
+    const rows = await docs.listDeliveryNotesByCustomer('B2B-EMPRESA1')
+    expect(rows.length).toBeGreaterThanOrEqual(2)
+    expect(rows.some((r) => r.status === 'issued')).toBe(true)
+    expect(rows.some((r) => r.status === 'preparing')).toBe(true)
+  })
+
+  it('returns CA-B2B-003 due payments', async () => {
+    const docs = createStubDocumentsReader()
+    const rows = await docs.listDuePaymentsByCustomer('B2B-EMPRESA1')
+    const overdue = rows.find((r) => r.invoiceNumber === 'FAC-2024-001')
+    const pending = rows.find((r) => r.invoiceNumber === 'FAC-2026-050')
+    expect(overdue?.isOverdue).toBe(true)
+    expect(overdue?.outstandingAmount).toBe(150)
+    expect(pending?.isOverdue).toBe(false)
+    expect(pending?.outstandingAmount).toBe(300)
+    const total = rows.reduce((sum, r) => sum + r.outstandingAmount, 0)
+    expect(total).toBe(450)
+  })
+
+  it('does not leak invoices across customers', async () => {
+    const docs = createStubDocumentsReader()
+    const a = await docs.listInvoicesByCustomer('B2B-EMPRESA1')
+    const b = await docs.listInvoicesByCustomer('B2B-EMPRESA2')
+    const aIds = new Set(a.map((r) => r.id))
+    for (const row of b) {
+      expect(aIds.has(row.id)).toBe(false)
+    }
+  })
+
+  it('returns stub PDF with %PDF- header', async () => {
+    const docs = createStubDocumentsReader()
+    const pdf = await docs.getDocumentPdf({
+      type: 'invoice',
+      documentId: 'INV-2026-0001',
+      customerErpCode: 'B2B-EMPRESA1',
     })
+    expect(pdf.contentType).toBe('application/pdf')
+    expect(pdf.bytes.length).toBeGreaterThan(0)
+    expect(String.fromCharCode(...pdf.bytes.slice(0, 5))).toBe('%PDF-')
+  })
+
+  it('rejects cross-customer PDF access', async () => {
+    const docs = createStubDocumentsReader()
+    await expect(
+      docs.getDocumentPdf({
+        type: 'invoice',
+        documentId: 'INV-2026-0100',
+        customerErpCode: 'B2B-EMPRESA1',
+      }),
+    ).rejects.toMatchObject({ code: 'ERP_VALIDATION' })
+  })
+
+  it('invoice sync fixture ids remain in stub map', () => {
+    const rows = STUB_INVOICES_BY_CUSTOMER['B2B-EMPRESA1'] ?? []
+    expect(rows.some((r) => r.id === 'INV-2026-0001' && r.totalAmount === 450.5)).toBe(true)
   })
 })

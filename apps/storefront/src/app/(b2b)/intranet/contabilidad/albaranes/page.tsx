@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { IntranetScaffoldPage } from "@/components/intranet/IntranetScaffoldPage";
-import { getScaffoldForPath } from "@/lib/intranet/navigation";
+import { DeliveryNotesPanel } from "@/components/intranet/contabilidad/DeliveryNotesPanel";
+import { guardIntranetPage } from "@/lib/b2b/guard-page";
 
-const PATH = "/intranet/contabilidad/albaranes";
-const scaffold = getScaffoldForPath(PATH)!;
+export const metadata: Metadata = { title: "Albaranes" };
 
-export const metadata: Metadata = { title: scaffold.title };
-
-export default function AlbaranesPage() {
-  return <IntranetScaffoldPage pathname={PATH} />;
+export default async function AlbaranesPage() {
+  await guardIntranetPage("/intranet/contabilidad/albaranes");
+  return <DeliveryNotesPanel />;
 }

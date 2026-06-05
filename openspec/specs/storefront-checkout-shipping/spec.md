@@ -49,11 +49,11 @@ The checkout delivery step SHALL let the user choose exactly one of: ship to def
 
 ### Requirement: Shipping cost line RF-013 in checkout
 
-The checkout review step SHALL compute shipping cost from segment rules (B2C threshold 39€ cost 5€ IVA included; B2B threshold 10€ cost 2.50€) applied to the discounted merchandise subtotal, and display normative copy per segment.
+The checkout review step SHALL compute shipping cost from segment rules loaded from `GET /api/system/config` (CMS `systemSettings` global) applied to the discounted merchandise subtotal, with v1 defaults when CMS is unavailable (B2C threshold 39€ cost 5€ IVA included; B2B threshold 10€ cost 2.50€), and display normative copy per segment.
 
 #### Scenario: B2C below threshold CA-CHECKOUT-001
 
-- **WHEN** checkout segment is B2C and merchandise subtotal after coupon is 38.00 €
+- **WHEN** checkout segment is B2C and merchandise subtotal after coupon is 38.00 € and CMS config uses default B2C rules
 - **THEN** the shipping line shows "Gastos de envío: 5,00 € (IVA incluido)"
 - **AND** order total is 43.00 €
 
@@ -74,6 +74,13 @@ The checkout review step SHALL compute shipping cost from segment rules (B2C thr
 - **WHEN** checkout segment is B2B and merchandise subtotal is 12.00 €
 - **THEN** shipping cost is 0
 - **AND** the UI indicates free shipping for the B2B segment
+
+#### Scenario: Staff-configured B2C threshold applied
+
+- **WHEN** CMS `systemSettings` sets B2C free-shipping threshold to 45€
+- **AND** checkout segment is B2C with merchandise subtotal 44.00 €
+- **THEN** shipping cost is the configured B2C paid cost from system config
+- **AND** subtotal 46.00 € yields free shipping
 
 ### Requirement: Checkout segment from authenticated session
 

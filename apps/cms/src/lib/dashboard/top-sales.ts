@@ -2,6 +2,7 @@ import { subDays } from 'date-fns'
 import type { Payload } from 'payload'
 
 import { parseOrderLineSnapshots } from '@/lib/orders/parse-line-snapshots'
+import { loadSystemSettingsDoc, resolveOperationalThresholds } from '@/lib/system-config/resolve'
 
 export type TopSalesSku = {
   skuErp: string
@@ -11,11 +12,18 @@ export type TopSalesSku = {
   availableStock: number
 }
 
+export async function getOperationalThresholds(payload: Payload) {
+  const doc = await loadSystemSettingsDoc(payload)
+  return resolveOperationalThresholds(doc)
+}
+
+/** @deprecated Use getOperationalThresholds(payload) */
 export function getTopSalesWindowDays(): number {
   const raw = Number(process.env.TOP_SALES_WINDOW_DAYS ?? 30)
   return Number.isFinite(raw) && raw > 0 ? raw : 30
 }
 
+/** @deprecated Use getOperationalThresholds(payload) */
 export function getLowStockThreshold(): number {
   const raw = Number(process.env.DASHBOARD_LOW_STOCK_THRESHOLD ?? 5)
   return Number.isFinite(raw) && raw >= 0 ? raw : 5
@@ -26,7 +34,8 @@ export async function aggregateTopSalesSkus(
   now = new Date(),
   topN = 10,
 ): Promise<TopSalesSku[]> {
-  const windowDays = getTopSalesWindowDays()
+  const thresholds = await getOperationalThresholds(payload)
+  const windowDays = thresholds.topSalesWindowDays
   const fromIso = subDays(now, windowDays).toISOString()
 
   const found = await payload.find({
@@ -83,3 +92,5 @@ export async function aggregateTopSalesSkus(
     }
   })
 }
+
+export { getLowStockThreshold as getDashboardLowStockThresholdLegacy }

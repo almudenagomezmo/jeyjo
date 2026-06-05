@@ -2,10 +2,13 @@ import { createStubPurchaseHistoryReader } from '@jeyjo/erp-ports'
 import type { Payload } from 'payload'
 
 import type { EvaContextClaims, EvaContextPayload } from '@/eva/types'
+import { buildShippingPolicyText, getSystemConfig } from '@/lib/system-config/resolve'
 import { getSupabaseServerClient } from '@/lib/supabase-server'
 
-const SHIPPING_POLICY =
-  'Envío en 24-48 h laborables en península. Consulta condiciones en jeyjo.es.'
+async function loadShippingPolicy(payload: Payload): Promise<string> {
+  const config = await getSystemConfig(payload)
+  return buildShippingPolicyText(config)
+}
 
 async function loadCustomerMeta(customerId: string): Promise<{
   commercialName: string
@@ -78,12 +81,14 @@ export async function resolveEvaContext(
   payload: Payload,
   claims: EvaContextClaims,
 ): Promise<EvaContextPayload> {
+  const shippingPolicy = await loadShippingPolicy(payload)
+
   if (claims.sub === 'anonymous') {
     const product = await loadPublicProduct(payload, claims.page.productSku)
     return {
       kind: 'anonymous',
       page: claims.page,
-      shippingPolicy: SHIPPING_POLICY,
+      shippingPolicy,
       product,
     }
   }
@@ -94,7 +99,7 @@ export async function resolveEvaContext(
     return {
       kind: 'anonymous',
       page: claims.page,
-      shippingPolicy: SHIPPING_POLICY,
+      shippingPolicy,
       product: await loadPublicProduct(payload, claims.page.productSku),
     }
   }
