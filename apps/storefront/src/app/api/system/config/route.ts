@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { fetchSystemConfigUncached } from '@/lib/system-config/fetch-internal'
+import { fetchSystemConfigUncached } from '@/lib/system-config/fetch'
 
 export async function GET() {
   const config = await fetchSystemConfigUncached()
