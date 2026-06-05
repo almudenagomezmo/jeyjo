@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { buildCustomerApprovalEmail } from '@/lib/customers/emails/approval'
+import { validateReclassifyInput } from '@/lib/customers/reclassify-validation'
+import { canManageCustomers } from '@/access/customerValidation'
 import { roleForCustomerGroup } from '@/lib/customers/group-labels'
 import { parseListCustomersQuery } from '@/lib/customers/repository'
 import { buildSystemAlerts } from '@/lib/dashboard/alerts'
@@ -91,6 +93,7 @@ describe('validate customer email gate', () => {
       },
       profiles: [],
       canValidate: true,
+      canReclassify: false,
       emailConfirmedForValidation: false,
     })
 
@@ -108,6 +111,142 @@ describe('validate customer email gate', () => {
     if (!result.ok) {
       expect(result.status).toBe(422)
       expect(result.message).toMatch(/email/i)
+    }
+  })
+})
+
+describe('customer management access', () => {
+  it('allows superadmin and administracion', () => {
+    expect(canManageCustomers({ staffRoles: ['superadmin'] })).toBe(true)
+    expect(canManageCustomers({ staffRoles: ['administracion'] })).toBe(true)
+    expect(canManageCustomers({ staffRoles: ['catalogo'] })).toBe(false)
+  })
+})
+
+describe('reclassify validation', () => {
+  const titular = {
+    id: 'p1',
+    email: 'admin@empresa.com',
+    role: 'b2c',
+    is_active: true,
+    last_login_at: null,
+    display_name: null,
+    email_confirmed: true,
+  }
+
+  it('rejects pending customers', () => {
+    const result = validateReclassifyInput({
+      customerGroup: 2,
+      profileRoles: [{ profileId: 'p1', role: 'b2b_superadmin' }],
+      profiles: [titular],
+      validatedAt: null,
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.status).toBe(409)
+  })
+
+  it('allows B2C to B2B upgrade', () => {
+    const result = validateReclassifyInput({
+      customerGroup: 2,
+      profileRoles: [{ profileId: 'p1', role: 'b2b_superadmin' }],
+      profiles: [titular],
+      validatedAt: '2026-01-01T00:00:00.000Z',
+    })
+    expect(result.ok).toBe(true)
+  })
+
+  it('blocks B2B downgrade with active subusers', () => {
+    const result = validateReclassifyInput({
+      customerGroup: 1,
+      profileRoles: [
+        { profileId: 'p1', role: 'b2c' },
+        { profileId: 'p2', role: 'b2c' },
+      ],
+      profiles: [
+        titular,
+        {
+          id: 'p2',
+          email: 'sub@empresa.com',
+          role: 'b2b_subuser',
+          is_active: true,
+          last_login_at: null,
+          display_name: null,
+          email_confirmed: true,
+        },
+      ],
+      validatedAt: '2026-01-01T00:00:00.000Z',
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.status).toBe(409)
+  })
+
+  it('rejects titular b2c role on B2B group', () => {
+    const result = validateReclassifyInput({
+      customerGroup: 2,
+      profileRoles: [{ profileId: 'p1', role: 'b2c' }],
+      profiles: [titular],
+      validatedAt: '2026-01-01T00:00:00.000Z',
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.status).toBe(400)
+  })
+})
+
+describe('reclassify customer service', () => {
+  it('persists group and role updates', async () => {
+    fetchCustomerDetailMock.mockResolvedValueOnce({
+      customer: {
+        id: 'c1',
+        commercial_name: 'Empresa',
+        email: 'e@e.com',
+        customer_group: 1,
+        validated_at: '2026-01-01T00:00:00.000Z',
+        tax_id: null,
+        is_company: true,
+      },
+      profiles: [
+        {
+          id: 'p1',
+          email: 'e@e.com',
+          role: 'b2c',
+          is_active: true,
+          last_login_at: null,
+          display_name: null,
+          email_confirmed: true,
+        },
+      ],
+      canValidate: false,
+      canReclassify: true,
+      emailConfirmedForValidation: true,
+    })
+
+    const updateEq = vi.fn().mockResolvedValue({ error: null })
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === 'customers') {
+          return { update: vi.fn(() => ({ eq: updateEq })) }
+        }
+        if (table === 'web_profiles') {
+          return { update: vi.fn(() => ({ eq: updateEq })) }
+        }
+        return {}
+      }),
+    } as never
+
+    const { reclassifyCustomer } = await import('@/lib/customers/reclassify-customer')
+    const result = await reclassifyCustomer({
+      supabase,
+      customerId: 'c1',
+      customerGroup: 2,
+      profileRoles: [{ profileId: 'p1', role: 'b2b_superadmin' }],
+      actorId: 1,
+      actorName: 'admin@test.com',
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.customerGroup).toBe(2)
+      expect(result.profiles[0]?.role).toBe('b2b_superadmin')
     }
   })
 })

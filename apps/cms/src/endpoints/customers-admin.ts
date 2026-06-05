@@ -1,15 +1,14 @@
 import { APIError, type Endpoint } from 'payload'
 
-import { canValidateCustomers } from '@/access/customerValidation'
-import { hasValidMfaSession } from '@/lib/mfa-session'
 import { fetchCustomerDetail } from '@/lib/customers/fetch-customer-detail'
 import { listCustomers, parseListCustomersQuery } from '@/lib/customers/repository'
+import { checkStaffCustomerManagementAccess } from '@/lib/customers/staff-customer-guard'
 import { getSupabaseServerClient } from '@/lib/supabase-server'
 
 function assertStaff(req: Parameters<NonNullable<Endpoint['handler']>>[0]) {
   if (!req.user) throw new APIError('Unauthorized', 401)
-  if (!canValidateCustomers(req.user)) throw new APIError('Forbidden', 403)
-  if (!hasValidMfaSession(req)) throw new APIError('MFA required', 403)
+  const guard = checkStaffCustomerManagementAccess(req.user, req)
+  if (guard) throw new APIError(guard.message, guard.status)
 }
 
 export const customersAdminListEndpoint: Endpoint = {

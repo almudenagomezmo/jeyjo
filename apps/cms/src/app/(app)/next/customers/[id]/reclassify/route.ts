@@ -2,19 +2,23 @@ import { createLocalReq, getPayload } from 'payload'
 import config from '@payload-config'
 import { headers } from 'next/headers'
 
-import { validateCustomer } from '@/lib/customers/validate-customer'
 import { checkStaffCustomerManagementAccess } from '@/lib/customers/staff-customer-guard'
+import {
+  reclassifyCustomer,
+  type ReclassifyCustomerInput,
+} from '@/lib/customers/reclassify-customer'
 import { getSupabaseServerClient } from '@/lib/supabase-server'
 
-type ValidateBody = {
+type ReclassifyBody = {
   customerGroup?: number
+  profileRoles?: Array<{ profileId?: string; role?: string }>
 }
 
 /**
- * Staff-only: validate pending customer registration (RF-004).
- * POST /next/customers/:id/validate — Payload admin session required.
+ * Staff-only: reclassify validated customer group and profile roles.
+ * PATCH /next/customers/:id/reclassify
  */
-export async function POST(
+export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ): Promise<Response> {
@@ -33,9 +37,9 @@ export async function POST(
     return new Response(guard.message, { status: guard.status })
   }
 
-  let body: ValidateBody
+  let body: ReclassifyBody
   try {
-    body = (await request.json()) as ValidateBody
+    body = (await request.json()) as ReclassifyBody
   } catch {
     return new Response('Invalid JSON', { status: 400 })
   }
@@ -45,19 +49,26 @@ export async function POST(
     return new Response('customerGroup must be 1–4', { status: 400 })
   }
 
+  const profileRoles = (body.profileRoles ?? [])
+    .filter((row) => row.profileId && row.role)
+    .map((row) => ({
+      profileId: String(row.profileId),
+      role: String(row.role),
+    }))
+
   const supabase = getSupabaseServerClient()
   if (!supabase) {
     return new Response('Supabase not configured', { status: 503 })
   }
 
-  const result = await validateCustomer({
-    payload,
+  const result = await reclassifyCustomer({
     supabase,
     customerId,
     customerGroup,
+    profileRoles,
     actorId: user.id,
     actorName: user.email ?? String(user.id),
-  })
+  } satisfies ReclassifyCustomerInput)
 
   if (!result.ok) {
     return new Response(result.message, { status: result.status })
@@ -67,8 +78,6 @@ export async function POST(
     success: true,
     customerId: result.customerId,
     customerGroup: result.customerGroup,
-    role: result.role,
-    validatedAt: result.validatedAt,
-    emailSent: result.emailSent,
+    profiles: result.profiles,
   })
 }

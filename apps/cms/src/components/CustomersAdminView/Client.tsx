@@ -2,7 +2,12 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { CUSTOMER_GROUP_OPTIONS, customerGroupLabel } from '@/lib/customers/group-labels'
+import {
+  CUSTOMER_GROUP_OPTIONS,
+  customerGroupLabel,
+  roleForCustomerGroup,
+} from '@/lib/customers/group-labels'
+import { reclassifyImpactCopy } from '@/lib/customers/reclassify-validation'
 
 import './index.scss'
 
@@ -39,8 +44,15 @@ type CustomerDetail = {
   }
   profiles: WebProfileRow[]
   canValidate: boolean
+  canReclassify: boolean
   emailConfirmedForValidation: boolean
 }
+
+const PROFILE_ROLE_OPTIONS = [
+  { value: 'b2c', label: 'B2C (particular)' },
+  { value: 'b2b_superadmin', label: 'B2B superadmin (titular)' },
+  { value: 'b2b_subuser', label: 'B2B subusuario' },
+] as const
 
 const baseClass = 'customers-admin-view'
 
@@ -48,6 +60,18 @@ function readInitialStatus(): string {
   if (typeof window === 'undefined') return 'pending'
   const status = new URLSearchParams(window.location.search).get('status')
   return status === 'validated' || status === 'all' ? status : 'pending'
+}
+
+function defaultRoleForProfile(profile: WebProfileRow, customerGroup: number): string {
+  if (customerGroup === 1) return 'b2c'
+  if (profile.role === 'b2b_subuser') return 'b2b_subuser'
+  return 'b2b_superadmin'
+}
+
+function buildProfileRoles(profiles: WebProfileRow[], customerGroup: number): Record<string, string> {
+  return Object.fromEntries(
+    profiles.map((p) => [p.id, defaultRoleForProfile(p, customerGroup)]),
+  )
 }
 
 export const CustomersAdminClient: React.FC = () => {
@@ -64,12 +88,27 @@ export const CustomersAdminClient: React.FC = () => {
   const [detail, setDetail] = useState<CustomerDetail | null>(null)
   const [detailError, setDetailError] = useState<string | null>(null)
   const [validateOpen, setValidateOpen] = useState(false)
+  const [reclassifyOpen, setReclassifyOpen] = useState(false)
   const [validateGroup, setValidateGroup] = useState(1)
+  const [reclassifyGroup, setReclassifyGroup] = useState(1)
+  const [profileRoles, setProfileRoles] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
 
   const groupHint = useMemo(
     () => CUSTOMER_GROUP_OPTIONS.find((o) => o.value === validateGroup)?.hint ?? '',
     [validateGroup],
+  )
+
+  const reclassifyHint = useMemo(
+    () => CUSTOMER_GROUP_OPTIONS.find((o) => o.value === reclassifyGroup)?.hint ?? '',
+    [reclassifyGroup],
+  )
+
+  const reclassifyImpact = useMemo(() => reclassifyImpactCopy(reclassifyGroup), [reclassifyGroup])
+
+  const suggestedTitularRole = useMemo(
+    () => roleForCustomerGroup(reclassifyGroup),
+    [reclassifyGroup],
   )
 
   const load = useCallback(async () => {
@@ -102,6 +141,10 @@ export const CustomersAdminClient: React.FC = () => {
     const data = (await res.json()) as CustomerDetail
     setDetail(data)
     setValidateGroup(data.customer.customer_group === 1 ? 1 : 2)
+    setReclassifyGroup(data.customer.customer_group)
+    setProfileRoles(
+      Object.fromEntries(data.profiles.map((p) => [p.id, p.role])),
+    )
   }, [])
 
   useEffect(() => {
@@ -117,6 +160,19 @@ export const CustomersAdminClient: React.FC = () => {
     if (!detail) return
     setValidateGroup(detail.customer.is_company ? 2 : 1)
     setValidateOpen(true)
+  }
+
+  const openReclassify = () => {
+    if (!detail) return
+    setReclassifyGroup(detail.customer.customer_group)
+    setProfileRoles(buildProfileRoles(detail.profiles, detail.customer.customer_group))
+    setReclassifyOpen(true)
+  }
+
+  const onReclassifyGroupChange = (group: number) => {
+    setReclassifyGroup(group)
+    if (!detail) return
+    setProfileRoles(buildProfileRoles(detail.profiles, group))
   }
 
   const runValidate = async () => {
@@ -137,6 +193,33 @@ export const CustomersAdminClient: React.FC = () => {
     }
     setValidateOpen(false)
     setSelectedId(null)
+    void load()
+  }
+
+  const runReclassify = async () => {
+    if (!detail) return
+    setBusy(true)
+    setError(null)
+    const res = await fetch(`/next/customers/${detail.customer.id}/reclassify`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerGroup: reclassifyGroup,
+        profileRoles: detail.profiles.map((p) => ({
+          profileId: p.id,
+          role: profileRoles[p.id] ?? p.role,
+        })),
+      }),
+    })
+    setBusy(false)
+    if (!res.ok) {
+      const text = await res.text()
+      setError(text || 'No se pudo reclasificar')
+      return
+    }
+    setReclassifyOpen(false)
+    void loadDetail(detail.customer.id)
     void load()
   }
 
@@ -266,16 +349,28 @@ export const CustomersAdminClient: React.FC = () => {
               ))}
             </ul>
 
-            {detail.canValidate ?
-              <button
-                type="button"
-                className={`${baseClass}__validate-btn`}
-                disabled={!detail.emailConfirmedForValidation || busy}
-                onClick={openValidate}
-              >
-                Validar cuenta
-              </button>
-            : null}
+            <div className={`${baseClass}__detail-actions`}>
+              {detail.canValidate ?
+                <button
+                  type="button"
+                  className={`${baseClass}__validate-btn`}
+                  disabled={!detail.emailConfirmedForValidation || busy}
+                  onClick={openValidate}
+                >
+                  Validar cuenta
+                </button>
+              : null}
+              {detail.canReclassify ?
+                <button
+                  type="button"
+                  className={`${baseClass}__reclassify-btn`}
+                  disabled={busy}
+                  onClick={openReclassify}
+                >
+                  Reclasificar
+                </button>
+              : null}
+            </div>
             {detail.canValidate && !detail.emailConfirmedForValidation ?
               <p className={`${baseClass}__warn`}>
                 El cliente debe confirmar su email (correo Supabase) antes de validar.
@@ -326,6 +421,71 @@ export const CustomersAdminClient: React.FC = () => {
               </button>
               <button type="button" onClick={() => void runValidate()} disabled={busy}>
                 Confirmar validación
+              </button>
+            </div>
+          </div>
+        </div>
+      : null}
+
+      {reclassifyOpen && detail ?
+        <div className={`${baseClass}__modal-backdrop`} role="presentation">
+          <div
+            className={`${baseClass}__modal ${baseClass}__modal--wide`}
+            role="dialog"
+            aria-labelledby="reclassify-title"
+          >
+            <h2 id="reclassify-title">Reclasificar {detail.customer.commercial_name}</h2>
+            <label htmlFor="reclassify-group">Grupo de cliente</label>
+            <select
+              id="reclassify-group"
+              value={reclassifyGroup}
+              onChange={(e) => onReclassifyGroupChange(Number(e.target.value))}
+            >
+              {CUSTOMER_GROUP_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <p className={`${baseClass}__hint`}>{reclassifyHint}</p>
+            <p className={`${baseClass}__impact`}>{reclassifyImpact}</p>
+
+            <h3 className={`${baseClass}__modal-subtitle`}>Roles por perfil</h3>
+            <ul className={`${baseClass}__profile-roles`}>
+              {detail.profiles.map((p) => (
+                <li key={p.id}>
+                  <span>{p.email}</span>
+                  <select
+                    value={profileRoles[p.id] ?? p.role}
+                    onChange={(e) =>
+                      setProfileRoles((prev) => ({ ...prev, [p.id]: e.target.value }))
+                    }
+                  >
+                    {PROFILE_ROLE_OPTIONS.filter((opt) => {
+                      if (reclassifyGroup === 1) return opt.value === 'b2c'
+                      if (opt.value === 'b2c') return false
+                      return true
+                    }).map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+              ))}
+            </ul>
+            {reclassifyGroup >= 2 ?
+              <p className={`${baseClass}__hint`}>
+                Rol sugerido para titular: <strong>{suggestedTitularRole}</strong>
+              </p>
+            : null}
+
+            <div className={`${baseClass}__modal-actions`}>
+              <button type="button" onClick={() => setReclassifyOpen(false)} disabled={busy}>
+                Cancelar
+              </button>
+              <button type="button" onClick={() => void runReclassify()} disabled={busy}>
+                Confirmar reclasificación
               </button>
             </div>
           </div>

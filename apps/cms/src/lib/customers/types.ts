@@ -42,5 +42,6 @@ export type CustomerDetail = {
   }
   profiles: WebProfileRow[]
   canValidate: boolean
+  canReclassify: boolean
   emailConfirmedForValidation: boolean
 }
