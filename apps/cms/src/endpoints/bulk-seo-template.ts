@@ -89,9 +89,6 @@ export const bulkSeoTemplateEndpoint: Endpoint = {
 
       const descEmpty = metaDescriptionEmpty(doc)
       if (!emptyOnly || descEmpty) {
-        if (!emptyOnly || !doc.metaDescription?.trim()) {
-          patch.metaDescription = description
-        }
         if (!emptyOnly || !doc.meta?.description?.trim()) {
           metaPatch.description = description
         }

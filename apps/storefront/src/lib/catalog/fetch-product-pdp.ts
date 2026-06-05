@@ -139,7 +139,7 @@ export function mapPdpDocToView(doc: CmsPdpProductDoc): PdpProductView | null {
     longDescriptionHtml: doc.longDescription
       ? lexicalToSanitizedHtml(doc.longDescription)
       : null,
-    metaDescription: doc.metaDescription?.trim() || null,
+    metaDescription: doc.metaDescription?.trim() || doc.meta?.description?.trim() || null,
     specRows,
     attachments: mapAttachments(doc),
     glyph: inferGlyph(doc),

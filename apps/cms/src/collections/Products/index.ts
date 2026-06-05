@@ -77,7 +77,6 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     slug: true,
     skuErp: true,
     supplier: true,
-    metaDescription: true,
     providerImageUrl: true,
     ownImage: true,
     meta: {

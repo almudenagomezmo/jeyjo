@@ -24,15 +24,6 @@ export const enrichmentFields: Field[] = [
     }),
   },
   {
-    name: 'metaDescription',
-    type: 'textarea',
-    label: 'Metadescripción',
-    maxLength: 160,
-    admin: {
-      description: 'Máximo 160 caracteres para SEO',
-    },
-  },
-  {
     name: 'keywords',
     type: 'array',
     label: 'Palabras clave',

@@ -2,8 +2,7 @@ import type { CollectionSlug, GlobalSlug, Payload, PayloadRequest, File } from '
 
 import { contactFormData } from './contact-form'
 import { contactPageData } from './contact-page'
-import { seedJeyjoCatalog } from './jeyjo-catalog'
-import { seedHomeMerchandising } from './home-merchandising'
+import { seedCatalogDatabase } from './seed-catalog-database'
 import { seedStaffUsers } from './staff-users'
 import { seedDashboardFixtures } from './dashboard-fixtures'
 import { seedEvaPendingOrder } from './eva-order'
@@ -595,8 +594,11 @@ export const seed = async ({
     }),
   ])
 
-  await seedJeyjoCatalog({ payload, req })
-  await seedHomeMerchandising({ payload, req, heroMediaId: imageHero.id })
+  await seedCatalogDatabase({
+    payload,
+    req,
+    options: { reset: false, heroMediaId: imageHero.id },
+  })
   await seedStaffUsers(payload)
   await seedEvaPendingOrder({ payload, req })
   await seedDashboardFixtures(payload)

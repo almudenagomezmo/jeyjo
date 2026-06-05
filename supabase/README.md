@@ -11,9 +11,35 @@ Requisitos cubiertos: **RNF-009** (RLS multi-tenant), **RD-001** (índices para 
 
 ## Comandos (desde la raíz del monorepo)
 
+### Supabase Cloud (tu caso habitual)
+
+`DATABASE_URL` en `apps/cms/.env` debe apuntar al pooler del proyecto cloud. **No hace falta** `supabase start`.
+
 ```bash
-pnpm db:start      # supabase start (primera vez descarga imágenes)
-pnpm db:reset      # aplicar migraciones + seed.sql
+pnpm db:push         # migraciones pendientes → proyecto enlazado (supabase link)
+pnpm db:seed         # seed.sql (clientes, precios) vía DATABASE_URL
+pnpm seed:catalog    # catálogo jeyjo.es → tablas Payload en el mismo Postgres
+pnpm db:bootstrap    # db:seed + seed:catalog (arranque cloud)
+```
+
+Primera vez en un proyecto cloud vacío:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <tu-project-ref>
+pnpm db:push         # crea tablas customers, search_events, etc.
+pnpm db:bootstrap    # datos demo + catálogo
+```
+
+### Supabase local (Docker + CLI)
+
+```bash
+pnpm db:start           # supabase start (primera vez descarga imágenes)
+pnpm db:reset           # migraciones + seed.sql en local
+pnpm db:bootstrap:local # db:reset + seed:catalog
+```
+
+```bash
 pnpm db:types      # regenerar packages/database-types/src/database.types.ts
 ```
 
@@ -22,7 +48,7 @@ pnpm db:types      # regenerar packages/database-types/src/database.types.ts
 ```bash
 npx supabase login
 npx supabase link --project-ref <tu-project-ref>
-npx supabase db push   # solo con revisión explícita del equipo
+pnpm db:push   # aplica migraciones de supabase/migrations/ al cloud
 ```
 
 Variables típicas (ver `.env.example` de cada app):
@@ -79,7 +105,26 @@ Variable opcional en storefront: `B2B_PERMISSIONS_ENABLED=false` desactiva guard
 
 ## Coexistencia con Payload
 
-Payload crea sus propias tablas (`users`, `pages`, `products`, …). Este esquema **no** usa esos nombres. Aplicar migraciones Jeyjo **antes** de `payload migrate` / arranque en un entorno nuevo.
+Payload crea sus propias tablas (`users`, `pages`, `products`, …) en el **mismo Postgres** (`DATABASE_URL`). Este esquema **no** usa esos nombres. Aplicar migraciones Jeyjo **antes** de `payload migrate` / arranque en un entorno nuevo.
+
+### Catálogo en Supabase
+
+| Dato | Tablas | Cómo se siembra |
+|------|--------|-----------------|
+| Clientes, precios especiales | `customers`, `special_prices`, `group_offers` | `seed.sql` (automático en `db:reset`) |
+| Productos, categorías, proveedores | `products`, `categories`, `suppliers` (Payload) | `pnpm seed:catalog` |
+
+El storefront lee el catálogo vía API Payload (`GET /api/products`, `GET /api/categories`), que consulta esas tablas en Supabase Postgres.
+
+**Flujo cloud recomendado:**
+
+```bash
+pnpm db:bootstrap   # seed.sql + catálogo jeyjo.es (usa DATABASE_URL de apps/cms/.env)
+pnpm dev:cms        # admin en :3001
+pnpm dev:storefront # tienda en :3000
+```
+
+**Flujo local** (con `supabase start`): `pnpm db:bootstrap:local` en lugar de `db:bootstrap`.
 
 ## Buckets Storage
 

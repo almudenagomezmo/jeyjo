@@ -387,10 +387,6 @@ export interface Product {
     };
     [k: string]: unknown;
   } | null;
-  /**
-   * Máximo 160 caracteres para SEO
-   */
-  metaDescription?: string | null;
   keywords?:
     | {
         keyword: string;
@@ -2026,7 +2022,6 @@ export interface VariantOptionsSelect<T extends boolean = true> {
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   longDescription?: T;
-  metaDescription?: T;
   keywords?:
     | T
     | {

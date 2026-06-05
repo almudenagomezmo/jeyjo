@@ -1,75 +1,76 @@
 import type { Payload, PayloadRequest } from 'payload'
 
+import {
+  JEYJO_ERP_STUB_PRODUCTS,
+  JEYJO_PRODUCTS,
+  JEYJO_REF_FIXTURES,
+  JEYJO_SUPPLIERS,
+  b2bPrice,
+  priceWithoutVat,
+  type JeyjoProductSeed,
+} from './jeyjo-es-catalog-data'
 import { seedStorefrontNavigationCategories } from './storefront-navigation'
 
-type RefFixture = {
-  skuErp: string
-  title: string
-  slug: string
-  shortDescription: string
-  p1Price: number
-  p2Price: number
-  vatRate: number
-  erpStock: number
-  mainWholesaleRef?: string
+async function resolveCategoryId(
+  payload: Payload,
+  slug: string,
+): Promise<string | number> {
+  const result = await payload.find({
+    collection: 'categories',
+    where: { slug: { equals: slug } },
+    limit: 1,
+    depth: 0,
+  })
+
+  const doc = result.docs[0]
+  if (!doc) {
+    throw new Error(`Category "${slug}" not found — run storefront navigation seed first`)
+  }
+
+  return doc.id
 }
 
-const REF_FIXTURES: RefFixture[] = [
-  {
-    skuErp: 'REF-001',
-    title: 'Fixture CA-PRECIOS-001',
-    slug: 'ref-001',
-    shortDescription: 'Producto fixture CA-PRECIOS-001.',
-    p1Price: 1,
-    p2Price: 0.9,
-    vatRate: 21,
-    erpStock: 100,
-    mainWholesaleRef: 'WH-REF-001',
-  },
-  {
-    skuErp: 'REF-002',
-    title: 'Fixture CA-PRECIOS-002',
-    slug: 'ref-002',
-    shortDescription: 'Producto fixture CA-PRECIOS-002.',
-    p1Price: 12,
-    p2Price: 10,
-    vatRate: 21,
-    erpStock: 2,
-    mainWholesaleRef: 'WH-REF-002',
-  },
-  {
-    skuErp: 'REF-003',
-    title: 'Fixture CA-PRECIOS-003',
-    slug: 'ref-003',
-    shortDescription: 'Producto fixture CA-PRECIOS-003 (oferta grupo).',
-    p1Price: 12,
-    p2Price: 10,
-    vatRate: 21,
-    erpStock: 0,
-    mainWholesaleRef: 'WH-REF-003',
-  },
-  {
-    skuErp: 'REF-004',
-    title: 'Fixture CA-PRECIOS-004',
-    slug: 'ref-004',
-    shortDescription: 'Producto fixture CA-PRECIOS-004 (precio especial).',
-    p1Price: 10,
-    p2Price: 8,
-    vatRate: 21,
-    erpStock: 20,
-  },
-  {
-    skuErp: 'REF-010',
-    title: 'Fixture CA-B2B-004',
-    slug: 'ref-010',
-    shortDescription: 'Producto fixture historial de compras (REF-010).',
-    p1Price: 7,
-    p2Price: 6.111111,
-    vatRate: 21,
-    erpStock: 30,
-    mainWholesaleRef: 'WH-REF-010',
-  },
-]
+function buildKeywords(keywords?: string[]) {
+  return keywords?.map((keyword) => ({ keyword })) ?? []
+}
+
+function buildProductData(
+  product: JeyjoProductSeed,
+  supplierId: string | number,
+  categoryId: string | number,
+) {
+  const vatRate = product.vatRate ?? 21
+  const p1Price = priceWithoutVat(product.priceWithVat, vatRate)
+  const p2Price = b2bPrice(p1Price)
+
+  return {
+    title: product.title,
+    slug: product.slug,
+    _status: 'published' as const,
+    supplier: supplierId,
+    categories: [categoryId],
+    skuErp: product.skuErp,
+    ...(product.mainWholesaleRef ? { mainWholesaleRef: product.mainWholesaleRef } : {}),
+    ...(product.oemRef ? { oemRef: product.oemRef } : {}),
+    ...(product.ean ? { ean: product.ean } : {}),
+    shortDescription: product.shortDescription,
+    p1Price,
+    p2Price,
+    vatRate,
+    packUnit: 1,
+    erpStock: product.erpStock,
+    syncErpAt: new Date().toISOString(),
+    meta: {
+      description: `${product.title} — compra online en Jeyjo al mejor precio.`.slice(0, 160),
+    },
+    keywords: buildKeywords(product.keywords),
+    ...(product.facetColor ? { facetColor: product.facetColor } : {}),
+    ...(product.facetMaterial ? { facetMaterial: product.facetMaterial } : {}),
+    ecoLabel: product.ecoLabel ?? false,
+    enableVariants: false,
+    priceInUSDEnabled: false,
+  }
+}
 
 export async function seedJeyjoCatalog({
   payload,
@@ -78,261 +79,78 @@ export async function seedJeyjoCatalog({
   payload: Payload
   req: PayloadRequest
 }): Promise<void> {
-  payload.logger.info('— Seeding Jeyjo catalog (supplier, categories, products)...')
+  payload.logger.info('— Seeding Jeyjo catalog (suppliers, categories, products from jeyjo.es)...')
 
   await seedStorefrontNavigationCategories({ payload, req })
 
-  const supplier = await payload.create({
-    collection: 'suppliers',
-    data: {
-      name: 'Distrisantiago Demo',
-      erpCode: 'DIST-001',
-      type: 'distributor',
-      baseImageUrl: 'https://example.com/distrisantiago/',
-    },
-    req,
-  })
+  const supplierIds = new Map<string, string | number>()
 
-  const escrituraCategory = await payload.find({
-    collection: 'categories',
-    where: { slug: { equals: 'escritura' } },
-    limit: 1,
-    depth: 0,
-  })
-
-  const boligrafosCategory = await payload.find({
-    collection: 'categories',
-    where: { slug: { equals: 'boligrafos' } },
-    limit: 1,
-    depth: 0,
-  })
-
-  const parentCategory = escrituraCategory.docs[0]
-  const childCategory = boligrafosCategory.docs[0]
-
-  if (!parentCategory || !childCategory) {
-    throw new Error('Storefront navigation categories missing after seed')
+  for (const supplier of JEYJO_SUPPLIERS) {
+    const created = await payload.create({
+      collection: 'suppliers',
+      data: {
+        name: supplier.name,
+        erpCode: supplier.erpCode,
+        type: supplier.type,
+        ...(supplier.baseImageUrl ? { baseImageUrl: supplier.baseImageUrl } : {}),
+      },
+      req,
+    })
+    supplierIds.set(supplier.erpCode, created.id)
   }
 
-  await payload.create({
-    collection: 'products',
-    data: {
-      title: 'Grifo monomando cromado 35mm',
-      slug: 'grifo-monomando-cromado-35mm',
-      _status: 'published',
-      supplier: supplier.id,
-      categories: [childCategory.id],
-      skuErp: 'ERP-GRF-001',
-      mainWholesaleRef: 'DS-12345',
-      shortDescription: 'Grifo monomando para lavabo, acabado cromado.',
-      p1Price: 45.9,
-      p2Price: 39.5,
-      vatRate: 21,
-      packUnit: 1,
-      erpStock: 120,
-      syncErpAt: new Date().toISOString(),
-      longDescription: {
-        root: {
-          type: 'root',
-          children: [
-            {
-              type: 'paragraph',
-              children: [{ type: 'text', text: 'Grifo de calidad para instalaciones domésticas.', version: 1 }],
-              direction: 'ltr',
-              format: '',
-              indent: 0,
-              version: 1,
-            },
-          ],
-          direction: 'ltr',
-          format: '',
-          indent: 0,
-          version: 1,
-        },
-      },
-      metaDescription: 'Grifo monomando cromado 35mm — compra online en Jeyjo al mejor precio.',
-      keywords: [{ keyword: 'grifo' }, { keyword: 'fontanería' }],
-      facetColor: 'Cromado',
-      facetMaterial: 'Metal',
-      ecoLabel: false,
-      providerImageUrl: 'https://example.com/distrisantiago/grifo-001.jpg',
-      enableVariants: false,
-      priceInUSDEnabled: false,
-    },
-    req,
-  })
+  const categoryIds = new Map<string, string | number>()
+  const uniqueCategorySlugs = [
+    ...new Set([
+      ...JEYJO_PRODUCTS.map((p) => p.categorySlug),
+      ...JEYJO_ERP_STUB_PRODUCTS.map((p) => p.categorySlug),
+      ...JEYJO_REF_FIXTURES.map((p) => p.categorySlug),
+    ]),
+  ]
 
-  await payload.create({
-    collection: 'products',
-    data: {
-      title: 'Manguito PVC 32mm',
-      slug: 'manguito-pvc-32mm',
-      _status: 'published',
-      supplier: supplier.id,
-      categories: [parentCategory.id],
-      skuErp: 'ERP-PVC-032',
-      shortDescription: 'Manguito de unión PVC diametro 32mm.',
-      p1Price: 1.2,
-      p2Price: 1.05,
-      vatRate: 21,
-      erpStock: 500,
-      syncErpAt: new Date().toISOString(),
-      metaDescription: 'Manguito PVC 32mm para instalaciones de fontanería.',
-      facetColor: 'Blanco',
-      facetMaterial: 'PVC',
-      ecoLabel: true,
-      enableVariants: false,
-      priceInUSDEnabled: false,
-    },
-    req,
-  })
+  for (const slug of uniqueCategorySlugs) {
+    categoryIds.set(slug, await resolveCategoryId(payload, slug))
+  }
 
-  for (const ref of REF_FIXTURES) {
-    await payload.create({
+  const allProducts = [...JEYJO_PRODUCTS, ...JEYJO_ERP_STUB_PRODUCTS, ...JEYJO_REF_FIXTURES]
+  const createdBySku = new Map<string, string | number>()
+
+  for (const product of allProducts) {
+    const supplierId = supplierIds.get(product.supplierErpCode)
+    const categoryId = categoryIds.get(product.categorySlug)
+
+    if (!supplierId || !categoryId) {
+      throw new Error(
+        `Missing supplier or category for product ${product.skuErp} (${product.supplierErpCode} / ${product.categorySlug})`,
+      )
+    }
+
+    const created = await payload.create({
       collection: 'products',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: buildProductData(product, supplierId, categoryId) as any,
+      req,
+    })
+
+    createdBySku.set(product.skuErp, created.id)
+  }
+
+  const printerId = createdBySku.get('ERP-PRT-M404')
+  const tonerId = createdBySku.get('ERP-TNR-085')
+
+  if (printerId != null && tonerId != null) {
+    await payload.update({
+      collection: 'products',
+      id: printerId,
       data: {
-        title: ref.title,
-        slug: ref.slug,
-        _status: 'published',
-        supplier: supplier.id,
-        categories: [parentCategory.id],
-        skuErp: ref.skuErp,
-        ...(ref.mainWholesaleRef ? { mainWholesaleRef: ref.mainWholesaleRef } : {}),
-        shortDescription: ref.shortDescription,
-        p1Price: ref.p1Price,
-        p2Price: ref.p2Price,
-        vatRate: ref.vatRate,
-        packUnit: 1,
-        erpStock: ref.erpStock,
-        syncErpAt: new Date().toISOString(),
-        metaDescription: `${ref.title} — compra online en Jeyjo.`,
-        facetColor: ref.skuErp === 'REF-001' ? 'Azul' : 'Negro',
-        facetMaterial: ref.skuErp === 'REF-002' ? 'Plástico' : 'Metal',
-        ecoLabel: ref.skuErp === 'REF-003',
-        enableVariants: false,
-        priceInUSDEnabled: false,
-      },
+        relatedProducts: [tonerId],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
       req,
     })
   }
 
-  const toner = await payload.create({
-    collection: 'products',
-    data: {
-      title: 'Tóner negro HP 85A',
-      slug: 'toner-negro-hp-85a',
-      _status: 'published',
-      supplier: supplier.id,
-      categories: [parentCategory.id],
-      skuErp: 'ERP-TNR-085',
-      oemRef: 'CE285A',
-      ean: '0886112750001',
-      shortDescription: 'Cartucho de tóner negro compatible HP LaserJet Pro.',
-      p1Price: 42.5,
-      p2Price: 38,
-      vatRate: 21,
-      packUnit: 1,
-      erpStock: 80,
-      syncErpAt: new Date().toISOString(),
-      longDescription: {
-        root: {
-          type: 'root',
-          children: [
-            {
-              type: 'paragraph',
-              children: [
-                {
-                  type: 'text',
-                  text: 'Tóner de alto rendimiento para impresoras láser HP. Rendimiento aproximado 1.600 páginas.',
-                  version: 1,
-                },
-              ],
-              direction: 'ltr',
-              format: '',
-              indent: 0,
-              version: 1,
-            },
-          ],
-          direction: 'ltr',
-          format: '',
-          indent: 0,
-          version: 1,
-        },
-      },
-      metaDescription: 'Tóner negro HP 85A — compra online en Jeyjo.',
-      facetColor: 'Negro',
-      facetMaterial: 'Polímero',
-      ecoLabel: false,
-      providerImageUrl: 'https://example.com/distrisantiago/toner-85a.jpg',
-      enableVariants: false,
-      priceInUSDEnabled: false,
-    },
-    req,
-  })
-
-  await payload.create({
-    collection: 'products',
-    data: {
-      title: 'Impresora láser HP Pro M404',
-      slug: 'impresora-laser-hp-pro-m404',
-      _status: 'published',
-      supplier: supplier.id,
-      categories: [parentCategory.id],
-      skuErp: 'ERP-PRT-M404',
-      oemRef: 'W1A52A',
-      ean: '0886112750100',
-      shortDescription: 'Impresora láser monocromo A4 para oficina.',
-      p1Price: 189,
-      p2Price: 175,
-      vatRate: 21,
-      packUnit: 1,
-      erpStock: 15,
-      syncErpAt: new Date().toISOString(),
-      relatedProducts: [toner.id],
-      longDescription: {
-        root: {
-          type: 'root',
-          children: [
-            {
-              type: 'paragraph',
-              children: [
-                {
-                  type: 'text',
-                  text: 'Impresora láser compacta con conectividad Ethernet y Wi-Fi. Ideal para equipos de 3-10 usuarios.',
-                  version: 1,
-                },
-              ],
-              direction: 'ltr',
-              format: '',
-              indent: 0,
-              version: 1,
-            },
-            {
-              type: 'heading',
-              tag: 'h2',
-              children: [{ type: 'text', text: 'Consumibles recomendados', version: 1 }],
-              direction: 'ltr',
-              format: '',
-              indent: 0,
-              version: 1,
-            },
-          ],
-          direction: 'ltr',
-          format: '',
-          indent: 0,
-          version: 1,
-        },
-      },
-      metaDescription: 'Impresora láser HP Pro M404 — compra online en Jeyjo.',
-      facetColor: 'Blanco',
-      facetMaterial: 'Plástico',
-      ecoLabel: false,
-      providerImageUrl: 'https://example.com/distrisantiago/printer-m404.jpg',
-      enableVariants: false,
-      priceInUSDEnabled: false,
-    },
-    req,
-  })
-
-  payload.logger.info('— Jeyjo catalog seed complete')
+  payload.logger.info(
+    `— Jeyjo catalog seed complete (${JEYJO_SUPPLIERS.length} suppliers, ${allProducts.length} products)`,
+  )
 }

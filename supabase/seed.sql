@@ -1,5 +1,9 @@
 -- Local development seed (runs after migrations on `supabase db reset`)
 -- Fixed UUIDs for documentation and RLS manual tests (see supabase/README.md)
+--
+-- Catálogo (productos, categorías, proveedores): NO va en este SQL.
+-- Vive en las tablas Payload del mismo Postgres (`products`, `categories`, `suppliers`).
+-- Tras `pnpm db:reset`, ejecutar: `pnpm seed:catalog` (o `pnpm db:bootstrap` en un solo paso).
 
 INSERT INTO public.customers (
   id,

@@ -18,6 +18,11 @@
     "db:start": "npx supabase start",
     "db:stop": "npx supabase stop",
     "db:reset": "npx supabase db reset",
+    "db:push": "npx supabase db push --linked",
+    "db:seed": "node scripts/apply-seed-sql.mjs",
+    "seed:catalog": "pnpm --filter @jeyjo/cms seed:catalog",
+    "db:bootstrap": "pnpm db:seed && pnpm seed:catalog",
+    "db:bootstrap:local": "pnpm db:reset && pnpm seed:catalog",
     "db:types": "node scripts/generate-database-types.mjs",
     "db:types:check": "node scripts/check-database-types.mjs"
   },

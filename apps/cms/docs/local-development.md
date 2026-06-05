@@ -49,8 +49,12 @@ Usuarios staff de prueba (seed): ver [`../README.md`](../README.md#usuarios-de-p
 Con monorepo Supabase CLI (recomendado):
 
 ```bash
-# Desde la raíz del repo
-pnpm db:reset    # aplica supabase/migrations + seed SQL
+# Supabase Cloud (DATABASE_URL en apps/cms/.env → pooler remoto)
+pnpm db:push        # migraciones (tras supabase link), primera vez
+pnpm db:bootstrap   # seed.sql + catálogo jeyjo.es
+
+# Supabase local (supabase start)
+pnpm db:bootstrap:local
 ```
 
 ## 3. Instalar dependencias
@@ -78,14 +82,18 @@ El servidor arranca en `http://localhost:3001`.
 2. Arrancar CMS — Payload crea/actualiza tablas de colecciones (`products`, `suppliers`, …) vía postgres adapter.
 3. No eliminar tablas core (`customers`, `search_events`, …) desde el admin Payload.
 
-## 5. Poblar datos de demo (opcional)
+## 5. Poblar catálogo y datos de demo
+
+**Catálogo (recomendado):**
 
 ```bash
-# Desde el admin panel:
-# POST http://localhost:3000/next/seed (requiere auth admin)
+pnpm seed:catalog   # desde la raíz; escribe en Supabase Postgres
+```
 
-# O desde terminal:
-# Primero crea un admin manualmente, luego haz la petición
+**Seed completo del template ecommerce** (admin + carritos demo + catálogo):
+
+```bash
+# POST http://localhost:3001/next/seed (requiere auth admin)
 ```
 
 Ver [Seed](seed.md) para más detalles.

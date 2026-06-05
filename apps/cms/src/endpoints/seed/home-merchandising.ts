@@ -9,7 +9,7 @@ export async function seedHomeMerchandising({
   req: PayloadRequest
   heroMediaId: string | number
 }): Promise<void> {
-  payload.logger.info('— Seeding home merchandising global...')
+  payload.logger.info('— Seeding home merchandising global (jeyjo.es)...')
 
   const categories = await payload.find({
     collection: 'categories',
@@ -23,7 +23,18 @@ export async function seedHomeMerchandising({
     collection: 'products',
     where: {
       skuErp: {
-        in: ['REF-001', 'REF-002', 'ERP-TNR-085', 'ERP-GRF-001', 'ERP-PVC-032', 'ERP-PRT-M404'],
+        in: [
+          '10102007',
+          '12701009',
+          'ERP-TNR-085',
+          '16401136',
+          '24404589',
+          'ERP-PRT-M404',
+          'REF-001',
+          'REF-002',
+          '11601380',
+          '18701089',
+        ],
       },
     },
     limit: 20,
@@ -32,12 +43,16 @@ export async function seedHomeMerchandising({
 
   const bySku = new Map(products.docs.map((p) => [p.skuErp, p.id]))
 
+  const bicAzul = bySku.get('10102007')
+  const navigator = bySku.get('12701009')
+  const toner = bySku.get('ERP-TNR-085')
+  const destructora = bySku.get('16401136')
+  const silla = bySku.get('24404589')
+  const printer = bySku.get('ERP-PRT-M404')
   const ref001 = bySku.get('REF-001')
   const ref002 = bySku.get('REF-002')
-  const toner = bySku.get('ERP-TNR-085')
-  const grifo = bySku.get('ERP-GRF-001')
-  const pvc = bySku.get('ERP-PVC-032')
-  const printer = bySku.get('ERP-PRT-M404')
+  const archivador = bySku.get('11601380')
+  const papelHigienico = bySku.get('18701089')
 
   const now = new Date()
   const yesterday = new Date(now)
@@ -49,9 +64,13 @@ export async function seedHomeMerchandising({
   const lastMonth = new Date(now)
   lastMonth.setDate(lastMonth.getDate() - 30)
 
-  const topSalesB2c = [ref001, ref002, toner, grifo].filter((id): id is number => typeof id === 'number')
-  const topSalesB2b = [printer, toner, ref002].filter((id): id is number => typeof id === 'number')
-  const ecoHighlight = [pvc, ref002].filter((id): id is number => typeof id === 'number')
+  const topSalesB2c = [bicAzul, navigator, archivador, papelHigienico].filter(
+    (id): id is number => typeof id === 'number',
+  )
+  const topSalesB2b = [printer, toner, destructora, silla].filter(
+    (id): id is number => typeof id === 'number',
+  )
+  const ecoHighlight = [ref002, papelHigienico].filter((id): id is number => typeof id === 'number')
   const heroImageId = typeof heroMediaId === 'number' ? heroMediaId : Number(heroMediaId)
 
   await payload.updateGlobal({
@@ -61,7 +80,7 @@ export async function seedHomeMerchandising({
         {
           image: heroImageId,
           href: '/c/escritura',
-          alt: 'Ofertas escritura B2C',
+          alt: 'Escritura y corrección — BIC, Uni-Ball, Staedtler',
           segment: 'b2c',
           startAt: yesterday.toISOString(),
           endAt: tomorrow.toISOString(),
@@ -70,7 +89,7 @@ export async function seedHomeMerchandising({
         {
           image: heroImageId,
           href: '/c/impresion',
-          alt: 'Portal empresas impresión',
+          alt: 'Consumibles e impresión para empresas',
           segment: 'b2b',
           startAt: yesterday.toISOString(),
           endAt: tomorrow.toISOString(),
@@ -88,7 +107,7 @@ export async function seedHomeMerchandising({
         {
           image: heroImageId,
           href: '/c/reciclaje',
-          alt: 'Sostenibilidad para todos',
+          alt: 'Portes gratis desde 39 € — toda España',
           segment: 'both',
           startAt: yesterday.toISOString(),
           endAt: tomorrow.toISOString(),
