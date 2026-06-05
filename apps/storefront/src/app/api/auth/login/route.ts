@@ -47,6 +47,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: lockoutMessage() }, { status: 429 })
   }
 
+  if (profileRow) {
+    const { data: authUserData, error: authUserError } = await admin.auth.admin.getUserById(profileRow.id)
+    if (
+      !authUserError &&
+      authUserData.user &&
+      !authUserData.user.email_confirmed_at
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            'Debes confirmar tu email antes de iniciar sesión. Revisa tu bandeja de entrada (y spam) o solicita un nuevo enlace desde Supabase.',
+        },
+        { status: 403 },
+      )
+    }
+  }
+
   const supabase = await createSupabaseServerClient()
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email,

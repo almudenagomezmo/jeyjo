@@ -47,21 +47,29 @@ export function RegisterForm() {
       });
       const data = (await res.json()) as {
         error?: string
+        details?: string
         message?: string
         needsEmailConfirmation?: boolean
       };
       if (!res.ok) {
-        setError(data.error ?? "No se pudo completar el registro");
+        setError(
+          data.details
+            ? `${data.error ?? "Error"}: ${data.details}`
+            : (data.error ?? "No se pudo completar el registro"),
+        );
         return;
       }
+      const needsConfirm = data.needsEmailConfirmation === true;
       setInfo(
         data.message ??
-          (data.needsEmailConfirmation
+          (needsConfirm
             ? "Revisa tu email para confirmar la cuenta antes de iniciar sesión."
             : "Registro completado. Pendiente de validación por Jeyjo."),
       );
-      router.push("/login");
-      router.refresh();
+      if (!needsConfirm) {
+        router.push("/login");
+        router.refresh();
+      }
     } catch {
       setError("Error de conexión");
     } finally {

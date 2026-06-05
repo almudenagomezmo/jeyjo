@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { registerSchema } from '@/lib/auth/register-schema'
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
+import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
@@ -20,7 +21,21 @@ export async function POST(request: Request) {
     )
   }
 
-  const data = parsed.data
+  const data = { ...parsed.data, email: parsed.data.email.trim().toLowerCase() }
+  const missingEnv: string[] = []
+  if (!getSupabaseUrl()) missingEnv.push('NEXT_PUBLIC_SUPABASE_URL')
+  if (!getSupabaseAnonKey()) missingEnv.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  if (!getSupabaseServiceRoleKey()) missingEnv.push('SUPABASE_SERVICE_ROLE_KEY')
+  if (missingEnv.length > 0) {
+    return NextResponse.json(
+      {
+        error: 'Auth not configured',
+        details: `Faltan en apps/storefront/.env.local: ${missingEnv.join(', ')}. Obtén las claves en Supabase Dashboard → Project Settings → API (proyecto tqgrsofvlkyumagrqbqa).`,
+      },
+      { status: 503 },
+    )
+  }
+
   const admin = getSupabaseAdminClient()
   if (!admin) {
     return NextResponse.json({ error: 'Auth not configured' }, { status: 503 })
