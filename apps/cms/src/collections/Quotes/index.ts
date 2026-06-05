@@ -9,6 +9,7 @@ import {
 import { isCollectionHidden } from '@/access/staffRoles'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
 import { notifyQuoteStatusChange } from '@/lib/notifications/quote-status-hook'
+import { quotesOmsEndpoints } from '@/endpoints/quotes-oms'
 
 import { assignNextQuoteNumber } from './quote-number'
 import {
@@ -106,6 +107,7 @@ export const Quotes: CollectionConfig = {
     afterChange: [...quoteAuditHooks.afterChange, notifyQuoteStatusChange],
     afterDelete: [...quoteAuditHooks.afterDelete],
   },
+  endpoints: quotesOmsEndpoints,
   fields: [
     {
       name: 'quoteNumber',

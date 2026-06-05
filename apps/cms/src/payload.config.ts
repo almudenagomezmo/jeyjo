@@ -39,9 +39,6 @@ import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
 import { customersAdminEndpoints } from '@/endpoints/customers-admin'
 import { dashboardSummaryEndpoint } from '@/endpoints/dashboard-summary'
 import { pimHealthEndpoint } from '@/endpoints/pim-health'
-import { ordersOmsEndpoints } from '@/endpoints/orders-oms'
-import { quotesOmsEndpoints } from '@/endpoints/quotes-oms'
-import { rmaOmsEndpoints } from '@/endpoints/rma-oms'
 import { catalogImportEndpoints } from '@/endpoints/catalog-import'
 import {
   evaContextEndpoint,
@@ -232,9 +229,6 @@ export default buildConfig({
     bulkSeoTemplateEndpoint,
     dashboardSummaryEndpoint,
     pimHealthEndpoint,
-    ...ordersOmsEndpoints,
-    ...quotesOmsEndpoints,
-    ...rmaOmsEndpoints,
     ...catalogImportEndpoints,
     evaContextEndpoint,
     evaOrdersWebhookEndpoint,

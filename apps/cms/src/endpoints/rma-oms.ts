@@ -109,7 +109,7 @@ async function findDuplicateIncident(
 }
 
 export const rmaStorefrontCreateEndpoint: Endpoint = {
-  path: '/rma-incidents/storefront-create',
+  path: '/storefront-create',
   method: 'post',
   handler: async (req) => {
     if (!isStorefrontQuoteApiKey(req)) {
@@ -218,7 +218,7 @@ export const rmaStorefrontCreateEndpoint: Endpoint = {
 }
 
 export const rmaStorefrontListEndpoint: Endpoint = {
-  path: '/rma-incidents/storefront-list',
+  path: '/storefront-list',
   method: 'get',
   handler: async (req) => {
     if (!isStorefrontQuoteApiKey(req)) {
@@ -271,7 +271,7 @@ export const rmaStorefrontListEndpoint: Endpoint = {
 }
 
 export const rmaInboxSummaryEndpoint: Endpoint = {
-  path: '/rma-incidents/inbox-summary',
+  path: '/inbox-summary',
   method: 'get',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -316,7 +316,7 @@ export const rmaInboxSummaryEndpoint: Endpoint = {
 }
 
 export const rmaStatusPatchEndpoint: Endpoint = {
-  path: '/rma-incidents/:id/status',
+  path: '/:id/status',
   method: 'patch',
   handler: async (req) => {
     await requireOmsStaff(req)

@@ -129,7 +129,7 @@ async function loadOrdersForExport(
 }
 
 export const ordersInboxSummaryEndpoint: Endpoint = {
-  path: '/orders/inbox-summary',
+  path: '/inbox-summary',
   method: 'get',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -177,7 +177,7 @@ export const ordersInboxSummaryEndpoint: Endpoint = {
 }
 
 export const ordersExportAvansuiteEndpoint: Endpoint = {
-  path: '/orders/export-avansuite',
+  path: '/export-avansuite',
   method: 'post',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -235,7 +235,7 @@ export const ordersExportAvansuiteEndpoint: Endpoint = {
 }
 
 export const ordersEvaValidateEndpoint: Endpoint = {
-  path: '/orders/eva/validate',
+  path: '/eva/validate',
   method: 'post',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -275,7 +275,7 @@ export const ordersEvaValidateEndpoint: Endpoint = {
 }
 
 export const ordersEvaRejectEndpoint: Endpoint = {
-  path: '/orders/eva/reject',
+  path: '/eva/reject',
   method: 'post',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -311,7 +311,7 @@ export const ordersEvaRejectEndpoint: Endpoint = {
 }
 
 export const ordersRecheckStockEndpoint: Endpoint = {
-  path: '/orders/recheck-stock',
+  path: '/recheck-stock',
   method: 'post',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -342,7 +342,7 @@ export const ordersRecheckStockEndpoint: Endpoint = {
 }
 
 export const ordersStatusPatchEndpoint: Endpoint = {
-  path: '/orders/:id/status',
+  path: '/:id/status',
   method: 'patch',
   handler: async (req) => {
     await requireOmsStaff(req)

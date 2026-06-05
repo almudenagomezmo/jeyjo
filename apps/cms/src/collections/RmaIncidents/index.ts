@@ -9,6 +9,7 @@ import {
 import { isCollectionHidden } from '@/access/staffRoles'
 import { isStorefrontQuoteApiKey } from '@/collections/Quotes'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
+import { rmaOmsEndpoints } from '@/endpoints/rma-oms'
 
 import { assignNextRmaNumber } from './rma-number'
 import {
@@ -94,6 +95,7 @@ export const RmaIncidents: CollectionConfig = {
     afterChange: [...rmaAuditHooks.afterChange],
     afterDelete: [...rmaAuditHooks.afterDelete],
   },
+  endpoints: rmaOmsEndpoints,
   fields: [
     {
       name: 'rmaNumber',

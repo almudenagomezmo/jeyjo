@@ -120,7 +120,7 @@ function resolveConvertedOrderId(quote: Quote): number | null {
 }
 
 export const quotesStorefrontCreateEndpoint: Endpoint = {
-  path: '/quotes/storefront-create',
+  path: '/storefront-create',
   method: 'post',
   handler: async (req) => {
     if (!isStorefrontQuoteApiKey(req)) {
@@ -227,7 +227,7 @@ export const quotesStorefrontCreateEndpoint: Endpoint = {
 }
 
 export const quotesInboxSummaryEndpoint: Endpoint = {
-  path: '/quotes/inbox-summary',
+  path: '/inbox-summary',
   method: 'get',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -274,7 +274,7 @@ export const quotesInboxSummaryEndpoint: Endpoint = {
 }
 
 export const quotesStatusPatchEndpoint: Endpoint = {
-  path: '/quotes/:id/status',
+  path: '/:id/status',
   method: 'patch',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -311,7 +311,7 @@ export const quotesStatusPatchEndpoint: Endpoint = {
 }
 
 export const quotesConvertToOrderEndpoint: Endpoint = {
-  path: '/quotes/:id/convert-to-order',
+  path: '/:id/convert-to-order',
   method: 'post',
   handler: async (req) => {
     await requireOmsStaff(req)
@@ -377,7 +377,7 @@ export const quotesConvertToOrderEndpoint: Endpoint = {
 }
 
 export const quotesStorefrontMineEndpoint: Endpoint = {
-  path: '/quotes/storefront-mine',
+  path: '/storefront-mine',
   method: 'get',
   handler: async (req) => {
     if (!isStorefrontQuoteApiKey(req)) {
@@ -412,7 +412,7 @@ export const quotesStorefrontMineEndpoint: Endpoint = {
 }
 
 export const quotesStorefrontPriceReviewEndpoint: Endpoint = {
-  path: '/quotes/storefront-price-review',
+  path: '/storefront-price-review',
   method: 'post',
   handler: async (req) => {
     if (!isStorefrontQuoteApiKey(req)) {

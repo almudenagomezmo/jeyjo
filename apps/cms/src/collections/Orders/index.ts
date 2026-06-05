@@ -22,6 +22,7 @@ import {
   staffUpdateAccess,
 } from '@/access/staffAccess'
 import { isCollectionHidden } from '@/access/staffRoles'
+import { ordersOmsEndpoints } from '@/endpoints/orders-oms'
 
 const JEYJO_ORDER_STATUSES = [
   { label: 'Pendiente', value: 'pending' },
@@ -390,6 +391,7 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
       ...orderAuditHooks.afterDelete,
     ],
   },
+  endpoints: [...(defaultCollection?.endpoints ?? []), ...ordersOmsEndpoints],
   fields: [
     ...jeyjoOrderFields,
     ...mergeOrderItemIvaSnapshotField(defaultCollection.fields),
