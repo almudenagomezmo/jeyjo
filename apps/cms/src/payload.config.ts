@@ -97,6 +97,7 @@ export default buildConfig({
         '@/components/MfaGate#MfaGate',
         '@/components/DashboardKpisView#DashboardKpisView',
       ],
+      afterNavLinks: ['@/components/CustomersAdminNavLink#CustomersAdminNavLink'],
       views: {
         auditLog: {
           Component: '@/components/AuditLogView#AuditLogView',
@@ -105,6 +106,10 @@ export default buildConfig({
         customersAdmin: {
           Component: '@/components/CustomersAdminView#CustomersAdminView',
           path: '/customers',
+          meta: {
+            title: 'Clientes tienda',
+            description: 'Cuentas registradas en el storefront y validación RF-004',
+          },
         },
         pendingCustomers: {
           Component: '@/components/PendingCustomersView#PendingCustomersView',

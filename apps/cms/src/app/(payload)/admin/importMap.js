@@ -22,6 +22,7 @@ import { VariantOptionsSelector as VariantOptionsSelector_b91672ccd6e8b071c11142
 import { PriceCell as PriceCell_e27bf7b8cc50640dcdd584767b8eac3c } from '@payloadcms/plugin-ecommerce/client'
 import { PriceInput as PriceInput_b91672ccd6e8b071c11142ab941fedfb } from '@payloadcms/plugin-ecommerce/rsc'
 import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { CustomersAdminNavLink as CustomersAdminNavLink_087d6a6179707bdbcdd5cddeaf9e863d } from '@/components/CustomersAdminNavLink'
 import { MfaGate as MfaGate_68edbd8d33f9093aab74ace8411f3a87 } from '@/components/MfaGate'
 import { DashboardKpisView as DashboardKpisView_a65563ff34e3d45a0b5926f6ee65ae59 } from '@/components/DashboardKpisView'
 import { BeforeLogin as BeforeLogin_8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/components/BeforeLogin'
@@ -68,6 +69,7 @@ export const importMap = {
   "@payloadcms/plugin-ecommerce/client#PriceCell": PriceCell_e27bf7b8cc50640dcdd584767b8eac3c,
   "@payloadcms/plugin-ecommerce/rsc#PriceInput": PriceInput_b91672ccd6e8b071c11142ab941fedfb,
   "@payloadcms/richtext-lexical/client#HorizontalRuleFeatureClient": HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "@/components/CustomersAdminNavLink#CustomersAdminNavLink": CustomersAdminNavLink_087d6a6179707bdbcdd5cddeaf9e863d,
   "@/components/MfaGate#MfaGate": MfaGate_68edbd8d33f9093aab74ace8411f3a87,
   "@/components/DashboardKpisView#DashboardKpisView": DashboardKpisView_a65563ff34e3d45a0b5926f6ee65ae59,
   "@/components/BeforeLogin#BeforeLogin": BeforeLogin_8a7ab0eb7ab5c511aba12e68480bfe5e,

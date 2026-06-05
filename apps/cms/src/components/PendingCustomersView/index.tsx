@@ -1,12 +1,6 @@
-'use client'
-
-import React, { useEffect } from 'react'
+import { redirect } from 'next/navigation'
 
 /** Redirect legacy admin path to Customers admin with pending filter. */
-export const PendingCustomersView: React.FC = () => {
-  useEffect(() => {
-    window.location.replace('/admin/customers?status=pending')
-  }, [])
-
-  return <p>Redirigiendo a Clientes tienda…</p>
+export function PendingCustomersView() {
+  redirect('/admin/customers?status=pending')
 }
