@@ -271,3 +271,71 @@
 .animate-fade-up {
   animation: fade-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+
+@keyframes jeyjo-loader-ring {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.94);
+    opacity: 0.88;
+  }
+}
+
+@keyframes jeyjo-loader-core {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.82);
+  }
+}
+
+@keyframes jeyjo-loader-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.jeyjo-loader-mark {
+  color: var(--text);
+}
+
+.jeyjo-loader-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jeyjo-loader-ring 1.4s ease-in-out infinite;
+}
+
+.jeyjo-loader-core {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jeyjo-loader-core 1.4s ease-in-out infinite;
+}
+
+.jeyjo-loader-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jeyjo-loader-dot 1.2s ease-in-out infinite;
+}
+
+.jeyjo-loader-dot--1 {
+  animation-delay: 0s;
+}
+
+.jeyjo-loader-dot--2 {
+  animation-delay: 0.2s;
+}
+
+.jeyjo-loader-dot--3 {
+  animation-delay: 0.4s;
+}

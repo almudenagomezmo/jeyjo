@@ -1,31 +1,36 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { FilterIcon } from "@/components/ui/icons";
+import {
+  arePlpFiltersEqual,
+  countActivePlpFilters,
+} from "@/lib/plp/filters-utils";
 import { formatMoney } from "@/lib/utils/format";
 import type { PlpActiveFilters, PlpFacetAggregates } from "@/lib/plp/types";
 
 interface FacetSidebarProps {
   facets: PlpFacetAggregates;
   filters: PlpActiveFilters;
+  appliedFilters: PlpActiveFilters;
   priceCeiling: number;
   onFiltersChange: (next: PlpActiveFilters) => void;
+  onApply: () => void;
   onReset: () => void;
 }
 
 export function FacetSidebar({
   facets,
   filters,
+  appliedFilters,
   priceCeiling,
   onFiltersChange,
+  onApply,
   onReset,
 }: FacetSidebarProps) {
-  const activeCount =
-    filters.brands.length +
-    filters.colors.length +
-    filters.materials.length +
-    (filters.inStockToday ? 1 : 0) +
-    (filters.eco ? 1 : 0) +
-    (filters.priceMax != null && filters.priceMax < priceCeiling ? 1 : 0);
+  const pendingCount = countActivePlpFilters(filters, priceCeiling);
+  const appliedCount = countActivePlpFilters(appliedFilters, priceCeiling);
+  const hasPendingChanges = !arePlpFiltersEqual(filters, appliedFilters, priceCeiling);
 
   const toggleList = (
     key: "brands" | "colors" | "materials",
@@ -41,17 +46,35 @@ export function FacetSidebar({
 
   return (
     <aside className="lg:sticky lg:top-[88px]">
-      <div className="rounded-lg border border-border bg-surface p-5">
-        <div className="mb-3 flex items-center justify-between">
+      <div
+        className={`rounded-lg border bg-surface p-5 transition-[border-color,box-shadow] ${
+          hasPendingChanges
+            ? "border-primary shadow-[0_0_0_1px_var(--primary)]"
+            : "border-border"
+        }`}
+      >
+        <div className="mb-3 flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 text-sm font-bold">
             <FilterIcon size={16} /> Filtros
+            {pendingCount > 0 && (
+              <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-text-secondary">
+                {pendingCount}
+              </span>
+            )}
           </span>
-          {activeCount > 0 && (
+          {(pendingCount > 0 || appliedCount > 0) && (
             <button type="button" onClick={onReset} className="text-[11px] font-semibold text-text-brand">
               Limpiar
             </button>
           )}
         </div>
+
+        {hasPendingChanges && (
+          <p className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-900">
+            Tienes filtros seleccionados que aún no se han aplicado. Pulsa{" "}
+            <span className="font-semibold">Filtrar</span> para actualizar los resultados.
+          </p>
+        )}
 
         {facets.brands.length > 0 && (
           <FacetGroup title="Marca / fabricante">
@@ -132,6 +155,17 @@ export function FacetSidebar({
             onChange={() => onFiltersChange({ ...filters, eco: !filters.eco })}
           />
         </FacetGroup>
+
+        <Button
+          type="button"
+          variant={hasPendingChanges ? "primary" : "secondary"}
+          block
+          className="mt-4"
+          disabled={!hasPendingChanges}
+          onClick={onApply}
+        >
+          Filtrar
+        </Button>
       </div>
     </aside>
   );

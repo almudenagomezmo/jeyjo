@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { JeyjoLoader } from "@/components/ui/JeyjoLoader";
 import { ProductGlyph } from "@/components/ui/ProductGlyph";
 import { ProductImage } from "@/components/ui/ProductImage";
 import { formatMoney } from "@/lib/utils/format";
@@ -65,8 +66,8 @@ export function SearchSuggestPanel({
 
   if (loading && products.length === 0 && categories.length === 0) {
     return (
-      <div className="p-6 text-center text-sm text-text-tertiary" role="status">
-        Buscando…
+      <div className="p-8">
+        <JeyjoLoader size="sm" label="Buscando…" />
       </div>
     );
   }

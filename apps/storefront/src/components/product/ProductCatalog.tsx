@@ -1,15 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 
 import { FacetSidebar } from "@/components/product/FacetSidebar";
 import { PlpPagination } from "@/components/product/PlpPagination";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { QuickViewDialog } from "@/components/product/QuickViewDialog";
 import { Button } from "@/components/ui/Button";
+import { LoadingOverlay } from "@/components/ui/JeyjoLoader";
+import { normalizePlpFilters } from "@/lib/plp/filters-utils";
 import { serializePlpSearchParams } from "@/lib/plp/plp-search-params";
-import type { PlpPagePayload, PlpSortKey } from "@/lib/plp/types";
+import type { PlpActiveFilters, PlpPagePayload, PlpSortKey } from "@/lib/plp/types";
 
 interface ProductCatalogProps {
   data: PlpPagePayload;
@@ -17,11 +19,26 @@ interface ProductCatalogProps {
   searchQuery?: string;
 }
 
+const EMPTY_FILTERS: PlpActiveFilters = {
+  brands: [],
+  colors: [],
+  materials: [],
+  priceMax: null,
+  inStockToday: false,
+  eco: false,
+};
+
 export function ProductCatalog({ data, basePath, searchQuery }: ProductCatalogProps) {
   const router = useRouter();
+  const [isNavigating, startNavigation] = useTransition();
   const [quickViewSku, setQuickViewSku] = useState<string | null>(null);
+  const [pendingFilters, setPendingFilters] = useState(data.activeFilters);
 
   const priceCeiling = data.facets.priceMax;
+
+  useEffect(() => {
+    setPendingFilters(data.activeFilters);
+  }, [data.activeFilters]);
 
   const navigate = useCallback(
     (next: {
@@ -36,9 +53,12 @@ export function ProductCatalog({ data, basePath, searchQuery }: ProductCatalogPr
         q: searchQuery,
       });
       const qs = sp.toString();
-      router.push(qs ? `${basePath}?${qs}` : basePath);
+      const href = qs ? `${basePath}?${qs}` : basePath;
+      startNavigation(() => {
+        router.push(href);
+      });
     },
-    [basePath, router, searchQuery, data.activeFilters, data.sort],
+    [basePath, router, searchQuery],
   );
 
   const plpItems = useMemo(
@@ -53,16 +73,18 @@ export function ProductCatalog({ data, basePath, searchQuery }: ProductCatalogPr
 
   const quickRow = data.rows.find((r) => r.sku === quickViewSku) ?? null;
 
-  const resetFilters = () => {
+  const applyFilters = () => {
     navigate({
-      filters: {
-        brands: [],
-        colors: [],
-        materials: [],
-        priceMax: null,
-        inStockToday: false,
-        eco: false,
-      },
+      filters: normalizePlpFilters(pendingFilters, priceCeiling),
+      sort: data.sort,
+      page: 1,
+    });
+  };
+
+  const resetFilters = () => {
+    setPendingFilters(EMPTY_FILTERS);
+    navigate({
+      filters: EMPTY_FILTERS,
       sort: data.sort,
       page: 1,
     });
@@ -73,13 +95,18 @@ export function ProductCatalog({ data, basePath, searchQuery }: ProductCatalogPr
       <div className="grid items-start gap-6 lg:grid-cols-[260px_1fr]">
         <FacetSidebar
           facets={data.facets}
-          filters={data.activeFilters}
+          filters={pendingFilters}
+          appliedFilters={data.activeFilters}
           priceCeiling={priceCeiling}
-          onFiltersChange={(filters) => navigate({ filters, sort: data.sort, page: 1 })}
+          onFiltersChange={setPendingFilters}
+          onApply={applyFilters}
           onReset={resetFilters}
         />
 
-        <div>
+        <div className="relative min-h-[240px]">
+          {isNavigating && (
+            <LoadingOverlay label="Actualizando resultados…" />
+          )}
           <div className="mb-4 flex items-center justify-between gap-3">
             <p className="text-sm text-text-tertiary">
               {data.totalFiltered}{" "}
