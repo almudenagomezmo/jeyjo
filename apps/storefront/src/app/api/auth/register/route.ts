@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const data = parsed.data
+  const data = { ...parsed.data, email: parsed.data.email.trim().toLowerCase() }
   const missingEnv: string[] = []
   if (!getSupabaseUrl()) missingEnv.push('NEXT_PUBLIC_SUPABASE_URL')
   if (!getSupabaseAnonKey()) missingEnv.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
