@@ -41,11 +41,16 @@ export function RegisterForm() {
       });
       const data = (await res.json()) as {
         error?: string
+        details?: string
         message?: string
         needsEmailConfirmation?: boolean
       };
       if (!res.ok) {
-        setError(data.error ?? "No se pudo completar el registro");
+        setError(
+          data.details
+            ? `${data.error ?? "Error"}: ${data.details}`
+            : (data.error ?? "No se pudo completar el registro"),
+        );
         return;
       }
       setInfo(
