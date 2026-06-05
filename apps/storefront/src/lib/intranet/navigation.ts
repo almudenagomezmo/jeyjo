@@ -17,52 +17,22 @@ export const CONTABILIDAD_SUBNAV: IntranetNavItem[] = [
   {
     href: '/intranet/contabilidad/facturas',
     label: 'Facturas emitidas',
-    scaffold: {
-      title: 'Facturas emitidas',
-      description:
-        'Consulta y descarga de facturas de los últimos 5 años sincronizadas desde Avansuite. Disponible en la fase documental del portal.',
-      roadmapRef: '#37 area-documental-financiera',
-    },
   },
   {
     href: '/intranet/contabilidad/albaranes',
     label: 'Albaranes',
-    scaffold: {
-      title: 'Albaranes',
-      description:
-        'Seguimiento de albaranes emitidos y en preparación desde el ERP. Disponible en la fase documental del portal.',
-      roadmapRef: '#37 area-documental-financiera',
-    },
   },
   {
     href: '/intranet/contabilidad/vencimientos',
     label: 'Vencimientos',
-    scaffold: {
-      title: 'Vencimientos',
-      description:
-        'Facturas pendientes de pago con semáforo de vencimiento y saldo acumulado. Disponible en la fase documental del portal.',
-      roadmapRef: '#37 area-documental-financiera',
-    },
   },
   {
     href: '/intranet/contabilidad/cifra-347',
     label: 'Cifra 347',
-    scaffold: {
-      title: 'Cifra 347',
-      description:
-        'Declaración informativa de operaciones con terceros para tu gestoría. Disponible en la fase documental del portal.',
-      roadmapRef: '#37 area-documental-financiera',
-    },
   },
   {
     href: '/intranet/contabilidad/presupuestos',
     label: 'Presupuestos',
-    scaffold: {
-      title: 'Presupuestos',
-      description:
-        'Presupuestos vigentes y caducados emitidos por Jeyjo. Disponible en la fase documental del portal.',
-      roadmapRef: '#37 area-documental-financiera',
-    },
   },
 ]
 
@@ -99,11 +69,6 @@ export const INTRANET_PRIMARY_NAV: IntranetNavItem[] = [
   {
     href: '/intranet/descargas',
     label: 'Descargas',
-    scaffold: {
-      title: 'Descargas',
-      description: 'Catálogos, fichas técnicas y documentación comercial descargable.',
-      roadmapRef: '#41 downloads-catalogs-portal',
-    },
   },
   {
     href: '/intranet/contacto',

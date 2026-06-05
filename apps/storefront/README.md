@@ -32,6 +32,13 @@ Variables: ver `.env.example` (`PRICING_ENGINE_ENABLED`, `SUPABASE_*`).
 
 Variables CMS para navegación: `CMS_URL` (preferida), `CMS_INTERNAL_URL` o `NEXT_PUBLIC_PAYLOAD_URL` — ver `.env.example`.
 
+## Configuración operativa (RF-013 / cambio `#42`)
+
+- `fetchSystemConfig()` — server-only, cache 60 s contra `GET {CMS_URL}/api/system/config`.
+- Portes checkout/carrito, umbral stock semáforo, contacto footer y toggles búsqueda leen esta API.
+- Proxy cliente: `GET /api/system/config` (misma respuesta, para minicart/carrito client-side).
+- Fallback: defaults v1 (39€/5€ B2C, 10€/2,50€ B2B) si CMS no responde.
+
 ## Búsqueda predictiva (RF-009 / US-01)
 
 - `POST /api/search/suggest` — body `{ "q": "boli" }` (mínimo 3 caracteres). Embebe con `@jeyjo/search-embedding`, consulta Qdrant (`products`, `categories`) y hidrata desde Payload + precios batch.
@@ -44,7 +51,7 @@ Variables (server-only, ver `.env.example` junto a `CMS_URL`):
 |---|---|
 | `QDRANT_URL` | URL REST de Qdrant (local: `http://localhost:6333`) |
 | `QDRANT_API_KEY` | API key (Qdrant Cloud; vacío en local) |
-| `PREDICTIVE_SEARCH_ENABLED` | `false` restaura filtro texto CMS en `/search` |
+| `PREDICTIVE_SEARCH_ENABLED` | `false` desactiva además del toggle CMS en `/admin/system-config` |
 
 ### Staging warm-up y latencia
 

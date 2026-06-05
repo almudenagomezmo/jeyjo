@@ -95,6 +95,12 @@ Non-implemented intranet sections SHALL render a structured scaffold with busine
 - **THEN** the RMA request form, authorization notice, and incidents list are shown
 - **AND** the scaffold empty state and "Próximamente" badge are not shown
 
+#### Scenario: Descargas production view
+
+- **WHEN** a validated B2B user opens `/intranet/descargas` after catalog downloads are implemented
+- **THEN** the catalog downloads list grouped by document type with PDF download actions is shown
+- **AND** the scaffold empty state and "Próximamente" badge are not shown
+
 #### Scenario: Financial scaffold does not expose documents
 
 - **WHEN** a user opens `/intranet/contabilidad/facturas`

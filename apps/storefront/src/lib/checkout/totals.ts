@@ -1,6 +1,8 @@
 import type { PriceQuote } from '@jeyjo/pricing'
 
 import { computeCartSummary } from '@/lib/cart/compute-summary'
+import type { ShippingRules } from '@/lib/system-config/defaults'
+import { DEFAULT_SHIPPING_RULES } from '@/lib/system-config/defaults'
 import { computeShippingPreview } from '@/lib/cart/shipping'
 import type { CartProductSnapshot } from '@/lib/cart/types'
 import type { CouponValidationResult } from '@/lib/coupon/types'
@@ -33,8 +35,9 @@ export function buildCheckoutTotals(
   segment: CheckoutSegment,
   coupon: CouponValidationResult | null,
   deliveryMethod?: DeliveryMethod,
+  shippingRules: ShippingRules = DEFAULT_SHIPPING_RULES,
 ): CheckoutTotals {
-  const summary = computeCartSummary(lines, products, quotes, segment)
+  const summary = computeCartSummary(lines, products, quotes, segment, shippingRules)
   const discount =
     coupon?.valid && coupon.discountAmount > 0 ? round2(coupon.discountAmount) : 0
   const merchandiseSubtotal = round2(summary.subtotal - discount)
@@ -43,7 +46,7 @@ export function buildCheckoutTotals(
     deliveryMethod === 'pickup_alfaro' || deliveryMethod === 'pickup_rincon'
   const { shippingCost } = isPickup
     ? { shippingCost: 0 }
-    : computeShippingPreview(merchandiseSubtotal, segment)
+    : computeShippingPreview(merchandiseSubtotal, segment, shippingRules)
 
   const total = round2(merchandiseSubtotal + shippingCost)
 

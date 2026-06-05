@@ -52,6 +52,24 @@ TOP_SALES_WINDOW_DAYS=30
 
 Los visitantes y carritos activos dependen de beacons en `apps/storefront` (`NEXT_PUBLIC_ANALYTICS_BEACONS_ENABLED`).
 
+## Configuración del sistema (cambio `#42`, Alcance §1.36)
+
+Hub staff: **`/admin/system-config`** — enlaces a portes, stock, contacto, pagos, marketing, SKAI, analytics y auditoría.
+
+| Recurso | Descripción |
+|---------|-------------|
+| Global `systemSettings` | Portes B2C/B2B, umbral stock, ventana Top Ventas, staleness ERP, contacto, toggles búsqueda |
+| `GET /api/system/config` | API pública cacheable (60 s) consumida por storefront |
+| Auditoría | Cambios en `systemSettings` → `audit_log` entityType `systemSettings` |
+
+| Rol | Edición |
+|-----|---------|
+| `superadmin`, `administracion` | Portes, stock, contacto, umbrales dashboard |
+| `superadmin`, `mantenimiento` | Staleness ERP, búsqueda predictiva |
+| `catalogo`, otros | Sin acceso de escritura |
+
+Variables env (`STOCK_LOW_THRESHOLD`, `DASHBOARD_LOW_STOCK_THRESHOLD`, `TOP_SALES_WINDOW_DAYS`, `CATALOG_STALENESS_HOURS`) actúan como **fallback** si el global CMS no está disponible.
+
 ## Colecciones Jeyjo (cambio `payload-collections-bootstrap`)
 
 | Grupo admin | Colección | Descripción |

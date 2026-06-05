@@ -12,8 +12,7 @@ export const AnalyticsSettings: GlobalConfig = {
   slug: 'analyticsSettings',
   label: 'Analytics y Merchant Feed',
   admin: {
-    group: 'Configuración',
-    hidden: true,
+    group: 'Configuración del sistema',
   },
   access: {
     read: analyticsStaffRead,

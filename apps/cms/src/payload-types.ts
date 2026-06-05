@@ -80,6 +80,7 @@ export interface Config {
     quotes: Quote;
     'rma-incidents': RmaIncident;
     coupons: Coupon;
+    'b2b-catalog-downloads': B2BCatalogDownload;
     forms: Form;
     'form-submissions': FormSubmission;
     addresses: Address;
@@ -117,6 +118,7 @@ export interface Config {
     quotes: QuotesSelect<false> | QuotesSelect<true>;
     'rma-incidents': RmaIncidentsSelect<false> | RmaIncidentsSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
+    'b2b-catalog-downloads': B2BCatalogDownloadsSelect<false> | B2BCatalogDownloadsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
@@ -140,8 +142,10 @@ export interface Config {
     header: Header;
     footer: Footer;
     home: Home;
+    systemSettings: SystemSetting;
     paymentSettings: PaymentSetting;
     marketingSettings: MarketingSetting;
+    newsletterSettings: NewsletterSetting;
     skaiSettings: SkaiSetting;
     analyticsSettings: AnalyticsSetting;
   };
@@ -149,8 +153,10 @@ export interface Config {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     home: HomeSelect<false> | HomeSelect<true>;
+    systemSettings: SystemSettingsSelect<false> | SystemSettingsSelect<true>;
     paymentSettings: PaymentSettingsSelect<false> | PaymentSettingsSelect<true>;
     marketingSettings: MarketingSettingsSelect<false> | MarketingSettingsSelect<true>;
+    newsletterSettings: NewsletterSettingsSelect<false> | NewsletterSettingsSelect<true>;
     skaiSettings: SkaiSettingsSelect<false> | SkaiSettingsSelect<true>;
     analyticsSettings: AnalyticsSettingsSelect<false> | AnalyticsSettingsSelect<true>;
   };
@@ -1346,6 +1352,32 @@ export interface Coupon {
   createdAt: string;
 }
 /**
+ * Catálogos PDF y revistas de ofertas visibles en /intranet/descargas.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "b2b-catalog-downloads".
+ */
+export interface B2BCatalogDownload {
+  id: number;
+  title: string;
+  description?: string | null;
+  documentType: 'catalog' | 'offer_magazine' | 'other';
+  /**
+   * Solo PDF, máximo 25 MB.
+   */
+  file: number | Media;
+  coverImage?: (number | null) | Media;
+  validFrom: string;
+  validUntil: string;
+  /**
+   * Vacío = visible para todos los grupos B2B (2, 3 y 4).
+   */
+  customerGroups?: ('2' | '3' | '4')[] | null;
+  published?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
@@ -1417,6 +1449,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'coupons';
         value: number | Coupon;
+      } | null)
+    | ({
+        relationTo: 'b2b-catalog-downloads';
+        value: number | B2BCatalogDownload;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1806,6 +1842,23 @@ export interface CouponsSelect<T extends boolean = true> {
   active?: T;
   source?: T;
   recoveryCartId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "b2b-catalog-downloads_select".
+ */
+export interface B2BCatalogDownloadsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  documentType?: T;
+  file?: T;
+  coverImage?: T;
+  validFrom?: T;
+  validUntil?: T;
+  customerGroups?: T;
+  published?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2343,6 +2396,41 @@ export interface Home {
   createdAt?: string | null;
 }
 /**
+ * Parámetros operativos de portes, stock, alertas y contacto. Los cambios se propagan en ~1 minuto.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "systemSettings".
+ */
+export interface SystemSetting {
+  id: number;
+  shippingB2cThreshold?: number | null;
+  shippingB2cCost?: number | null;
+  shippingB2bThreshold?: number | null;
+  shippingB2bCost?: number | null;
+  /**
+   * Unidades por debajo de las cuales el indicador es "Últimas unidades".
+   */
+  stockLowThreshold?: number | null;
+  topSalesWindowDays?: number | null;
+  dashboardLowStockThreshold?: number | null;
+  /**
+   * Tras este tiempo sin sync exitoso, los datos se consideran obsoletos.
+   */
+  catalogStalenessHours?: number | null;
+  predictiveSearchEnabled?: boolean | null;
+  suggestLimit?: number | null;
+  minQueryLength?: number | null;
+  supportPhone?: string | null;
+  supportEmail?: string | null;
+  whatsapp?: string | null;
+  storeAlfaroName?: string | null;
+  storeAlfaroAddress?: string | null;
+  storeRinconName?: string | null;
+  storeRinconAddress?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "paymentSettings".
  */
@@ -2392,6 +2480,24 @@ export interface MarketingSetting {
         id?: string | null;
       }[]
     | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletterSettings".
+ */
+export interface NewsletterSetting {
+  id: number;
+  enabled?: boolean | null;
+  headline?: string | null;
+  description?: string | null;
+  privacyPolicyUrl?: string | null;
+  /**
+   * Sustituye BREVO_NEWSLETTER_LIST_ID del entorno si se indica
+   */
+  brevoListId?: number | null;
+  confirmationEmailEnabled?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2521,6 +2627,33 @@ export interface HomeSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "systemSettings_select".
+ */
+export interface SystemSettingsSelect<T extends boolean = true> {
+  shippingB2cThreshold?: T;
+  shippingB2cCost?: T;
+  shippingB2bThreshold?: T;
+  shippingB2bCost?: T;
+  stockLowThreshold?: T;
+  topSalesWindowDays?: T;
+  dashboardLowStockThreshold?: T;
+  catalogStalenessHours?: T;
+  predictiveSearchEnabled?: T;
+  suggestLimit?: T;
+  minQueryLength?: T;
+  supportPhone?: T;
+  supportEmail?: T;
+  whatsapp?: T;
+  storeAlfaroName?: T;
+  storeAlfaroAddress?: T;
+  storeRinconName?: T;
+  storeRinconAddress?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "paymentSettings_select".
  */
 export interface PaymentSettingsSelect<T extends boolean = true> {
@@ -2558,6 +2691,21 @@ export interface MarketingSettingsSelect<T extends boolean = true> {
         code?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletterSettings_select".
+ */
+export interface NewsletterSettingsSelect<T extends boolean = true> {
+  enabled?: T;
+  headline?: T;
+  description?: T;
+  privacyPolicyUrl?: T;
+  brevoListId?: T;
+  confirmationEmailEnabled?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

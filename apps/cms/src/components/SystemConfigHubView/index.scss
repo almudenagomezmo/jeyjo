@@ -1,0 +1,85 @@
+.system-config-hub {
+  padding: var(--gutter-h);
+  max-width: 960px;
+
+  &__header {
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: var(--theme-elevation-600);
+      line-height: 1.5;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  &__card {
+    display: block;
+    padding: 1.25rem;
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-m);
+    background: var(--theme-elevation-50);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease;
+
+    &:hover {
+      border-color: var(--theme-elevation-400);
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 0.875rem;
+      color: var(--theme-elevation-600);
+      line-height: 1.45;
+      margin-bottom: 0.75rem;
+    }
+  }
+
+  &__roles {
+    font-size: 0.75rem;
+    color: var(--theme-elevation-500);
+  }
+
+  &__security {
+    padding: 1.25rem;
+    border: 1px solid var(--theme-elevation-150);
+    border-radius: var(--style-radius-m);
+    background: var(--theme-elevation-0);
+
+    h2 {
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.25rem;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: var(--theme-elevation-700);
+    }
+
+    li + li {
+      margin-top: 0.5rem;
+    }
+
+    code {
+      font-size: 0.8125rem;
+    }
+  }
+}

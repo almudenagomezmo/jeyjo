@@ -414,6 +414,89 @@ export type Database = {
           },
         ]
       }
+      newsletter_rate_limits: {
+        Row: {
+          bucket_key: string
+          hit_count: number
+          id: string
+          window_started_at: string
+        }
+        Insert: {
+          bucket_key: string
+          hit_count?: number
+          id?: string
+          window_started_at?: string
+        }
+        Update: {
+          bucket_key?: string
+          hit_count?: number
+          id?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          confirm_token: string
+          confirmed_at: string | null
+          consent_at: string
+          created_at: string
+          email: string
+          email_normalized: string
+          esp_contact_id: string | null
+          esp_synced_at: string | null
+          id: string
+          source: string
+          status: string
+          unsubscribe_token: string
+          unsubscribed_at: string | null
+          updated_at: string
+          web_profile_id: string | null
+        }
+        Insert: {
+          confirm_token: string
+          confirmed_at?: string | null
+          consent_at: string
+          created_at?: string
+          email: string
+          email_normalized: string
+          esp_contact_id?: string | null
+          esp_synced_at?: string | null
+          id?: string
+          source?: string
+          status?: string
+          unsubscribe_token: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          web_profile_id?: string | null
+        }
+        Update: {
+          confirm_token?: string
+          confirmed_at?: string | null
+          consent_at?: string
+          created_at?: string
+          email?: string
+          email_normalized?: string
+          esp_contact_id?: string | null
+          esp_synced_at?: string | null
+          id?: string
+          source?: string
+          status?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          web_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'newsletter_subscribers_web_profile_id_fkey'
+            columns: ['web_profile_id']
+            isOneToOne: false
+            referencedRelation: 'web_profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       customers: {
         Row: {
           billing_address_line1: string | null

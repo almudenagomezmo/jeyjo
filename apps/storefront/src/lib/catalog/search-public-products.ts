@@ -58,7 +58,7 @@ async function searchPublicProductsVector(q: string): Promise<PlpProductRow[]> {
 }
 
 export async function searchPublicProducts(q: string): Promise<PlpProductRow[]> {
-  if (isPredictiveSearchEnabled()) {
+  if (await isPredictiveSearchEnabled()) {
     return searchPublicProductsVector(q)
   }
   return searchPublicProductsText(q)

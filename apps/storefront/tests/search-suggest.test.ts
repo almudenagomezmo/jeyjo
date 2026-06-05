@@ -20,6 +20,8 @@ vi.mock('@/lib/search/hydrate-suggest', () => ({
 
 vi.mock('@/lib/search/search-flags', () => ({
   isQdrantConfigured: () => true,
+  isPredictiveSearchEnabled: async () => true,
+  getMinQueryLength: async () => 3,
 }))
 
 import { POST } from '@/app/api/search/suggest/route'

@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/Container";
+import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
 import { Logo } from "@/components/ui/Logo";
 import type { NavNode } from "@/lib/catalog/fetch-navigation-tree";
+import type { NewsletterSettings } from "@/lib/newsletter/types";
+import type { SystemConfigDto } from "@/lib/system-config/types";
 
 interface FooterProps {
   tree: NavNode[];
+  newsletterSettings: NewsletterSettings;
+  defaultEmail?: string;
+  contact: SystemConfigDto["contact"];
 }
 
 const staticColumns = [
@@ -31,7 +37,7 @@ const staticColumns = [
   },
 ] as const;
 
-export function Footer({ tree }: FooterProps) {
+export function Footer({ tree, newsletterSettings, defaultEmail, contact }: FooterProps) {
   const catalogLinks = tree.map((cat) => ({ label: cat.title, href: `/c/${cat.slug}` }));
 
   const columns = [{ title: "Catálogo", links: catalogLinks }, ...staticColumns];
@@ -39,13 +45,26 @@ export function Footer({ tree }: FooterProps) {
   return (
     <footer className="mt-20 bg-ink pt-14 text-neutral-200">
       <Container>
-        <div className="grid grid-cols-2 gap-10 pb-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="grid grid-cols-2 gap-10 pb-10 md:grid-cols-[1.4fr_repeat(3,1fr)_1.2fr]">
           <div className="col-span-2 md:col-span-1">
             <Logo size={32} color="white" />
             <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-neutral-300">
               Material de oficina y reciclaje desde 1998. Servicio para particulares y empresas en
               toda España.
             </p>
+            {(contact.supportPhone || contact.supportEmail) && (
+              <div className="mt-4 space-y-1 text-[13px] text-neutral-300">
+                {contact.supportPhone && <p>Tel: {contact.supportPhone}</p>}
+                {contact.supportEmail && (
+                  <p>
+                    Email:{" "}
+                    <a href={`mailto:${contact.supportEmail}`} className="hover:text-white">
+                      {contact.supportEmail}
+                    </a>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           {columns.map((col) => (
             <div key={col.title}>
@@ -61,6 +80,9 @@ export function Footer({ tree }: FooterProps) {
               </ul>
             </div>
           ))}
+          <div className="col-span-2 md:col-span-1">
+            <NewsletterSignup settings={newsletterSettings} defaultEmail={defaultEmail} />
+          </div>
         </div>
         <div className="flex flex-col gap-2 border-t border-white/10 py-5 text-[12px] text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} Jeyjo Material de Oficina, SL · CIF B-26000000</span>

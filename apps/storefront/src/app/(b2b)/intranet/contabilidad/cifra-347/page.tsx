@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { IntranetScaffoldPage } from "@/components/intranet/IntranetScaffoldPage";
-import { getScaffoldForPath } from "@/lib/intranet/navigation";
+import { Form347Panel } from "@/components/intranet/contabilidad/Form347Panel";
+import { guardIntranetPage } from "@/lib/b2b/guard-page";
 
-const PATH = "/intranet/contabilidad/cifra-347";
-const scaffold = getScaffoldForPath(PATH)!;
+export const metadata: Metadata = { title: "Cifra 347" };
 
-export const metadata: Metadata = { title: scaffold.title };
-
-export default function Cifra347Page() {
-  return <IntranetScaffoldPage pathname={PATH} />;
+export default async function Cifra347Page() {
+  await guardIntranetPage("/intranet/contabilidad/cifra-347");
+  return <Form347Panel />;
 }

@@ -9,18 +9,30 @@ import type { CartProductSnapshot } from "@/lib/cart/types";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
+import { DEFAULT_SHIPPING_RULES, type ShippingRules } from "@/lib/system-config/defaults";
 import type { CartLine, PriceMode } from "@/lib/types";
 
-const EMPTY_SUMMARY = (mode: PriceMode): CartSummary => ({
+const EMPTY_SUMMARY = (mode: PriceMode, rules = DEFAULT_SHIPPING_RULES): CartSummary => ({
   lines: [],
   itemCount: 0,
   subtotal: 0,
-  shippingThreshold: mode === "b2b" ? 10 : 39,
+  shippingThreshold: rules[mode].threshold,
   shippingCost: 0,
   amountToFreeShipping: 0,
   total: 0,
   mode,
 });
+
+async function fetchShippingRulesClient(): Promise<ShippingRules> {
+  try {
+    const res = await fetch("/api/system/config");
+    if (!res.ok) return DEFAULT_SHIPPING_RULES;
+    const body = (await res.json()) as { shipping?: ShippingRules };
+    return body.shipping ?? DEFAULT_SHIPPING_RULES;
+  } catch {
+    return DEFAULT_SHIPPING_RULES;
+  }
+}
 
 export async function fetchCartSummaryData(
   lines: CartLine[],
@@ -30,11 +42,14 @@ export async function fetchCartSummaryData(
 
   const ids = [...new Set(lines.map((l) => l.productId))];
 
-  const productsRes = await fetch("/api/catalog/cart-products", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ slugs: ids }),
-  });
+  const [productsRes, shippingRules] = await Promise.all([
+    fetch("/api/catalog/cart-products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slugs: ids }),
+    }),
+    fetchShippingRulesClient(),
+  ]);
 
   let products: CartProductSnapshot[] = [];
   if (productsRes.ok) {
@@ -60,7 +75,7 @@ export async function fetchCartSummaryData(
     }
   }
 
-  return computeCartSummary(lines, products, quotes, mode);
+  return computeCartSummary(lines, products, quotes, mode, shippingRules);
 }
 
 export function useCartSummary() {

@@ -18,6 +18,7 @@ import sharp from 'sharp'
 import { Coupons } from '@/collections/Coupons'
 import { Categories } from '@/collections/Categories'
 import { Quotes } from '@/collections/Quotes'
+import { B2bCatalogDownloads } from '@/collections/B2bCatalogDownloads'
 import { RmaIncidents } from '@/collections/RmaIncidents'
 import { Media } from '@/collections/Media'
 import { Pages } from '@/collections/Pages'
@@ -27,9 +28,12 @@ import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
 import { Home } from '@/globals/Home'
 import { MarketingSettings } from '@/globals/MarketingSettings'
+import { NewsletterSettings } from '@/globals/NewsletterSettings'
 import { PaymentSettings } from '@/globals/PaymentSettings'
 import { SkaiSettings } from '@/globals/SkaiSettings'
 import { AnalyticsSettings } from '@/globals/AnalyticsSettings'
+import { SystemSettings } from '@/globals/SystemSettings'
+import { SYSTEM_SETTINGS_SEED } from '@/lib/system-config/defaults'
 import { auditLogEndpoint } from '@/endpoints/audit-log'
 import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
 import { pendingCustomersEndpoint } from '@/endpoints/pending-customers'
@@ -49,6 +53,7 @@ import {
   analyticsStatusEndpoint,
   analyticsStatusUpdateEndpoint,
 } from '@/endpoints/analytics-status'
+import { newsletterEndpoints } from '@/endpoints/newsletter'
 import { preloadExcelAdapter } from '@/erp/registry'
 import { plugins } from './plugins'
 import { ensureCollection } from '@/lib/qdrant'
@@ -150,11 +155,29 @@ export default buildConfig({
           Component: '@/components/AnalyticsConfigView#AnalyticsConfigView',
           path: '/analytics-config',
         },
+        newsletterSubscribers: {
+          Component: '@/components/NewsletterSubscribersView#NewsletterSubscribersView',
+          path: '/newsletter-subscribers',
+        },
+        systemConfig: {
+          Component: '@/components/SystemConfigHubView#SystemConfigHubView',
+          path: '/system-config',
+        },
       },
     },
     user: Users.slug,
   },
-  collections: [Users, Pages, Categories, Suppliers, Media, Quotes, RmaIncidents, Coupons],
+  collections: [
+    Users,
+    Pages,
+    Categories,
+    Suppliers,
+    Media,
+    Quotes,
+    RmaIncidents,
+    Coupons,
+    B2bCatalogDownloads,
+  ],
   cors: corsOrigins,
   csrf: corsOrigins,
   db: postgresAdapter({
@@ -221,8 +244,19 @@ export default buildConfig({
     skaiTestTokenEndpoint,
     analyticsStatusEndpoint,
     analyticsStatusUpdateEndpoint,
+    ...newsletterEndpoints,
   ],
-  globals: [Header, Footer, Home, PaymentSettings, MarketingSettings, SkaiSettings, AnalyticsSettings],
+  globals: [
+    Header,
+    Footer,
+    Home,
+    SystemSettings,
+    PaymentSettings,
+    MarketingSettings,
+    NewsletterSettings,
+    SkaiSettings,
+    AnalyticsSettings,
+  ],
   plugins,
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL,
@@ -230,11 +264,24 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  onInit: async () => {
+  onInit: async (payload) => {
     try {
       await preloadExcelAdapter()
     } catch (e) {
       console.warn('[ERP] Excel adapter preload skipped:', e instanceof Error ? e.message : e)
+    }
+
+    try {
+      const existing = await payload.findGlobal({ slug: 'systemSettings', overrideAccess: true })
+      if (!existing?.updatedAt) {
+        await payload.updateGlobal({
+          slug: 'systemSettings',
+          data: SYSTEM_SETTINGS_SEED,
+          overrideAccess: true,
+        })
+      }
+    } catch (e) {
+      console.warn('[SystemSettings] Seed skipped:', e instanceof Error ? e.message : e)
     }
 
     for (const col of qdrantCollections) {
