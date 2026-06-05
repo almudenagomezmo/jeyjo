@@ -37,7 +37,8 @@ import { RmaInboxView as RmaInboxView_6281e42023e8d04db95a29ce524735ac } from '@
 import { CatalogImportView as CatalogImportView_5a92596baa578057d7b607306215db64 } from '@/components/CatalogImportView'
 import { SkaiConfigView as SkaiConfigView_6b8f93d88b4c1ba61bfad5f63e57900f } from '@/components/SkaiConfigView'
 import { AnalyticsConfigView as AnalyticsConfigView_01cd52b7f539f708150433bd79f6eeaf } from '@/components/AnalyticsConfigView'
-import { NewsletterSubscribersView as NewsletterSubscribersView_a1b2c3d4e5f6789012345678abcdef01 } from '@/components/NewsletterSubscribersView'
+import { NewsletterSubscribersView as NewsletterSubscribersView_035e1e824fffd874d0496fd631354099 } from '@/components/NewsletterSubscribersView'
+import { SystemConfigHubView as SystemConfigHubView_a46810c4b44d906a5a7a2dfa371acc74 } from '@/components/SystemConfigHubView'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -81,6 +82,7 @@ export const importMap = {
   "@/components/CatalogImportView#CatalogImportView": CatalogImportView_5a92596baa578057d7b607306215db64,
   "@/components/SkaiConfigView#SkaiConfigView": SkaiConfigView_6b8f93d88b4c1ba61bfad5f63e57900f,
   "@/components/AnalyticsConfigView#AnalyticsConfigView": AnalyticsConfigView_01cd52b7f539f708150433bd79f6eeaf,
-  "@/components/NewsletterSubscribersView#NewsletterSubscribersView": NewsletterSubscribersView_a1b2c3d4e5f6789012345678abcdef01,
+  "@/components/NewsletterSubscribersView#NewsletterSubscribersView": NewsletterSubscribersView_035e1e824fffd874d0496fd631354099,
+  "@/components/SystemConfigHubView#SystemConfigHubView": SystemConfigHubView_a46810c4b44d906a5a7a2dfa371acc74,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }
