@@ -62,7 +62,7 @@ export default async function HomePage() {
     <div className="animate-fade-up">
       <HomeHero priceMode={priceMode} />
       <PromoBannerStrip banners={activeBanners} />
-      <SegmentCards b2cCatalogHref={b2cRootHref} b2bCatalogHref={b2bRootHref} />
+      <SegmentCards b2cCatalogHref={b2cRootHref} />
       <FeaturedCategories categories={featured} />
       <HomeProductCarousel
         title={topSalesTitle}

@@ -3,14 +3,13 @@ import { Container } from "@/components/layout/Container";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { ChevronRightIcon, ShieldIcon, UserIcon } from "@/components/ui/icons";
+import { BuildingIcon, ChevronRightIcon, UserIcon } from "@/components/ui/icons";
 
 interface SegmentCardsProps {
   b2cCatalogHref: string;
-  b2bCatalogHref: string;
 }
 
-export function SegmentCards({ b2cCatalogHref, b2bCatalogHref }: SegmentCardsProps) {
+export function SegmentCards({ b2cCatalogHref }: SegmentCardsProps) {
   return (
     <Container className="pt-10">
       <div className="grid gap-4 md:grid-cols-2">
@@ -32,20 +31,25 @@ export function SegmentCards({ b2cCatalogHref, b2bCatalogHref }: SegmentCardsPro
           </div>
         </Card>
 
-        <Card className="flex items-start gap-4 border-ink bg-ink p-7 text-neutral-100">
+        <Card className="flex items-start gap-4 border-ink bg-ink p-7 text-neutral-0 dark:border-primary/30 dark:bg-surface-muted dark:text-text dark:shadow-md">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-primary text-on-primary">
-            <ShieldIcon size={22} />
+            <BuildingIcon size={22} />
           </span>
           <div className="flex-1">
-            <Badge tone="primary" size="sm">
+            <Badge
+              size="sm"
+              className="border border-primary bg-neutral-0 text-text-brand dark:border-primary/40 dark:bg-primary-soft dark:text-primary"
+            >
               Empresas y autónomos
             </Badge>
-            <h3 className="mt-2 text-xl font-extrabold tracking-tight">Portal B2B</h3>
-            <p className="mt-1 text-sm text-neutral-300">
+            <h3 className="mt-2 text-xl font-extrabold tracking-tight text-neutral-0 dark:text-text">
+              Portal B2B
+            </h3>
+            <p className="mt-1 text-sm text-neutral-300 dark:text-text-secondary">
               Tarifas pactadas, pedido rápido, subusuarios y facturas en tu área de cliente.
             </p>
             <Button size="sm" className="mt-4" asChild>
-              <Link href={b2bCatalogHref}>
+              <Link href="/registro?empresa=1">
                 Solicitar acceso B2B <ChevronRightIcon size={14} />
               </Link>
             </Button>

@@ -1,6 +1,8 @@
+import { twMerge } from "tailwind-merge";
+
 type ClassValue = string | number | null | false | undefined;
 
-/** Minimal classnames joiner (no runtime deps). */
+/** Join class names and merge Tailwind conflicts (last wins). */
 export function cn(...values: ClassValue[]): string {
-  return values.filter(Boolean).join(" ");
+  return twMerge(values.filter(Boolean).join(" "));
 }
