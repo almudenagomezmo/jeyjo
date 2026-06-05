@@ -1,0 +1,254 @@
+{
+  "syncedAt": "2026-06-05T08:55:53.821Z",
+  "source": "http://localhost:3001",
+  "docs": [
+    {
+      "id": 238,
+      "title": "Papeleras de reciclaje",
+      "slug": "papeleras",
+      "parent": 237,
+      "sortOrder": 1,
+      "homeGlyph": null
+    },
+    {
+      "id": 233,
+      "title": "Grapadoras y grapas",
+      "slug": "grapado",
+      "parent": 232,
+      "sortOrder": 1,
+      "homeGlyph": null
+    },
+    {
+      "id": 228,
+      "title": "Archivadores AZ",
+      "slug": "archivadores",
+      "parent": 227,
+      "sortOrder": 1,
+      "homeGlyph": null
+    },
+    {
+      "id": 224,
+      "title": "Tóner láser",
+      "slug": "toner",
+      "parent": 223,
+      "sortOrder": 1,
+      "homeGlyph": null
+    },
+    {
+      "id": 219,
+      "title": "Folios A4 y A3",
+      "slug": "folios",
+      "parent": 218,
+      "sortOrder": 1,
+      "homeGlyph": null
+    },
+    {
+      "id": 213,
+      "title": "Bolígrafos gel",
+      "slug": "gel",
+      "parent": 212,
+      "sortOrder": 1,
+      "homeGlyph": null
+    },
+    {
+      "id": 212,
+      "title": "Bolígrafos",
+      "slug": "boligrafos",
+      "parent": 211,
+      "sortOrder": 1,
+      "homeGlyph": null
+    },
+    {
+      "id": 211,
+      "title": "Escritura y corrección",
+      "slug": "escritura",
+      "parent": null,
+      "sortOrder": 1,
+      "homeGlyph": "pen"
+    },
+    {
+      "id": 239,
+      "title": "Pilas y baterías",
+      "slug": "pilas",
+      "parent": 237,
+      "sortOrder": 2,
+      "homeGlyph": null
+    },
+    {
+      "id": 234,
+      "title": "Tijeras y cúter",
+      "slug": "corte",
+      "parent": 232,
+      "sortOrder": 2,
+      "homeGlyph": null
+    },
+    {
+      "id": 229,
+      "title": "Carpetas y fundas",
+      "slug": "carpetas",
+      "parent": 227,
+      "sortOrder": 2,
+      "homeGlyph": null
+    },
+    {
+      "id": 220,
+      "title": "Cuadernos y blocs",
+      "slug": "cuadernos",
+      "parent": 218,
+      "sortOrder": 2,
+      "homeGlyph": null
+    },
+    {
+      "id": 218,
+      "title": "Papel y blocs",
+      "slug": "papel",
+      "parent": null,
+      "sortOrder": 2,
+      "homeGlyph": "paper"
+    },
+    {
+      "id": 215,
+      "title": "Rotuladores y marcadores",
+      "slug": "rotuladores",
+      "parent": 211,
+      "sortOrder": 2,
+      "homeGlyph": null
+    },
+    {
+      "id": 214,
+      "title": "Bolígrafos tinta",
+      "slug": "tinta",
+      "parent": 212,
+      "sortOrder": 2,
+      "homeGlyph": null
+    },
+    {
+      "id": 240,
+      "title": "Contenedores",
+      "slug": "contenedores",
+      "parent": 237,
+      "sortOrder": 3,
+      "homeGlyph": null
+    },
+    {
+      "id": 235,
+      "title": "Calculadoras",
+      "slug": "calculadoras",
+      "parent": 232,
+      "sortOrder": 3,
+      "homeGlyph": null
+    },
+    {
+      "id": 230,
+      "title": "Subcarpetas y separadores",
+      "slug": "separadores",
+      "parent": 227,
+      "sortOrder": 3,
+      "homeGlyph": null
+    },
+    {
+      "id": 225,
+      "title": "Impresoras y multifunción",
+      "slug": "impresoras",
+      "parent": 223,
+      "sortOrder": 3,
+      "homeGlyph": null
+    },
+    {
+      "id": 223,
+      "title": "Impresión y tinta",
+      "slug": "impresion",
+      "parent": null,
+      "sortOrder": 3,
+      "homeGlyph": "toner"
+    },
+    {
+      "id": 221,
+      "title": "Manualidades y escolar",
+      "slug": "manualidades",
+      "parent": 218,
+      "sortOrder": 3,
+      "homeGlyph": null
+    },
+    {
+      "id": 216,
+      "title": "Lápices y portaminas",
+      "slug": "lapices",
+      "parent": 211,
+      "sortOrder": 3,
+      "homeGlyph": null
+    },
+    {
+      "id": 241,
+      "title": "Limpieza oficina",
+      "slug": "limpieza",
+      "parent": 237,
+      "sortOrder": 4,
+      "homeGlyph": null
+    },
+    {
+      "id": 236,
+      "title": "Cintas adhesivas",
+      "slug": "adhesivos",
+      "parent": 232,
+      "sortOrder": 4,
+      "homeGlyph": null
+    },
+    {
+      "id": 231,
+      "title": "Cajas archivo",
+      "slug": "cajas",
+      "parent": 227,
+      "sortOrder": 4,
+      "homeGlyph": null
+    },
+    {
+      "id": 227,
+      "title": "Archivo y carpetería",
+      "slug": "archivo",
+      "parent": null,
+      "sortOrder": 4,
+      "homeGlyph": "folder"
+    },
+    {
+      "id": 226,
+      "title": "Etiquetas adhesivas",
+      "slug": "etiquetas",
+      "parent": 223,
+      "sortOrder": 4,
+      "homeGlyph": null
+    },
+    {
+      "id": 222,
+      "title": "Sobres y mensajería",
+      "slug": "sobres",
+      "parent": 218,
+      "sortOrder": 4,
+      "homeGlyph": null
+    },
+    {
+      "id": 217,
+      "title": "Corrección",
+      "slug": "correccion",
+      "parent": 211,
+      "sortOrder": 4,
+      "homeGlyph": null
+    },
+    {
+      "id": 232,
+      "title": "Material de oficina",
+      "slug": "oficina",
+      "parent": null,
+      "sortOrder": 5,
+      "homeGlyph": "stapler"
+    },
+    {
+      "id": 237,
+      "title": "Reciclaje y limpieza",
+      "slug": "reciclaje",
+      "parent": null,
+      "sortOrder": 6,
+      "homeGlyph": "recycle"
+    }
+  ]
+}

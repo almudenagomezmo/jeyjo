@@ -5,7 +5,12 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ChevronRightIcon, ShieldIcon, UserIcon } from "@/components/ui/icons";
 
-export function SegmentCards() {
+interface SegmentCardsProps {
+  b2cCatalogHref: string;
+  b2bCatalogHref: string;
+}
+
+export function SegmentCards({ b2cCatalogHref, b2bCatalogHref }: SegmentCardsProps) {
   return (
     <Container className="pt-10">
       <div className="grid gap-4 md:grid-cols-2">
@@ -20,7 +25,7 @@ export function SegmentCards() {
               Precios con IVA, pago con Bizum y Apple Pay, y entrega rápida a domicilio.
             </p>
             <Button variant="secondary" size="sm" className="mt-4" asChild>
-              <Link href="/c/escritura">
+              <Link href={b2cCatalogHref}>
                 Ver ofertas para ti <ChevronRightIcon size={14} />
               </Link>
             </Button>
@@ -40,7 +45,7 @@ export function SegmentCards() {
               Tarifas pactadas, pedido rápido, subusuarios y facturas en tu área de cliente.
             </p>
             <Button size="sm" className="mt-4" asChild>
-              <Link href="/c/impresion">
+              <Link href={b2bCatalogHref}>
                 Solicitar acceso B2B <ChevronRightIcon size={14} />
               </Link>
             </Button>

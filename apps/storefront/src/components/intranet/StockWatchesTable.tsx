@@ -73,7 +73,7 @@ export function StockWatchesTable() {
           Aún no sigues ninguna referencia. Marca productos con el icono de corazón en el catálogo
           cuando no haya stock y te avisaremos cuando vuelvan a estar disponibles.
         </p>
-        <Link href="/c/general" className="text-sm font-semibold text-text-primary underline">
+        <Link href="/search" className="text-sm font-semibold text-text-primary underline">
           Ir al catálogo
         </Link>
       </Card>

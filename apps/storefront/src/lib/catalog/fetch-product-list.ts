@@ -6,7 +6,6 @@ import {
   isPublicCatalogProduct,
   type CmsProductSnapshot,
 } from '@/lib/catalog/public-product-filter'
-import { demoRowsForCategory, isPlpDemoFallback } from '@/lib/plp/demo-fallback'
 import { PLP_AGGREGATION_LIMIT, type PlpProductRow } from '@/lib/plp/types'
 import type { StockIndicatorLevel } from '@jeyjo/stock-ports'
 
@@ -130,11 +129,7 @@ export async function listPublicProducts(options: {
 }): Promise<PlpProductRow[]> {
   const slugs = options.categorySlugs ?? []
   const cmsRows = await listCachedPublicProductRows()
-  const filtered = cmsRows.filter((r) => matchesCategorySlugs(r, slugs))
-
-  if (filtered.length > 0 || !isPlpDemoFallback()) return filtered
-
-  return demoRowsForCategory(slugs)
+  return cmsRows.filter((r) => matchesCategorySlugs(r, slugs))
 }
 
 async function fetchProductsByIdsRaw(ids: string[]): Promise<CmsProductListDoc[]> {

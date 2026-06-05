@@ -21,6 +21,7 @@
     "db:push": "npx supabase db push --linked",
     "db:seed": "node scripts/apply-seed-sql.mjs",
     "seed:catalog": "pnpm --filter @jeyjo/cms seed:catalog",
+    "sync:categories": "pnpm --filter @jeyjo/storefront sync:categories",
     "db:bootstrap": "pnpm db:seed && pnpm seed:catalog",
     "db:bootstrap:local": "pnpm db:reset && pnpm seed:catalog",
     "db:types": "node scripts/generate-database-types.mjs",

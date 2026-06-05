@@ -64,7 +64,7 @@ export function MegaMenu({ open, tree, onClose }: MegaMenuProps) {
                           {sub.children.map((family) => (
                             <li key={family.id}>
                               <Link
-                                href={`/c/${cat.slug}/${sub.slug}#${family.slug}`}
+                                href={`/c/${cat.slug}/${sub.slug}/${family.slug}`}
                                 onClick={onClose}
                                 className="block rounded px-2 py-0.5 text-[12px] text-text-tertiary hover:bg-surface-muted hover:text-text-secondary"
                               >

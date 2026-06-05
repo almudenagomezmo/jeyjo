@@ -1,7 +1,10 @@
 import { unstable_cache } from 'next/cache'
 
-import { CATEGORIES } from '@/lib/data/categories'
 import type { GlyphKind } from '@/lib/types'
+
+import { readCategorySnapshot, type CmsCategoryDoc } from './category-snapshot'
+
+export type { CmsCategoryDoc } from './category-snapshot'
 
 export interface NavNode {
   id: string
@@ -11,22 +14,7 @@ export interface NavNode {
   children: NavNode[]
 }
 
-export interface CmsCategoryDoc {
-  id: string | number
-  title: string
-  slug: string
-  sortOrder?: number | null
-  parent?: string | number | { id: string | number } | null
-}
-
-const SLUG_GLYPH_MAP: Record<string, GlyphKind> = {
-  escritura: 'pen',
-  papel: 'paper',
-  impresion: 'toner',
-  archivo: 'folder',
-  oficina: 'stapler',
-  reciclaje: 'recycle',
-}
+const CMS_EMPTY = 'CMS_CATEGORIES_EMPTY'
 
 function cmsBaseUrl(): string | null {
   return (
@@ -35,6 +23,13 @@ function cmsBaseUrl(): string | null {
     process.env.NEXT_PUBLIC_PAYLOAD_URL ??
     null
   )
+}
+
+function cmsFetchTimeoutMs(): number {
+  const raw = process.env.CMS_FETCH_TIMEOUT_MS
+  if (!raw) return 3000
+  const n = Number.parseInt(raw, 10)
+  return Number.isFinite(n) && n > 0 ? n : 3000
 }
 
 function parentId(parent: CmsCategoryDoc['parent']): string | null {
@@ -55,6 +50,7 @@ async function fetchCategoriesFromCmsRaw(): Promise<CmsCategoryDoc[]> {
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
     next: { revalidate: 300 },
+    signal: AbortSignal.timeout(cmsFetchTimeoutMs()),
   })
 
   if (!res.ok) {
@@ -65,18 +61,63 @@ async function fetchCategoriesFromCmsRaw(): Promise<CmsCategoryDoc[]> {
   return body.docs ?? []
 }
 
-const cachedFetchCategories = unstable_cache(
-  async () => fetchCategoriesFromCmsRaw(),
+const cachedFetchCategoriesNonEmpty = unstable_cache(
+  async () => {
+    const docs = await fetchCategoriesFromCmsRaw()
+    if (docs.length === 0) {
+      throw new Error(CMS_EMPTY)
+    }
+    return docs
+  },
   ['cms-navigation-categories'],
   { revalidate: 300 },
 )
 
-export async function fetchCategoriesFromCms(): Promise<CmsCategoryDoc[]> {
-  try {
-    return await cachedFetchCategories()
-  } catch {
-    return []
+async function fetchCategoriesFromCmsLive(): Promise<CmsCategoryDoc[]> {
+  if (!cmsBaseUrl()) return []
+
+  // Dev: always hit CMS so Payload admin edits appear without waiting for cache TTL.
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      return await fetchCategoriesFromCmsRaw()
+    } catch {
+      return []
+    }
   }
+
+  try {
+    return await cachedFetchCategoriesNonEmpty()
+  } catch (err) {
+    if (err instanceof Error && err.message === CMS_EMPTY) {
+      return []
+    }
+    try {
+      return await fetchCategoriesFromCmsRaw()
+    } catch {
+      return []
+    }
+  }
+}
+
+export async function fetchCategoryDocs(): Promise<CmsCategoryDoc[]> {
+  const live = await fetchCategoriesFromCmsLive()
+  if (live.length > 0) return live
+
+  const snapshot = readCategorySnapshot()
+  if (snapshot && snapshot.docs.length > 0) {
+    if (live.length === 0 && cmsBaseUrl()) {
+      console.warn('[navigation] Live CMS unavailable or empty; using category snapshot.')
+    }
+    return snapshot.docs
+  }
+
+  console.warn('[navigation] No categories from CMS or snapshot.')
+  return []
+}
+
+/** @deprecated Use fetchCategoryDocs */
+export async function fetchCategoriesFromCms(): Promise<CmsCategoryDoc[]> {
+  return fetchCategoryDocs()
 }
 
 function buildSubtree(
@@ -105,7 +146,7 @@ function buildSubtree(
     id: String(doc.id),
     title: doc.title,
     slug: doc.slug,
-    glyph: SLUG_GLYPH_MAP[doc.slug],
+    glyph: doc.homeGlyph ?? undefined,
     children,
   }
 }
@@ -140,38 +181,22 @@ export function buildNavigationTree(docs: CmsCategoryDoc[], maxDepth = 3): NavNo
     .filter((node): node is NavNode => node != null)
 }
 
-function staticCategoriesToNavNodes(): NavNode[] {
-  return CATEGORIES.map((cat) => ({
-    id: cat.id,
-    title: cat.name,
-    slug: cat.id,
-    glyph: cat.glyph,
-    children: cat.subcategories.map((sub) => ({
-      id: sub.id,
-      title: sub.name,
-      slug: sub.id,
-      children: [],
-    })),
-  }))
-}
-
 export async function getNavigationTree(): Promise<NavNode[]> {
   try {
-    const docs = await fetchCategoriesFromCms()
-    if (docs.length === 0) {
-      console.warn('[navigation] CMS returned no categories; using static fallback.')
-      return staticCategoriesToNavNodes()
-    }
+    const docs = await fetchCategoryDocs()
+    if (docs.length === 0) return []
 
     const tree = buildNavigationTree(docs)
     if (tree.length === 0) {
-      console.warn('[navigation] Built empty navigation tree; using static fallback.')
-      return staticCategoriesToNavNodes()
+      console.warn('[navigation] Built empty navigation tree from category docs.')
     }
-
     return tree
   } catch (error) {
-    console.warn('[navigation] CMS fetch failed; using static fallback.', error)
-    return staticCategoriesToNavNodes()
+    console.warn('[navigation] Failed to build navigation tree.', error)
+    const snapshot = readCategorySnapshot()
+    if (snapshot?.docs.length) {
+      return buildNavigationTree(snapshot.docs)
+    }
+    return []
   }
 }

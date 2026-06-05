@@ -123,7 +123,7 @@ export function MobileNav({ open, tree, onClose }: MobileNavProps) {
                             {sub.children.map((family) => (
                               <li key={family.id}>
                                 <Link
-                                  href={`/c/${cat.slug}/${sub.slug}#${family.slug}`}
+                                  href={`/c/${cat.slug}/${sub.slug}/${family.slug}`}
                                   onClick={onClose}
                                   className="block rounded px-2 py-1 text-[12px] text-text-tertiary hover:bg-surface-muted hover:text-text-secondary"
                                 >

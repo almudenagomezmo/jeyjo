@@ -1,19 +1,17 @@
 import type { PriceQuote } from '@jeyjo/pricing'
-import { resolvePrice } from '@jeyjo/pricing'
 
 import {
   fetchPublicProductPdpBySlug,
   mapPdpDocToView,
   mapRelatedDocsToRows,
 } from '@/lib/catalog/fetch-product-pdp'
-import { isPdpDemoFallback, loadDemoPdpView } from '@/lib/pdp/demo-fallback'
 import type { PdpPagePayload } from '@/lib/pdp/types'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
 import { getProductPriceBase } from '@/lib/pricing/product-catalog'
 import { getStorefrontPricingRepository } from '@/lib/pricing/repository'
+import { resolvePrice } from '@jeyjo/pricing'
 import { getStockIndicator } from '@/lib/stock/get-stock-indicator'
 import { stockIndicatorsFromRows } from '@/lib/stock/get-stock-indicators-batch'
-import type { PublicStockIndicator } from '@/lib/stock/types'
 
 async function resolvePrimaryQuote(sku: string): Promise<PriceQuote | null> {
   const productBase = await getProductPriceBase(sku)
@@ -29,31 +27,6 @@ async function resolvePrimaryQuote(sku: string): Promise<PriceQuote | null> {
 export async function loadPdpPage(slugOrSku: string): Promise<PdpPagePayload | null> {
   const key = slugOrSku.trim()
   if (!key) return null
-
-  if (isPdpDemoFallback()) {
-    const demo = loadDemoPdpView(key)
-    if (!demo) return null
-    const quote = await resolvePrimaryQuote(demo.product.sku)
-    if (!quote) return null
-    const stock: PublicStockIndicator = {
-      level: demo.product.packUnit > 0 ? 'available' : 'limited',
-      label: 'Disponible',
-      isStale: false,
-      allowOrderWithoutStock: false,
-    }
-    const relatedSkus = demo.relatedRows.map((r) => r.sku)
-    const quotesBySku = await resolvePriceQuotesBatch(relatedSkus)
-    const stockBySku = stockIndicatorsFromRows(demo.relatedRows)
-    return {
-      product: demo.product,
-      quote,
-      stock,
-      relatedRows: demo.relatedRows,
-      quotesBySku,
-      stockBySku,
-      redirectToSlug: demo.redirectToSlug,
-    }
-  }
 
   const fetched = await fetchPublicProductPdpBySlug(key)
   if (!fetched) return null

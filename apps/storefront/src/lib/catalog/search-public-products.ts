@@ -8,7 +8,6 @@ import {
   mapDocToRow,
   type CmsProductListDoc,
 } from '@/lib/catalog/fetch-product-list'
-import { demoRowsForSearch, isPlpDemoFallback } from '@/lib/plp/demo-fallback'
 import type { PlpProductRow } from '@/lib/plp/types'
 import { isPredictiveSearchEnabled } from '@/lib/search/search-flags'
 
@@ -26,11 +25,7 @@ async function searchPublicProductsText(q: string): Promise<PlpProductRow[]> {
   if (!trimmed) return []
 
   const cmsRows = await listCachedPublicProductRows()
-  const filtered = cmsRows.filter((r) => matchesSearchQuery(r, trimmed))
-
-  if (filtered.length > 0 || !isPlpDemoFallback()) return filtered
-
-  return demoRowsForSearch(trimmed)
+  return cmsRows.filter((r) => matchesSearchQuery(r, trimmed))
 }
 
 async function searchPublicProductsVector(q: string): Promise<PlpProductRow[]> {
@@ -40,9 +35,7 @@ async function searchPublicProductsVector(q: string): Promise<PlpProductRow[]> {
   try {
     const { vectorSearchProductSkuList } = await import('@/lib/search/vector-search')
     const skus = await vectorSearchProductSkuList(trimmed, { limit: 200 })
-    if (skus.length === 0) {
-      return isPlpDemoFallback() ? demoRowsForSearch(trimmed) : []
-    }
+    if (skus.length === 0) return []
 
     const docs = await fetchPublicProductsBySkus(skus)
     const rows: PlpProductRow[] = []
@@ -52,7 +45,6 @@ async function searchPublicProductsVector(q: string): Promise<PlpProductRow[]> {
     }
     return rows
   } catch {
-    if (isPlpDemoFallback()) return demoRowsForSearch(trimmed)
     return []
   }
 }

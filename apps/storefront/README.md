@@ -26,11 +26,26 @@ Variables: ver `.env.example` (`PRICING_ENGINE_ENABLED`, `SUPABASE_*`).
 ## Shell y navegación
 
 - **TopBar**, **Header** (mega-menú desktop + drawer móvil), **Footer** y **MiniCart** en el layout raíz.
-- El árbol de categorías se carga en servidor desde Payload (`GET /api/categories`) con caché 300 s; si el CMS no responde, se usa la taxonomía estática de `lib/data/categories.ts`.
+- El árbol de categorías se carga en servidor desde Payload (`GET /api/categories`) con caché 300 s; si el CMS no responde o devuelve vacío, se usa el snapshot versionado en `data/category-tree.snapshot.json`.
+- Tras cambios de taxonomía en Payload: `pnpm sync:categories` (requiere `CMS_URL` y CMS con categorías).
+- Tres niveles en navegación: categoría → subcategoría → familia (`/c/{root}/{sub}/{family}`). Glyphs de raíz desde `homeGlyph` en CMS.
 - Route groups: `(shop)` para catálogo/búsqueda, `(account)` para `/cuenta` — las URLs públicas no cambian.
 - Skip link «Ir al contenido» y breadcrumbs en `/c/*`, `/p/*`, `/search`.
 
 Variables CMS para navegación: `CMS_URL` (preferida), `CMS_INTERNAL_URL` o `NEXT_PUBLIC_PAYLOAD_URL` — ver `.env.example`.
+
+## Catálogo (categorías, productos, proveedores)
+
+Todo el catálogo público se lee de Payload en servidor; **no hay slugs, SKUs ni taxonomía embebidos** en el código del storefront.
+
+| Dato | Origen |
+|------|--------|
+| Categorías (slug, jerarquía, `homeGlyph`) | `GET /api/categories` + snapshot fallback |
+| Productos PLP/PDP (slug, SKU, categorías, marca/proveedor) | `GET /api/products` |
+| Home merchandising | `GET /api/globals/home` |
+| Búsqueda | Qdrant + hidratación CMS, o filtro texto sobre productos cacheados |
+
+Si el CMS no devuelve datos, las listas y fichas quedan vacías (sin catálogo demo local). Ejecuta `pnpm seed:catalog` y `pnpm sync:categories` en local.
 
 ## Configuración operativa (RF-013 / cambio `#42`)
 

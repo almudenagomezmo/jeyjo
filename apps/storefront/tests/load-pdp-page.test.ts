@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import * as fetchPdp from '@/lib/catalog/fetch-product-pdp'
 import * as pricingBatch from '@/lib/pricing/resolve-batch'
@@ -7,10 +7,6 @@ import * as stockModule from '@/lib/stock/get-stock-indicator'
 const { loadPdpPage } = await import('@/lib/pdp/load-pdp-page')
 
 describe('loadPdpPage', () => {
-  beforeEach(() => {
-    vi.stubEnv('PDP_USE_DEMO_DATA', 'false')
-  })
-
   afterEach(() => {
     vi.restoreAllMocks()
     vi.unstubAllEnvs()

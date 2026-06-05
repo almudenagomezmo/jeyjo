@@ -1,12 +1,9 @@
-import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { SearchBar } from "@/components/layout/SearchBar";
 import { Badge } from "@/components/ui/Badge";
 import { SparklesIcon } from "@/components/ui/icons";
 import { HomeSegmentToggle } from "@/components/home/HomeSegmentToggle";
 import type { PriceMode } from "@/lib/types";
-
-const SUGGESTIONS = ["Folios A4", "Tóner HP", "Bolígrafos BIC", "Calculadora Casio", "Pilas"];
 
 export function HomeHero({ priceMode }: { priceMode: PriceMode }) {
   return (
@@ -29,17 +26,6 @@ export function HomeHero({ priceMode }: { priceMode: PriceMode }) {
           </div>
           <div className="mt-6 flex justify-center">
             <SearchBar />
-          </div>
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
-            {SUGGESTIONS.map((t) => (
-              <Link
-                key={t}
-                href={`/search?q=${encodeURIComponent(t)}`}
-                className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary hover:border-border-strong"
-              >
-                {t}
-              </Link>
-            ))}
           </div>
         </div>
       </Container>

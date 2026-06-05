@@ -37,12 +37,13 @@ The home route SHALL render the segmented merchandising home described in `store
 
 - **WHEN** the home page loads and the CMS home global is unavailable
 - **THEN** the home still renders hero and segment cards successfully
-- **AND** the header still renders using static navigation fallback data when categories are unavailable
+- **AND** the header still renders navigation from the category snapshot when live CMS categories are unavailable
 
 #### Scenario: Navigation degrades without CMS on home
 
-- **WHEN** the home page loads and CMS categories are unavailable
-- **THEN** the header still renders using static navigation fallback data
+- **WHEN** the home page loads and live CMS categories are unavailable
+- **THEN** the header still renders using the versioned category snapshot when present
+- **AND** does not fall back to the legacy static `CATEGORIES` TypeScript array
 
 ### Requirement: Not found page
 

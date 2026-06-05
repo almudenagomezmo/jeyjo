@@ -5,17 +5,8 @@ import { ProductGlyph } from "@/components/ui/ProductGlyph";
 import type { HomeFeaturedCategory } from "@/lib/home/types";
 import type { GlyphKind } from "@/lib/types";
 
-const SLUG_GLYPH_FALLBACK: Record<string, GlyphKind> = {
-  escritura: "pen",
-  papel: "paper",
-  impresion: "toner",
-  archivo: "folder",
-  oficina: "stapler",
-  reciclaje: "recycle",
-};
-
 function glyphFor(cat: HomeFeaturedCategory): GlyphKind {
-  return cat.glyph ?? SLUG_GLYPH_FALLBACK[cat.slug] ?? "box";
+  return cat.glyph ?? "box";
 }
 
 export function FeaturedCategories({ categories }: { categories: HomeFeaturedCategory[] }) {
