@@ -9,6 +9,7 @@ const rows: PlpProductRow[] = [
     slug: 'a',
     title: 'A',
     brand: 'BIC',
+    supplier: 'Distrisantiago',
     facetColor: 'Azul',
     facetMaterial: 'Plástico',
     ecoLabel: false,
@@ -27,6 +28,7 @@ const rows: PlpProductRow[] = [
     slug: 'b',
     title: 'B',
     brand: 'Pilot',
+    supplier: 'Distrisantiago',
     facetColor: 'Azul',
     facetMaterial: 'Metal',
     ecoLabel: true,
@@ -45,6 +47,7 @@ const rows: PlpProductRow[] = [
     slug: 'c',
     title: 'C',
     brand: 'BIC',
+    supplier: 'Distrisantiago',
     facetColor: 'Rojo',
     facetMaterial: 'Plástico',
     ecoLabel: false,
@@ -70,6 +73,7 @@ describe('buildFacetAggregates', () => {
   it('counts brand options with inStockToday filter applied', () => {
     const facets = buildFacetAggregates(rows, {
       brands: [],
+      suppliers: [],
       colors: [],
       materials: [],
       priceMax: null,
@@ -83,12 +87,28 @@ describe('buildFacetAggregates', () => {
     expect(pilot).toBeUndefined()
   })
 
-  it('narrows with two cumulative filters', () => {
+  it('narrows with brand and supplier filters together', () => {
     const filtered = rows.filter(
       (r) =>
         r.brand === 'BIC' &&
+        r.supplier === 'Distrisantiago' &&
         r.stockIndicator === 'available',
     )
     expect(filtered).toHaveLength(2)
+  })
+
+  it('counts supplier facet options', () => {
+    const facets = buildFacetAggregates(rows, {
+      brands: ['BIC'],
+      suppliers: [],
+      colors: [],
+      materials: [],
+      priceMax: null,
+      inStockToday: false,
+      eco: false,
+    }, quotes)
+
+    const distri = facets.suppliers.find((s) => s.value === 'Distrisantiago')
+    expect(distri?.count).toBe(2)
   })
 })

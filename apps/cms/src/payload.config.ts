@@ -24,6 +24,7 @@ import { GroupOffers } from '@/collections/GroupOffers'
 import { SpecialPrices } from '@/collections/SpecialPrices'
 import { RmaIncidents } from '@/collections/RmaIncidents'
 import { Media } from '@/collections/Media'
+import { Brands } from '@/collections/Brands'
 import { Suppliers } from '@/collections/Suppliers'
 import { Users } from '@/collections/Users'
 import { Home } from '@/globals/Home'
@@ -164,6 +165,7 @@ export default buildConfig({
   collections: [
     Users,
     Categories,
+    Brands,
     Suppliers,
     Media,
     Quotes,
@@ -185,6 +187,7 @@ export default buildConfig({
         ? {
             max: Number(process.env.PAYLOAD_DB_POOL_MAX ?? 2),
             idleTimeoutMillis: 20_000,
+            connectionTimeoutMillis: 15_000,
             ssl: { rejectUnauthorized: false },
           }
         : {}),

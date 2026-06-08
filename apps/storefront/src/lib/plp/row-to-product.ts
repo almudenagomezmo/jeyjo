@@ -17,7 +17,7 @@ export function plpRowToProduct(row: PlpProductRow, quote?: PriceQuote): Product
     ref: row.sku,
     ean: '',
     name: row.title,
-    brand: row.brand,
+    brand: row.brand ?? '',
     categoryId: row.categorySlugs[0] ?? '',
     subcategoryId: row.categorySlugs[1] ?? row.categorySlugs[0] ?? '',
     priceNoVat: net,

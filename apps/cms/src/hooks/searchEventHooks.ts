@@ -50,6 +50,7 @@ export function createSearchEventAfterChangeHook(
 
   return async ({ doc, operation, req }) => {
     if (!entityType || !doc?.id) return doc
+    if (req.context?.seedCatalog === true) return doc
 
     try {
       await enqueueSearchEvent({

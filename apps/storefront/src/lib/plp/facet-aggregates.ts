@@ -7,7 +7,7 @@ function countByValue(
   rows: PlpProductRow[],
   filters: PlpActiveFilters,
   quotesBySku: Record<string, PriceQuote>,
-  omit: 'brands' | 'colors' | 'materials',
+  omit: 'brands' | 'suppliers' | 'colors' | 'materials',
   getValue: (row: PlpProductRow) => string | null,
 ): { value: string; count: number }[] {
   const counts = new Map<string, number>()
@@ -39,6 +39,7 @@ export function buildFacetAggregates(
 
   return {
     brands: countByValue(rows, filters, quotesBySku, 'brands', (r) => r.brand),
+    suppliers: countByValue(rows, filters, quotesBySku, 'suppliers', (r) => r.supplier),
     colors: countByValue(rows, filters, quotesBySku, 'colors', (r) => r.facetColor),
     materials: countByValue(rows, filters, quotesBySku, 'materials', (r) => r.facetMaterial),
     priceMax: Math.ceil(priceMax) || 10,

@@ -9,6 +9,7 @@ import type { PlpActiveFilters } from '@/lib/plp/types'
 
 const baseFilters: PlpActiveFilters = {
   brands: [],
+  suppliers: [],
   colors: [],
   materials: [],
   priceMax: null,

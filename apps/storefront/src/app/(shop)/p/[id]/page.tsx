@@ -56,6 +56,7 @@ export default async function ProductPage({ params }: PageProps) {
     slug: product.slug,
     title: product.title,
     brand: product.brand,
+    supplier: product.supplier,
     facetColor: null,
     facetMaterial: null,
     ecoLabel: product.ecoLabel,
@@ -104,7 +105,7 @@ export default async function ProductPage({ params }: PageProps) {
 
         <div>
           <p className="font-mono text-xs text-text-tertiary">
-            {product.brand} · REF {product.sku}
+            {product.brand ? `${product.brand} · ` : ""}REF {product.sku}
             {product.oem ? ` · OEM ${product.oem}` : ""}
             {product.ean ? ` · EAN ${product.ean}` : ""}
           </p>

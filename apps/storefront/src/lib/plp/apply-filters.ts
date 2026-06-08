@@ -2,7 +2,14 @@ import type { PriceQuote } from '@jeyjo/pricing'
 
 import type { PlpActiveFilters, PlpProductRow } from '@/lib/plp/types'
 
-export type FilterOmitDimension = 'brands' | 'colors' | 'materials' | 'price' | 'inStockToday' | 'eco'
+export type FilterOmitDimension =
+  | 'brands'
+  | 'suppliers'
+  | 'colors'
+  | 'materials'
+  | 'price'
+  | 'inStockToday'
+  | 'eco'
 
 export function getQuoteNetForFilter(quote: PriceQuote | undefined, row: PlpProductRow): number {
   if (quote) return quote.netUnit
@@ -15,7 +22,14 @@ export function productMatchesFilters(
   quotesBySku: Record<string, PriceQuote>,
   omit?: FilterOmitDimension,
 ): boolean {
-  if (omit !== 'brands' && filters.brands.length > 0 && !filters.brands.includes(row.brand)) {
+  if (omit !== 'brands' && filters.brands.length > 0 && (!row.brand || !filters.brands.includes(row.brand))) {
+    return false
+  }
+  if (
+    omit !== 'suppliers' &&
+    filters.suppliers.length > 0 &&
+    (!row.supplier || !filters.suppliers.includes(row.supplier))
+  ) {
     return false
   }
   if (

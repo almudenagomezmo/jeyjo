@@ -10,6 +10,7 @@ import { writeAuditLog } from '@/lib/supabase-server'
 const ENTITY_TYPE_BY_COLLECTION: Record<string, string> = {
   products: 'product',
   categories: 'category',
+  brands: 'brand',
   suppliers: 'supplier',
   orders: 'order',
   users: 'user',
@@ -19,6 +20,7 @@ const ENTITY_TYPE_BY_COLLECTION: Record<string, string> = {
 const DEFAULT_PICK_FIELDS: Record<string, string[]> = {
   products: ['title', 'slug', 'p1Price', 'p2Price', 'skuErp'],
   categories: ['title', 'slug', 'parent'],
+  brands: ['name', 'slug'],
   suppliers: ['name', 'code'],
   orders: ['orderNumber', 'origin', 'jeyjoStatus', 'total'],
   users: ['email', 'name', 'staffRoles', 'twoFactorEnabled'],
@@ -69,6 +71,7 @@ export function createAuditHooks(options: AuditHookOptions) {
   const afterChange: CollectionAfterChangeHook[] = [
     async ({ doc, operation, req, context }) => {
       if (!doc?.id) return doc
+      if (req.context?.seedCatalog === true) return doc
 
       try {
         const { actorId, actorName } = actorFromReq(req)

@@ -16,7 +16,7 @@ function matchesSearchQuery(row: PlpProductRow, q: string): boolean {
   return (
     row.title.toLowerCase().includes(needle) ||
     row.sku.toLowerCase().includes(needle) ||
-    row.brand.toLowerCase().includes(needle)
+    (row.brand?.toLowerCase().includes(needle) ?? false)
   )
 }
 

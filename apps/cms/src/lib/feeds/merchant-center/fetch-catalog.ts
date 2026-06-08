@@ -1,7 +1,7 @@
 import { resolveCatalogImage } from '@jeyjo/catalog-images'
 import type { Payload } from 'payload'
 
-import type { Media, Product, Supplier } from '@/payload-types'
+import type { Brand, Media, Product } from '@/payload-types'
 
 import { formatMerchantPrice, mapStockToMerchantAvailability } from './build-xml'
 import type { MerchantFeedBuildResult, MerchantFeedOmittedCounts, MerchantFeedRow } from './types'
@@ -40,9 +40,9 @@ function productDescription(doc: Product): string {
 }
 
 function resolveBrand(doc: Product): string | undefined {
-  const supplier = doc.supplier
-  if (supplier && typeof supplier === 'object' && 'name' in supplier) {
-    const name = (supplier as Supplier).name?.trim()
+  const brand = doc.brand
+  if (brand && typeof brand === 'object' && 'name' in brand) {
+    const name = (brand as Brand).name?.trim()
     if (name) return name
   }
   return undefined

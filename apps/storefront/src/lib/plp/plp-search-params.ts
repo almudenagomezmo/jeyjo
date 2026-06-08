@@ -43,6 +43,7 @@ export function parsePlpSearchParams(
   return {
     filters: {
       brands: parseList(params.brand),
+      suppliers: parseList(params.supplier),
       colors: parseList(params.color),
       materials: parseList(params.material),
       priceMax: parseNumber(params.priceMax),
@@ -64,6 +65,7 @@ export function serializePlpSearchParams(input: {
   const sp = new URLSearchParams()
   if (input.q) sp.set('q', input.q)
   for (const brand of input.filters.brands) sp.append('brand', brand)
+  for (const supplier of input.filters.suppliers) sp.append('supplier', supplier)
   for (const color of input.filters.colors) sp.append('color', color)
   for (const material of input.filters.materials) sp.append('material', material)
   if (input.filters.priceMax != null) sp.set('priceMax', String(input.filters.priceMax))

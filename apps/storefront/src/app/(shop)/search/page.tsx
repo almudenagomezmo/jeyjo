@@ -67,10 +67,11 @@ export default async function SearchPage({ searchParams }: PageProps) {
   );
 }
 
-function hasActiveFilters(data: { activeFilters: { brands: string[]; colors: string[]; materials: string[]; inStockToday: boolean; eco: boolean; priceMax: number | null } }): boolean {
+function hasActiveFilters(data: { activeFilters: { brands: string[]; suppliers: string[]; colors: string[]; materials: string[]; inStockToday: boolean; eco: boolean; priceMax: number | null } }): boolean {
   const f = data.activeFilters;
   return (
     f.brands.length > 0 ||
+    f.suppliers.length > 0 ||
     f.colors.length > 0 ||
     f.materials.length > 0 ||
     f.inStockToday ||

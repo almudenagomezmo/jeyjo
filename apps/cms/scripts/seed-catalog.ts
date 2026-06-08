@@ -17,7 +17,31 @@ const cmsRoot = path.resolve(scriptDir, '..')
 
 loadEnv({ path: path.join(cmsRoot, '.env') })
 
+/** Prefer direct Postgres for one-off CLI (avoids Supabase session pooler EMAXCONNSESSION). */
+function applyDirectDatabaseUrlIfSet(): void {
+  const direct = process.env.DATABASE_URL_DIRECT?.trim()
+  if (direct) {
+    process.env.DATABASE_URL = direct
+    console.log('[seed:catalog] Using DATABASE_URL_DIRECT (bypasses session pooler).')
+  } else if (/pooler\.supabase\.com/i.test(process.env.DATABASE_URL ?? '')) {
+    console.warn(
+      '[seed:catalog] DATABASE_URL apunta al session pooler de Supabase (~15 conexiones compartidas).',
+    )
+    console.warn(
+      '[seed:catalog] Si se queda colgado, para el dev server (pnpm dev) o define DATABASE_URL_DIRECT en .env',
+    )
+    console.warn(
+      '[seed:catalog] Usa DATABASE_URL_DIRECT con transaction pooler (:6543) o conexión directa (ver .env.example).',
+    )
+  }
+
+  // Mínimo viable para init Payload + un create; evita competir con Next.js dev/HMR.
+  process.env.PAYLOAD_DB_POOL_MAX = process.env.PAYLOAD_DB_POOL_MAX ?? '2'
+}
+
 async function main(): Promise<void> {
+  applyDirectDatabaseUrlIfSet()
+
   if (!process.env.DATABASE_URL?.trim()) {
     console.error('[seed:catalog] DATABASE_URL no está definida en apps/cms/.env')
     process.exit(1)

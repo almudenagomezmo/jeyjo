@@ -56,7 +56,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     ...defaultCollection?.admin,
     group: 'Catálogo',
     hidden: ({ user }) => isCollectionHidden(user, 'products'),
-    defaultColumns: ['title', 'skuErp', 'supplier', '_status'],
+    defaultColumns: ['title', 'skuErp', 'brand', 'supplier', '_status'],
     livePreview: {
       url: ({ data, req }) =>
         generatePreviewPath({
@@ -80,6 +80,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     skuErp: true,
     _status: true,
     isWildcard: true,
+    brand: true,
     supplier: true,
     providerImageUrl: true,
     ownImage: true,
@@ -198,6 +199,15 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
           ],
         },
       ],
+    },
+    {
+      name: 'brand',
+      type: 'relationship',
+      relationTo: 'brands',
+      label: 'Marca',
+      admin: {
+        position: 'sidebar',
+      },
     },
     {
       name: 'supplier',

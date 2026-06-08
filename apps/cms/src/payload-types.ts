@@ -74,6 +74,7 @@ export interface Config {
   collections: {
     users: User;
     categories: Category;
+    brands: Brand;
     suppliers: Supplier;
     media: Media;
     quotes: Quote;
@@ -103,6 +104,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    brands: BrandsSelect<false> | BrandsSelect<true>;
     suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     quotes: QuotesSelect<false> | QuotesSelect<true>;
@@ -456,6 +458,7 @@ export interface Product {
     image?: (number | null) | Media;
     description?: string | null;
   };
+  brand?: (number | null) | Brand;
   supplier?: (number | null) | Supplier;
   categories?: (number | Category)[] | null;
   /**
@@ -524,6 +527,21 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands".
+ */
+export interface Brand {
+  id: number;
+  name: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1020,6 +1038,10 @@ export interface PayloadLockedDocument {
         value: number | Category;
       } | null)
     | ({
+        relationTo: 'brands';
+        value: number | Brand;
+      } | null)
+    | ({
         relationTo: 'suppliers';
         value: number | Supplier;
       } | null)
@@ -1157,6 +1179,17 @@ export interface CategoriesSelect<T extends boolean = true> {
   sortOrder?: T;
   imageUrl?: T;
   homeGlyph?: T;
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands_select".
+ */
+export interface BrandsSelect<T extends boolean = true> {
+  name?: T;
   generateSlug?: T;
   slug?: T;
   updatedAt?: T;
@@ -1397,6 +1430,7 @@ export interface ProductsSelect<T extends boolean = true> {
         image?: T;
         description?: T;
       };
+  brand?: T;
   supplier?: T;
   categories?: T;
   generateSlug?: T;

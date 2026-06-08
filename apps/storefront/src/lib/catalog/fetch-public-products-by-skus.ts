@@ -16,6 +16,7 @@ export type PublicProductDoc = CmsProductSnapshot & {
   oemRef?: string | null
   ean?: string | null
   thumbnailUrl?: string | null
+  /** Resolved display name after CMS fetch. */
   brand?: string | null
   packUnit?: number | null
   facetColor?: string | null
@@ -34,14 +35,29 @@ function cmsBaseUrl(): string | null {
   )
 }
 
-function supplierName(supplier: PublicProductDoc['supplier']): string | null {
-  if (supplier && typeof supplier === 'object' && 'name' in supplier && supplier.name) {
-    return String(supplier.name)
+type CmsBrandOrSupplierRef = { name?: string | null } | string | number | null
+
+function relationName(relation: CmsBrandOrSupplierRef): string | null {
+  if (relation && typeof relation === 'object' && 'name' in relation && relation.name) {
+    return String(relation.name)
   }
   return null
 }
 
-async function fetchProductsBySkusRaw(skus: string[]): Promise<PublicProductDoc[]> {
+type CmsProductBySkuDoc = CmsProductSnapshot & {
+  title?: string | null
+  slug?: string | null
+  providerImageUrl?: string | null
+  ownImage?: { url?: string | null } | string | number | null
+  mainWholesaleRef?: string | null
+  oemRef?: string | null
+  ean?: string | null
+  brand?: CmsBrandOrSupplierRef
+  packUnit?: number | null
+  supplier?: CmsBrandOrSupplierRef
+}
+
+async function fetchProductsBySkusRaw(skus: string[]): Promise<CmsProductBySkuDoc[]> {
   const base = cmsBaseUrl()
   if (!base || skus.length === 0) return []
 
@@ -61,7 +77,7 @@ async function fetchProductsBySkusRaw(skus: string[]): Promise<PublicProductDoc[
 
   if (!res.ok) return []
 
-  const body = (await res.json()) as { docs?: PublicProductDoc[] }
+  const body = (await res.json()) as { docs?: CmsProductBySkuDoc[] }
   return body.docs ?? []
 }
 
@@ -85,7 +101,7 @@ export async function fetchPublicProductsBySkus(skus: string[]): Promise<PublicP
     })
     bySku.set(sku, {
       ...doc,
-      brand: supplierName(doc.supplier),
+      brand: relationName(doc.brand),
       thumbnailUrl: absoluteMediaUrlOrNull(catalogRaw) ?? doc.thumbnailUrl ?? null,
     })
   }

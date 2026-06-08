@@ -5,6 +5,7 @@ import { slugifyProductTitle } from '@/utilities/slugifyProductTitle'
 export const productSlugHooks: CollectionBeforeValidateHook[] = [
   async ({ data, operation, req, originalDoc }) => {
     if (!data) return data
+    if (req.context?.seedCatalog === true) return data
 
     const title = (data.title as string | undefined) ?? (originalDoc?.title as string | undefined)
     const currentSlug = data.slug as string | undefined

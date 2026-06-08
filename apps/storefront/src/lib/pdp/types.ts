@@ -15,7 +15,8 @@ export type PdpProductView = {
   sku: string
   slug: string
   title: string
-  brand: string
+  brand: string | null
+  supplier: string | null
   oem: string | null
   ean: string | null
   packUnit: number

@@ -127,6 +127,7 @@ async function ensureCategory(
         ...(parentId != null ? { parent: parentId } : {}),
       },
       req,
+      disableTransaction: true,
     }))
 
   if (node.children?.length) {
@@ -166,6 +167,7 @@ export async function seedStorefrontNavigationCategories({
           homeGlyph: root.homeGlyph,
         },
         req,
+        disableTransaction: true,
       }))
 
     for (const child of root.children) {

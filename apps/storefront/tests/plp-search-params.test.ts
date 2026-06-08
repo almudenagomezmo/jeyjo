@@ -17,7 +17,8 @@ describe('plp-search-params', () => {
 
   it('round-trips URL params', () => {
     const filters = {
-      brands: ['bic'],
+      brands: ['BIC'],
+      suppliers: ['Distrisantiago'],
       colors: [],
       materials: [],
       priceMax: null,
@@ -25,11 +26,13 @@ describe('plp-search-params', () => {
       eco: false,
     }
     const sp = serializePlpSearchParams({ filters, sort: 'relevance', page: 1 })
-    expect(sp.get('brand')).toBe('bic')
+    expect(sp.get('brand')).toBe('BIC')
+    expect(sp.get('supplier')).toBe('Distrisantiago')
     expect(sp.get('inStockToday')).toBe('1')
 
     const parsed = parsePlpSearchParams(Object.fromEntries(sp.entries()))
-    expect(parsed.filters.brands).toEqual(['bic'])
+    expect(parsed.filters.brands).toEqual(['BIC'])
+    expect(parsed.filters.suppliers).toEqual(['Distrisantiago'])
     expect(parsed.filters.inStockToday).toBe(true)
   })
 })

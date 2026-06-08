@@ -15,7 +15,8 @@ Requiere autenticación como **admin**. El payload de Payload se encarga de la a
 | Usuario customer | `customer@example.com` / `password` |
 | Categorías template | 3 (Accessories, T-Shirts, Hats) |
 | Categorías Jeyjo | 6 raíz + 24 subcategorías (taxonomía jeyjo.es) |
-| Proveedores | 27 marcas (BIC, DYMO, Fellowes, Navigator, HP, etc.) |
+| Marcas | 26 marcas comerciales (BIC, DYMO, Fellowes, Navigator, HP, etc.) |
+| Proveedores | 1 proveedor logístico demo (Distrisantiago) |
 | Productos template | 2 (Hat, T-Shirt con variantes) |
 | Productos Jeyjo | ~65 referencias reales de jeyjo.es + 5 fixtures de test |
 | Páginas | 2 (Home + Contact) |
@@ -33,7 +34,7 @@ luego úsalo para hacer seed.
 
 ## Catálogo en Supabase Postgres
 
-Los productos, categorías y proveedores **no** van en `supabase/seed.sql`. Se persisten en las tablas Payload del mismo Postgres (`DATABASE_URL`):
+Los productos, categorías, marcas y proveedores **no** van en `supabase/seed.sql`. Se persisten en las tablas Payload del mismo Postgres (`DATABASE_URL`):
 
 ```bash
 # Supabase Cloud (no requiere supabase start)

@@ -9,7 +9,8 @@ export type PlpProductRow = {
   sku: string
   slug: string
   title: string
-  brand: string
+  brand: string | null
+  supplier: string | null
   facetColor: string | null
   facetMaterial: string | null
   ecoLabel: boolean
@@ -26,6 +27,7 @@ export type PlpProductRow = {
 
 export type PlpActiveFilters = {
   brands: string[]
+  suppliers: string[]
   colors: string[]
   materials: string[]
   priceMax: number | null
@@ -40,6 +42,7 @@ export type FacetOption = {
 
 export type PlpFacetAggregates = {
   brands: FacetOption[]
+  suppliers: FacetOption[]
   colors: FacetOption[]
   materials: FacetOption[]
   priceMax: number

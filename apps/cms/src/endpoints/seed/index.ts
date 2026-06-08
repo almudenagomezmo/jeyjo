@@ -17,6 +17,7 @@ import { Address, Transaction } from '@/payload-types'
 
 const collections: CollectionSlug[] = [
   'categories',
+  'brands',
   'suppliers',
   'media',
   'products',

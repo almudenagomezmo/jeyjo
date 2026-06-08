@@ -2,6 +2,8 @@ import { resolveStockIndicator } from '@jeyjo/stock-ports'
 import type { Payload, PayloadRequest } from 'payload'
 
 import {
+  DEFAULT_LOGISTICS_SUPPLIER_ERP_CODE,
+  JEYJO_BRANDS,
   JEYJO_ERP_STUB_PRODUCTS,
   JEYJO_PRODUCTS,
   JEYJO_REF_FIXTURES,
@@ -10,6 +12,8 @@ import {
   priceWithoutVat,
   type JeyjoProductSeed,
 } from './jeyjo-es-catalog-data'
+import { RELATED_PRODUCTS_SYNC_CONTEXT } from '@/collections/Products/relatedProductsHooks'
+
 import { seedStorefrontNavigationCategories } from './storefront-navigation'
 
 async function resolveCategoryId(
@@ -37,6 +41,7 @@ function buildKeywords(keywords?: string[]) {
 
 function buildProductData(
   product: JeyjoProductSeed,
+  brandId: string | number | undefined,
   supplierId: string | number,
   categoryId: string | number,
 ) {
@@ -53,6 +58,7 @@ function buildProductData(
     title: product.title,
     slug: product.slug,
     _status: 'published' as const,
+    ...(brandId != null ? { brand: brandId } : {}),
     supplier: supplierId,
     categories: [categoryId],
     skuErp: product.skuErp,
@@ -84,12 +90,27 @@ export async function seedJeyjoCatalog({
   payload: Payload
   req: PayloadRequest
 }): Promise<void> {
-  payload.logger.info('— Seeding Jeyjo catalog (suppliers, categories, products from jeyjo.es)...')
+  payload.logger.info(
+    '— Seeding Jeyjo catalog (brands, suppliers, categories, products from jeyjo.es)...',
+  )
 
   await seedStorefrontNavigationCategories({ payload, req })
 
-  const supplierIds = new Map<string, string | number>()
+  const brandIds = new Map<string, string | number>()
+  for (const brand of JEYJO_BRANDS) {
+    const created = await payload.create({
+      collection: 'brands',
+      data: {
+        name: brand.name,
+        slug: brand.erpCode.toLowerCase(),
+      },
+      req,
+      disableTransaction: true,
+    })
+    brandIds.set(brand.erpCode, created.id)
+  }
 
+  const supplierIds = new Map<string, string | number>()
   for (const supplier of JEYJO_SUPPLIERS) {
     const created = await payload.create({
       collection: 'suppliers',
@@ -100,6 +121,7 @@ export async function seedJeyjoCatalog({
         ...(supplier.baseImageUrl ? { baseImageUrl: supplier.baseImageUrl } : {}),
       },
       req,
+      disableTransaction: true,
     })
     supplierIds.set(supplier.erpCode, created.id)
   }
@@ -121,20 +143,27 @@ export async function seedJeyjoCatalog({
   const createdBySku = new Map<string, string | number>()
 
   for (const product of allProducts) {
-    const supplierId = supplierIds.get(product.supplierErpCode)
+    const logisticsCode = product.supplierErpCode ?? DEFAULT_LOGISTICS_SUPPLIER_ERP_CODE
+    const supplierId = supplierIds.get(logisticsCode)
+    const brandId = product.brandErpCode ? brandIds.get(product.brandErpCode) : undefined
     const categoryId = categoryIds.get(product.categorySlug)
 
     if (!supplierId || !categoryId) {
       throw new Error(
-        `Missing supplier or category for product ${product.skuErp} (${product.supplierErpCode} / ${product.categorySlug})`,
+        `Missing supplier or category for product ${product.skuErp} (${logisticsCode} / ${product.categorySlug})`,
       )
+    }
+
+    if (product.brandErpCode && brandId == null) {
+      throw new Error(`Missing brand for product ${product.skuErp} (${product.brandErpCode})`)
     }
 
     const created = await payload.create({
       collection: 'products',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: buildProductData(product, supplierId, categoryId) as any,
+      data: buildProductData(product, brandId, supplierId, categoryId) as any,
       req,
+      disableTransaction: true,
     })
 
     createdBySku.set(product.skuErp, created.id)
@@ -144,6 +173,7 @@ export async function seedJeyjoCatalog({
   const tonerId = createdBySku.get('ERP-TNR-085')
 
   if (printerId != null && tonerId != null) {
+    req.context = { ...req.context, [RELATED_PRODUCTS_SYNC_CONTEXT]: true }
     await payload.update({
       collection: 'products',
       id: printerId,
@@ -152,10 +182,22 @@ export async function seedJeyjoCatalog({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       req,
+      disableTransaction: true,
     })
+    await payload.update({
+      collection: 'products',
+      id: tonerId,
+      data: {
+        relatedProducts: [printerId],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      req,
+      disableTransaction: true,
+    })
+    delete req.context[RELATED_PRODUCTS_SYNC_CONTEXT]
   }
 
   payload.logger.info(
-    `— Jeyjo catalog seed complete (${JEYJO_SUPPLIERS.length} suppliers, ${allProducts.length} products)`,
+    `— Jeyjo catalog seed complete (${JEYJO_BRANDS.length} brands, ${JEYJO_SUPPLIERS.length} suppliers, ${allProducts.length} products)`,
   )
 }

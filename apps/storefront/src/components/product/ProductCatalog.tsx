@@ -28,6 +28,7 @@ interface ProductCatalogProps {
 
 const EMPTY_FILTERS: PlpActiveFilters = {
   brands: [],
+  suppliers: [],
   colors: [],
   materials: [],
   priceMax: null,

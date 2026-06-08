@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { matchesCategorySlugs } from '@/lib/catalog/fetch-product-list'
+import { mapDocToRow, matchesCategorySlugs } from '@/lib/catalog/fetch-product-list'
 import { collectDescendantSlugs } from '@/lib/catalog/fetch-navigation-tree'
 import { isPublicCatalogProduct } from '@/lib/catalog/public-product-filter'
 import type { PlpProductRow } from '@/lib/plp/types'
@@ -32,6 +32,7 @@ function row(categorySlugs: string[]): PlpProductRow {
     slug: 'sku-1',
     title: 'Producto test',
     brand: 'Marca',
+    supplier: 'Distrisantiago',
     facetColor: null,
     facetMaterial: null,
     ecoLabel: false,
@@ -46,6 +47,37 @@ function row(categorySlugs: string[]): PlpProductRow {
     imageUrl: null,
   }
 }
+
+describe('mapDocToRow', () => {
+  it('maps brand and supplier from separate CMS relations', () => {
+    const row = mapDocToRow({
+      skuErp: '10102007',
+      slug: 'boligrafo-bic',
+      title: 'Bolígrafo BIC',
+      brand: { name: 'BIC' },
+      supplier: { name: 'Distrisantiago' },
+      _status: 'published',
+      isWildcard: false,
+    })
+
+    expect(row?.brand).toBe('BIC')
+    expect(row?.supplier).toBe('Distrisantiago')
+  })
+
+  it('does not derive brand from supplier when brand is unset', () => {
+    const row = mapDocToRow({
+      skuErp: 'REF-001',
+      slug: 'ref-001',
+      title: 'Fixture',
+      supplier: { name: 'Distrisantiago' },
+      _status: 'published',
+      isWildcard: false,
+    })
+
+    expect(row?.brand).toBeNull()
+    expect(row?.supplier).toBe('Distrisantiago')
+  })
+})
 
 describe('PLP public product filter', () => {
   it('excludes wildcard from list candidates', () => {

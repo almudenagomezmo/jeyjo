@@ -219,8 +219,10 @@ export function mapPdpDocToView(doc: CmsPdpProductDoc): PdpProductView | null {
   if (!sku || !slug) return null
 
   const packUnit = doc.packUnit != null && doc.packUnit > 0 ? doc.packUnit : 1
+  const row = mapDocToRow(doc)
   const specRows: PdpSpecRow[] = [
-    ['Marca', mapDocToRow(doc)?.brand ?? '—'],
+    ['Marca', row?.brand ?? '—'],
+    ['Proveedor', row?.supplier ?? '—'],
     ['Referencia Jeyjo', sku],
     ['Referencia fabricante (OEM)', doc.oemRef?.trim() || '—'],
     ['Código EAN', doc.ean?.trim() || '—'],
@@ -233,7 +235,8 @@ export function mapPdpDocToView(doc: CmsPdpProductDoc): PdpProductView | null {
     sku,
     slug,
     title: doc.title?.trim() || sku,
-    brand: mapDocToRow(doc)?.brand ?? 'Sin marca',
+    brand: row?.brand ?? null,
+    supplier: row?.supplier ?? null,
     oem: doc.oemRef?.trim() || null,
     ean: doc.ean?.trim() || null,
     packUnit,

@@ -3,7 +3,6 @@ import type { CollectionConfig } from 'payload'
 import {
   staffCreateAccess,
   staffDeleteAccess,
-  staffReadAccess,
   staffUpdateAccess,
 } from '@/access/staffAccess'
 import { erpReadOnlyFieldAccess } from '@/access/erpReadOnlyFieldAccess'
@@ -22,7 +21,8 @@ export const Suppliers: CollectionConfig = {
   access: {
     create: staffCreateAccess('suppliers'),
     delete: staffDeleteAccess('suppliers'),
-    read: staffReadAccess('suppliers'),
+    // Public read so storefront PLP/PDP can resolve supplier names via depth=1 (same as categories).
+    read: () => true,
     update: staffUpdateAccess('suppliers'),
   },
   admin: {

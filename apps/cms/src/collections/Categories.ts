@@ -44,6 +44,8 @@ export const Categories: CollectionConfig = {
     beforeValidate: [
       async ({ data, operation, req, originalDoc }) => {
         if (!data?.slug) return data
+        // Seed CLI clears the table first; skip extra find to avoid session-pooler deadlocks.
+        if (req.context?.seedCatalog === true) return data
 
         const existing = await req.payload.find({
           collection: 'categories',

@@ -76,7 +76,8 @@ Variables env (`STOCK_LOW_THRESHOLD`, `DASHBOARD_LOW_STOCK_THRESHOLD`, `TOP_SALE
 |-------------|-----------|-------------|
 | **Catálogo** | `products` | Productos con pestañas ERP (solo lectura) y Marketing/SEO |
 | **Catálogo** | `categories` | Árbol de categorías (`parent`, orden) |
-| **Catálogo** | `suppliers` | Proveedores (Distrisantiago, Arnoia, etc.) |
+| **Catálogo** | `brands` | Marcas comerciales (BIC, HP, etc.) |
+| **Catálogo** | `suppliers` | Proveedores logísticos (Distrisantiago, Arnoia, etc.) |
 | **Pedidos** | `orders` | Pedidos web (`orderNumber`, `origin`, `ivaRateSnapshot` en líneas) |
 | **Contenido** | `pages`, `media`, forms | CMS template (blog/home en cambios posteriores) |
 | **Mantenimiento** | `users`, audit log | Staff y trazabilidad |

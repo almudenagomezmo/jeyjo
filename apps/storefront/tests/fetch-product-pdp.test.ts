@@ -35,7 +35,8 @@ describe('mapRelatedDocsToRows', () => {
         skuErp: 'ERP-TNR-085',
         slug: 'toner-negro-hp-85a',
         title: 'Tóner negro HP 85A',
-        supplier: { name: 'HP' },
+        brand: { name: 'HP' },
+        supplier: { name: 'Distrisantiago' },
       },
     ] as CmsPdpProductDoc[]
 
@@ -52,7 +53,8 @@ describe('mapRelatedDocsToRows', () => {
         title: 'Public',
         _status: 'published',
         isWildcard: false,
-        supplier: { name: 'Marca' },
+        brand: { name: 'Marca' },
+        supplier: { name: 'Distrisantiago' },
       },
       {
         skuErp: '9000000001',
@@ -60,7 +62,8 @@ describe('mapRelatedDocsToRows', () => {
         title: 'Wildcard',
         _status: 'published',
         isWildcard: true,
-        supplier: { name: 'Marca' },
+        brand: { name: 'Marca' },
+        supplier: { name: 'Distrisantiago' },
       },
       {
         skuErp: 'DRAFT-1',
@@ -68,7 +71,8 @@ describe('mapRelatedDocsToRows', () => {
         title: 'Draft',
         _status: 'draft',
         isWildcard: false,
-        supplier: { name: 'Marca' },
+        brand: { name: 'Marca' },
+        supplier: { name: 'Distrisantiago' },
       },
     ] as CmsPdpProductDoc[]
 
@@ -87,7 +91,8 @@ describe('mapPdpDocToView galleryUrls', () => {
       title: 'Producto',
       _status: 'published',
       isWildcard: false,
-      supplier: { name: 'Marca' },
+      brand: { name: 'Marca' },
+      supplier: { name: 'Distrisantiago' },
       ownImage: { url: '/media/own.jpg' },
       providerImageUrl: 'https://provider.example/p.jpg',
       additionalImages: [

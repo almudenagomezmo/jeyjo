@@ -21,6 +21,7 @@ export type CmsProductListDoc = CmsProductSnapshot & {
   oemRef?: string | null
   ean?: string | null
   mainWholesaleRef?: string | null
+  brand?: { name?: string | null } | string | number | null
   supplier?: { name?: string | null } | string | number | null
   categories?: Array<{ slug?: string | null } | string | number> | null
 }
@@ -34,11 +35,13 @@ function cmsBaseUrl(): string | null {
   )
 }
 
-function supplierName(supplier: CmsProductListDoc['supplier']): string {
-  if (supplier && typeof supplier === 'object' && 'name' in supplier && supplier.name) {
-    return String(supplier.name)
+function relationName(
+  relation: CmsProductListDoc['brand'] | CmsProductListDoc['supplier'],
+): string | null {
+  if (relation && typeof relation === 'object' && 'name' in relation && relation.name) {
+    return String(relation.name)
   }
-  return 'Sin marca'
+  return null
 }
 
 function categorySlugs(categories: CmsProductListDoc['categories']): string[] {
@@ -65,7 +68,8 @@ export function mapDocToRow(doc: CmsProductListDoc): PlpProductRow | null {
     sku,
     slug: doc.slug?.trim() || sku.toLowerCase(),
     title: doc.title?.trim() || sku,
-    brand: supplierName(doc.supplier),
+    brand: relationName(doc.brand),
+    supplier: relationName(doc.supplier),
     facetColor: doc.facetColor?.trim() || null,
     facetMaterial: doc.facetMaterial?.trim() || null,
     ecoLabel: doc.ecoLabel === true,
@@ -104,7 +108,7 @@ async function fetchPublishedProductsRaw(): Promise<CmsProductListDoc[]> {
 
 const cachedFetchAll = unstable_cache(
   async () => fetchPublishedProductsRaw(),
-  ['cms-products-plp-list', 'stock-level-v3'],
+  ['cms-products-plp-list', 'brand-supplier-depth-v1'],
   { revalidate: 120 },
 )
 

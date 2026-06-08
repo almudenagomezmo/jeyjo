@@ -35,9 +35,9 @@ export function FacetSidebar({
   const hasPendingChanges = !arePlpFiltersEqual(filters, appliedFilters, priceCeiling);
 
   const toggleList = (
-    key: "brands" | "colors" | "materials",
+    key: "brands" | "suppliers" | "colors" | "materials",
     value: string,
-    listKey: "brands" | "colors" | "materials",
+    listKey: "brands" | "suppliers" | "colors" | "materials",
   ) => {
     const list = filters[listKey];
     const next = list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -87,6 +87,20 @@ export function FacetSidebar({
                 count={opt.count}
                 checked={filters.brands.includes(opt.value)}
                 onChange={() => toggleList("brands", opt.value, "brands")}
+              />
+            ))}
+          </FacetGroup>
+        )}
+
+        {facets.suppliers.length > 0 && (
+          <FacetGroup title="Proveedor">
+            {facets.suppliers.map((opt) => (
+              <FacetCheckbox
+                key={opt.value}
+                label={opt.value}
+                count={opt.count}
+                checked={filters.suppliers.includes(opt.value)}
+                onChange={() => toggleList("suppliers", opt.value, "suppliers")}
               />
             ))}
           </FacetGroup>

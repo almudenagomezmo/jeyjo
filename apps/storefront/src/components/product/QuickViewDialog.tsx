@@ -75,7 +75,7 @@ export function QuickViewDialog({ row, quote, stock, onClose }: QuickViewDialogP
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <p className="font-mono text-[11px] text-text-tertiary">
-              {row.brand} · {row.sku}
+              {row.brand ? `${row.brand} · ` : ""}{row.sku}
             </p>
             <h2 className="text-lg font-bold leading-snug">{row.title}</h2>
           </div>

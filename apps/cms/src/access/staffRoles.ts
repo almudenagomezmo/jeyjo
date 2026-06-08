@@ -21,6 +21,7 @@ export type StaffUserLike = {
 export const COLLECTION_ACCESS: Record<string, StaffRole[]> = {
   products: ['superadmin', 'catalogo'],
   categories: ['superadmin', 'catalogo'],
+  brands: ['superadmin', 'catalogo'],
   suppliers: ['superadmin', 'catalogo'],
   media: ['superadmin', 'catalogo', 'personalizacion'],
   orders: ['superadmin', 'administracion'],
@@ -37,7 +38,7 @@ export const COLLECTION_ACCESS: Record<string, StaffRole[]> = {
   'group-offers': ['superadmin', 'administracion'],
 }
 
-const CATALOG_WRITE_COLLECTIONS = new Set(['products', 'categories', 'suppliers'])
+const CATALOG_WRITE_COLLECTIONS = new Set(['products', 'categories', 'brands', 'suppliers'])
 
 export function isStaff(user?: StaffUserLike | null): boolean {
   return Boolean(user?.staffRoles?.length)

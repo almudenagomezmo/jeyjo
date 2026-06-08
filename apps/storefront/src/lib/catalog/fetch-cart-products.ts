@@ -21,7 +21,7 @@ export function mapDocToCartSnapshot(doc: CmsPdpProductDoc): CartProductSnapshot
     packUnit: view.packUnit,
     imageUrl: view.imageUrl,
     vatRate: view.vatRate,
-    brand: view.brand,
+    brand: view.brand ?? '',
     glyph: view.glyph,
     eco: view.ecoLabel,
   }

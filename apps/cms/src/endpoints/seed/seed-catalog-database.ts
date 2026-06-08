@@ -5,7 +5,7 @@ import { recalculateStockIndicatorsForAllProducts } from '@/stock/recalculateInd
 import { seedHomeMerchandising } from './home-merchandising'
 import { seedJeyjoCatalog } from './jeyjo-catalog'
 
-const CATALOG_COLLECTIONS = ['products', 'categories', 'suppliers'] as const
+const CATALOG_COLLECTIONS = ['products', 'categories', 'brands', 'suppliers'] as const
 
 /**
  * Persiste el catálogo Jeyjo en Postgres (Supabase vía Payload).
@@ -19,7 +19,7 @@ export async function clearCatalogCollections({
   payload: Payload
   req: PayloadRequest
 }): Promise<void> {
-  payload.logger.info('— Clearing catalog collections (products, categories, suppliers)...')
+  payload.logger.info('— Clearing catalog collections (products, categories, brands, suppliers)...')
 
   for (const collection of CATALOG_COLLECTIONS) {
     await payload.db.deleteMany({ collection, req, where: {} })
@@ -50,7 +50,7 @@ export async function seedCatalogDatabase({
   }
 
   // Los campos de proveedor/producto son ERP read-only; el seed actúa como sync autorizado.
-  req.context = { ...req.context, erpSync: true }
+  req.context = { ...req.context, erpSync: true, seedCatalog: true }
 
   await seedJeyjoCatalog({ payload, req })
 

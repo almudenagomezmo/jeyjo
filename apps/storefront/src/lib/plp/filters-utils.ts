@@ -36,6 +36,7 @@ export function arePlpFiltersEqual(
   }
   return (
     arraysEqual(a.brands, b.brands) &&
+    arraysEqual(a.suppliers, b.suppliers) &&
     arraysEqual(a.colors, b.colors) &&
     arraysEqual(a.materials, b.materials)
   )
@@ -44,6 +45,7 @@ export function arePlpFiltersEqual(
 export function countActivePlpFilters(filters: PlpActiveFilters, priceCeiling: number): number {
   return (
     filters.brands.length +
+    filters.suppliers.length +
     filters.colors.length +
     filters.materials.length +
     (filters.inStockToday ? 1 : 0) +
