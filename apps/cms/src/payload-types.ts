@@ -934,6 +934,9 @@ export interface B2BCatalogDownload {
  */
 export interface CustomerDocument {
   id: number;
+  /**
+   * Cliente B2B validado de Supabase. El valor guardado es su UUID.
+   */
   customerId: string;
   documentType: 'invoice' | 'delivery_note' | 'due_payment' | 'form_347' | 'erp_quote';
   documentNumber: string;

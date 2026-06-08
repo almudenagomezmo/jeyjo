@@ -10,6 +10,7 @@ import { isCollectionHidden } from '@/access/staffRoles'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
 import { syncCustomerDocumentPdf } from '@/collections/CustomerDocuments/pdf-storage'
 import { notifyInvoiceDocumentCreated } from '@/collections/CustomerDocuments/invoice-notification'
+import { customerIdField } from '@/fields/customerIdField'
 
 const DOCUMENT_TYPES = [
   { label: 'Factura', value: 'invoice' },
@@ -90,13 +91,7 @@ export const CustomerDocuments: CollectionConfig = {
     afterDelete: [...auditHooks.afterDelete],
   },
   fields: [
-    {
-      name: 'customerId',
-      type: 'text',
-      label: 'ID cliente (UUID Supabase)',
-      required: true,
-      index: true,
-    },
+    customerIdField(),
     {
       name: 'documentType',
       type: 'select',
