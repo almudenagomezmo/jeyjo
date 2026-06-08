@@ -1,3 +1,4 @@
+import { DEFAULT_FOOTER_CONFIG } from '@/lib/system-config/footer-defaults'
 import type { SystemConfigDto } from '@/lib/system-config/types'
 
 export const DEFAULT_SHIPPING = {
@@ -24,6 +25,7 @@ export const DEFAULT_SYSTEM_CONFIG: SystemConfigDto = {
   },
   search: { predictiveEnabled: true, suggestLimit: 8, minQueryLength: 2 },
   webNativeMode: true,
+  footer: DEFAULT_FOOTER_CONFIG,
   updatedAt: new Date(0).toISOString(),
 }
 

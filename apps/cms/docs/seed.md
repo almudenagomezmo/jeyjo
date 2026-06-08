@@ -48,6 +48,24 @@ pnpm db:bootstrap:local
 
 El script `apps/cms/scripts/seed-catalog.ts` usa la API local de Payload y escribe ~70 referencias de jeyjo.es en Supabase.
 
+## Páginas legales y FAQ (footer §1.12)
+
+```bash
+pnpm --filter cms seed:site-pages
+```
+
+Crea de forma idempotente slugs legales (`aviso-legal`, `privacidad`, `cookies`, `envios`, etc.) y la página FAQ en la colección `site-pages`. Revisar copy legal antes de go-live.
+
+La configuración del footer (redes, badge UE, enlace blog) está en el global Payload `footerSettings`, accesible desde `/admin/system-config`.
+
+## Blog corporativo (§1.13)
+
+```bash
+pnpm --filter cms seed:blog-posts
+```
+
+Crea de forma idempotente categorías de blog y tres artículos de demo (publicado, borrador y programado). Tras el seed, activar `footerSettings.blogEnabled` en `/admin/system-config` para mostrar el enlace `/blog` en el pie.
+
 ## Reset total
 
 El seed **limpia todas las colecciones** antes de poblar, así que es seguro ejecutarlo

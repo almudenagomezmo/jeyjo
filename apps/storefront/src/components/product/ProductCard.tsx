@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { ProductImage } from "@/components/ui/ProductImage";
 import { StockBadge, StockIndicatorBadge } from "@/components/ui/StockBadge";
 import { HeartIcon, LeafIcon, PlusIcon, StarIcon } from "@/components/ui/icons";
+import { isCompareEnabled } from "@/lib/compare/is-compare-enabled";
 import { formatMoney } from "@/lib/utils/format";
 import {
   discountPercent,
@@ -19,6 +20,7 @@ import { plpRowToProduct } from "@/lib/plp/row-to-product";
 import type { PlpProductRow } from "@/lib/plp/types";
 import { cn } from "@/lib/utils/cn";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useCompareStore } from "@/lib/store/compare-store";
 import { useUiStore } from "@/lib/store/ui-store";
 import { useWishlistItem } from "@/lib/hooks/useWishlistToggle";
 import { useHydrated } from "@/lib/hooks/useHydrated";
@@ -50,6 +52,10 @@ export function ProductCard(props: ProductCardProps) {
   const priceMode = useUiStore((s) => s.priceMode);
   const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
   const addItem = useCartStore((s) => s.addItem);
+  const compareToggle = useCompareStore((s) => s.toggle);
+  const compareSelected = useCompareStore((s) =>
+    props.row ? s.items.some((i) => i.sku === props.row.sku) : false,
+  );
   const wishlistSku = props.row?.sku ?? props.product?.ref ?? "";
   const productName = props.row?.title ?? props.product?.name ?? "";
   const { wishlisted, toggleWithSync } = useWishlistItem(wishlistSku, productName);
@@ -78,6 +84,7 @@ export function ProductCard(props: ProductCardProps) {
       : product.stock > 0;
 
   const packUnit = props.row?.packUnit ?? product.packSize;
+  const showCompare = isCompareEnabled() && Boolean(props.row);
 
   return (
     <Card className="group relative flex flex-col overflow-hidden transition-[border-color,transform] hover:-translate-y-0.5 hover:border-border-strong">
@@ -190,6 +197,26 @@ export function ProductCard(props: ProductCardProps) {
             <PlusIcon size={16} strokeWidth={2.5} />
           </button>
         </div>
+
+        {showCompare && props.row ? (
+          <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs font-medium text-text-secondary">
+            <input
+              type="checkbox"
+              checked={compareSelected}
+              onChange={() =>
+                compareToggle({
+                  sku: props.row!.sku,
+                  slug: props.row!.slug,
+                  title: props.row!.title,
+                  imageUrl: props.row!.imageUrl,
+                })
+              }
+              aria-checked={compareSelected}
+              className="h-4 w-4 rounded border-border text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            />
+            Comparar
+          </label>
+        ) : null}
       </div>
     </Card>
   );

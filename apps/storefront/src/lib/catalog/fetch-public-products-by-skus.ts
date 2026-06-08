@@ -24,6 +24,7 @@ export type PublicProductDoc = CmsProductSnapshot & {
   ecoLabel?: boolean | null
   supplier?: { name?: string | null } | string | number | null
   categories?: Array<{ slug?: string | null } | string | number> | null
+  shortDescription?: string | null
 }
 
 function cmsBaseUrl(): string | null {

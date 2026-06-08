@@ -1,6 +1,11 @@
 import type { Payload } from 'payload'
 
 import { DEFAULT_SYSTEM_CONFIG } from '@/lib/system-config/defaults'
+import { mapFooterSettingsToDto } from '@/lib/system-config/map-footer-dto'
+import type {
+  FooterSettingsDoc,
+  SkaiSettingsContactDoc,
+} from '@/lib/system-config/footer-types'
 import { mapSystemSettingsToDto } from '@/lib/system-config/map-dto'
 import type {
   OperationalThresholds,
@@ -58,17 +63,63 @@ export async function loadSystemSettingsDoc(
   }
 }
 
+async function loadFooterSettingsDoc(payload: Payload): Promise<FooterSettingsDoc | null> {
+  try {
+    const global = await payload.findGlobal({
+      slug: 'footerSettings',
+      overrideAccess: true,
+      depth: 1,
+    })
+    return global as FooterSettingsDoc
+  } catch {
+    return null
+  }
+}
+
+async function loadSkaiSettingsDoc(payload: Payload): Promise<SkaiSettingsContactDoc | null> {
+  try {
+    const global = await payload.findGlobal({
+      slug: 'skaiSettings',
+      overrideAccess: true,
+    })
+    return global as SkaiSettingsContactDoc
+  } catch {
+    return null
+  }
+}
+
+function resolveServerUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_SERVER_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : 'http://localhost:3001')
+  )
+}
+
 export async function getSystemConfig(payload?: Payload): Promise<SystemConfigDto> {
   if (!payload) {
     return applyEnvFallbacks(DEFAULT_SYSTEM_CONFIG)
   }
 
-  const doc = await loadSystemSettingsDoc(payload)
+  const [doc, footerDoc, skaiDoc] = await Promise.all([
+    loadSystemSettingsDoc(payload),
+    loadFooterSettingsDoc(payload),
+    loadSkaiSettingsDoc(payload),
+  ])
+
+  const footer = mapFooterSettingsToDto(
+    footerDoc,
+    doc,
+    skaiDoc,
+    resolveServerUrl(),
+  )
+
   if (!doc) {
-    return applyEnvFallbacks(mapSystemSettingsToDto(null))
+    return applyEnvFallbacks(mapSystemSettingsToDto(null, undefined, footer))
   }
 
-  return mapSystemSettingsToDto(doc, doc.updatedAt ?? undefined)
+  return applyEnvFallbacks(mapSystemSettingsToDto(doc, doc.updatedAt ?? undefined, footer))
 }
 
 export function resolveOperationalThresholds(

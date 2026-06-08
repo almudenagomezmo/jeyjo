@@ -85,6 +85,9 @@ export interface Config {
     'customer-documents': CustomerDocument;
     'special-prices': SpecialPrice;
     'group-offers': GroupOffer;
+    'site-pages': SitePage;
+    'blog-categories': BlogCategory;
+    'blog-posts': BlogPost;
     addresses: Address;
     products: Product;
     carts: Cart;
@@ -116,6 +119,9 @@ export interface Config {
     'customer-documents': CustomerDocumentsSelect<false> | CustomerDocumentsSelect<true>;
     'special-prices': SpecialPricesSelect<false> | SpecialPricesSelect<true>;
     'group-offers': GroupOffersSelect<false> | GroupOffersSelect<true>;
+    'site-pages': SitePagesSelect<false> | SitePagesSelect<true>;
+    'blog-categories': BlogCategoriesSelect<false> | BlogCategoriesSelect<true>;
+    'blog-posts': BlogPostsSelect<false> | BlogPostsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     carts: CartsSelect<false> | CartsSelect<true>;
@@ -133,6 +139,7 @@ export interface Config {
   globals: {
     home: Home;
     systemSettings: SystemSetting;
+    footerSettings: FooterSetting;
     paymentSettings: PaymentSetting;
     marketingSettings: MarketingSetting;
     newsletterSettings: NewsletterSetting;
@@ -142,6 +149,7 @@ export interface Config {
   globalsSelect: {
     home: HomeSelect<false> | HomeSelect<true>;
     systemSettings: SystemSettingsSelect<false> | SystemSettingsSelect<true>;
+    footerSettings: FooterSettingsSelect<false> | FooterSettingsSelect<true>;
     paymentSettings: PaymentSettingsSelect<false> | PaymentSettingsSelect<true>;
     marketingSettings: MarketingSettingsSelect<false> | MarketingSettingsSelect<true>;
     newsletterSettings: NewsletterSettingsSelect<false> | NewsletterSettingsSelect<true>;
@@ -1035,6 +1043,104 @@ export interface GroupOffer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-pages".
+ */
+export interface SitePage {
+  id: number;
+  title: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  pageType: 'legal' | 'faq' | 'help';
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  metaDescription?: string | null;
+  published?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-categories".
+ */
+export interface BlogCategory {
+  id: number;
+  name: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-posts".
+ */
+export interface BlogPost {
+  id: number;
+  title: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  category: number | BlogCategory;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  featuredImage?: (number | null) | Media;
+  /**
+   * Opcional. Si está vacío, el listado usa un resumen del contenido.
+   */
+  excerpt?: string | null;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  authorName: string;
+  metaDescription?: string | null;
+  published?: boolean | null;
+  /**
+   * Permite programar publicación futura.
+   */
+  publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -1108,6 +1214,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'group-offers';
         value: number | GroupOffer;
+      } | null)
+    | ({
+        relationTo: 'site-pages';
+        value: number | SitePage;
+      } | null)
+    | ({
+        relationTo: 'blog-categories';
+        value: number | BlogCategory;
+      } | null)
+    | ({
+        relationTo: 'blog-posts';
+        value: number | BlogPost;
       } | null)
     | ({
         relationTo: 'addresses';
@@ -1407,6 +1525,58 @@ export interface GroupOffersSelect<T extends boolean = true> {
   validTo?: T;
   active?: T;
   supabaseId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-pages_select".
+ */
+export interface SitePagesSelect<T extends boolean = true> {
+  title?: T;
+  generateSlug?: T;
+  slug?: T;
+  pageType?: T;
+  content?: T;
+  metaDescription?: T;
+  published?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-categories_select".
+ */
+export interface BlogCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  generateSlug?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-posts_select".
+ */
+export interface BlogPostsSelect<T extends boolean = true> {
+  title?: T;
+  generateSlug?: T;
+  slug?: T;
+  category?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  featuredImage?: T;
+  excerpt?: T;
+  content?: T;
+  authorName?: T;
+  metaDescription?: T;
+  published?: T;
+  publishedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1816,6 +1986,32 @@ export interface SystemSetting {
   createdAt?: string | null;
 }
 /**
+ * Redes sociales, badge UE y visibilidad de secciones del footer público.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footerSettings".
+ */
+export interface FooterSetting {
+  id: number;
+  showStores?: boolean | null;
+  showSocial?: boolean | null;
+  socialFacebook?: string | null;
+  socialInstagram?: string | null;
+  socialLinkedin?: string | null;
+  socialYoutube?: string | null;
+  /**
+   * Muestra el enlace a /blog en la columna Ayuda del footer público.
+   */
+  blogEnabled?: boolean | null;
+  blogLabel?: string | null;
+  euFundingEnabled?: boolean | null;
+  euFundingImage?: (number | null) | Media;
+  euFundingAlt?: string | null;
+  euFundingUrl?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "paymentSettings".
  */
@@ -1994,6 +2190,27 @@ export interface SystemSettingsSelect<T extends boolean = true> {
   storeAlfaroAddress?: T;
   storeRinconName?: T;
   storeRinconAddress?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footerSettings_select".
+ */
+export interface FooterSettingsSelect<T extends boolean = true> {
+  showStores?: T;
+  showSocial?: T;
+  socialFacebook?: T;
+  socialInstagram?: T;
+  socialLinkedin?: T;
+  socialYoutube?: T;
+  blogEnabled?: T;
+  blogLabel?: T;
+  euFundingEnabled?: T;
+  euFundingImage?: T;
+  euFundingAlt?: T;
+  euFundingUrl?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

@@ -34,8 +34,13 @@ import { NewsletterSettings } from '@/globals/NewsletterSettings'
 import { PaymentSettings } from '@/globals/PaymentSettings'
 import { SkaiSettings } from '@/globals/SkaiSettings'
 import { AnalyticsSettings } from '@/globals/AnalyticsSettings'
+import { BlogCategories } from '@/collections/BlogCategories'
+import { BlogPosts } from '@/collections/BlogPosts'
+import { SitePages } from '@/collections/SitePages'
+import { FooterSettings } from '@/globals/FooterSettings'
 import { SystemSettings } from '@/globals/SystemSettings'
 import { SYSTEM_SETTINGS_SEED } from '@/lib/system-config/defaults'
+import { FOOTER_SETTINGS_SEED } from '@/lib/system-config/footer-defaults'
 import { auditLogEndpoint } from '@/endpoints/audit-log'
 import { bulkSeoTemplateEndpoint } from '@/endpoints/bulk-seo-template'
 import { customersAdminEndpoints } from '@/endpoints/customers-admin'
@@ -61,6 +66,7 @@ import { qdrantCollections } from '@/lib/qdrant-collections'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 
 import { getEmailTransportOptions } from '@/lib/email/mailpit'
+import { disableDocumentLocksInDev, devDisableDocumentLocksPlugin, withoutDocumentLocks } from '@/lib/payload-dev'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -115,6 +121,10 @@ const connectionString = isSupabase
   ? resolveSupabaseConnectionString(databaseUrl)
   : databaseUrl
 const usesSupabaseTxPooler = /pooler\.supabase\.com:6543/i.test(connectionString)
+const isDev = process.env.NODE_ENV === 'development'
+const supabasePoolMax = Number(
+  process.env.PAYLOAD_DB_POOL_MAX ?? (usesSupabaseTxPooler ? (isDev ? 8 : 5) : 2),
+)
 
 /**
  * Payload schema push deletes tables Drizzle does not own. Jeyjo core tables
@@ -215,7 +225,10 @@ export default buildConfig({
     CustomerDocuments,
     SpecialPrices,
     GroupOffers,
-  ],
+    SitePages,
+    BlogCategories,
+    BlogPosts,
+  ].map(withoutDocumentLocks),
   cors: corsOrigins,
   csrf: corsOrigins,
   db: postgresAdapter({
@@ -224,11 +237,11 @@ export default buildConfig({
       // Session pooler: keep max low. Tx pooler (dev default): allow a few more clients.
       ...(isSupabase
         ? {
-            max: Number(
-              process.env.PAYLOAD_DB_POOL_MAX ?? (usesSupabaseTxPooler ? 5 : 2),
-            ),
-            idleTimeoutMillis: 20_000,
-            connectionTimeoutMillis: 10_000,
+            max: supabasePoolMax,
+            idleTimeoutMillis: isDev ? 10_000 : 20_000,
+            connectionTimeoutMillis: isDev ? 20_000 : 10_000,
+            // Release idle clients so orphaned HMR pools do not hold Supabase slots.
+            allowExitOnIdle: isDev,
             ssl: { rejectUnauthorized: false },
           }
         : {}),
@@ -295,13 +308,14 @@ export default buildConfig({
   globals: [
     Home,
     SystemSettings,
+    FooterSettings,
     PaymentSettings,
     MarketingSettings,
     NewsletterSettings,
     SkaiSettings,
     AnalyticsSettings,
-  ],
-  plugins,
+  ].map(withoutDocumentLocks),
+  plugins: [...plugins, devDisableDocumentLocksPlugin],
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL,
   sharp,
@@ -309,6 +323,8 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   onInit: async (payload) => {
+    disableDocumentLocksInDev(payload)
+
     try {
       await preloadExcelAdapter()
     } catch (e) {
@@ -326,6 +342,19 @@ export default buildConfig({
       }
     } catch (e) {
       console.warn('[SystemSettings] Seed skipped:', e instanceof Error ? e.message : e)
+    }
+
+    try {
+      const existingFooter = await payload.findGlobal({ slug: 'footerSettings', overrideAccess: true })
+      if (!existingFooter?.updatedAt) {
+        await payload.updateGlobal({
+          slug: 'footerSettings',
+          data: FOOTER_SETTINGS_SEED,
+          overrideAccess: true,
+        })
+      }
+    } catch (e) {
+      console.warn('[FooterSettings] Seed skipped:', e instanceof Error ? e.message : e)
     }
 
     for (const col of qdrantCollections) {

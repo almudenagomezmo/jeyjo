@@ -1,3 +1,5 @@
+import type { FooterConfigDto } from '@/lib/system-config/footer-types'
+
 export type StoreAddress = {
   name: string
   address: string | null
@@ -26,6 +28,7 @@ export type SystemConfigDto = {
     minQueryLength: number
   }
   webNativeMode: boolean
+  footer: FooterConfigDto
   updatedAt: string
 }
 

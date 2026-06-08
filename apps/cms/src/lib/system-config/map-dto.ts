@@ -1,4 +1,5 @@
 import { DEFAULT_SYSTEM_CONFIG } from '@/lib/system-config/defaults'
+import { DEFAULT_FOOTER_CONFIG } from '@/lib/system-config/footer-defaults'
 import type { SystemConfigDto, SystemSettingsDoc } from '@/lib/system-config/types'
 
 function positiveNumber(value: unknown, fallback: number): number {
@@ -20,11 +21,13 @@ function optionalString(value: unknown): string | null {
 export function mapSystemSettingsToDto(
   doc: SystemSettingsDoc | null | undefined,
   updatedAt?: string,
+  footer = DEFAULT_FOOTER_CONFIG,
 ): SystemConfigDto {
   const base = DEFAULT_SYSTEM_CONFIG
   if (!doc) {
     return {
       ...base,
+      footer,
       updatedAt: updatedAt ?? base.updatedAt,
     }
   }
@@ -78,6 +81,7 @@ export function mapSystemSettingsToDto(
       minQueryLength: positiveInt(doc.minQueryLength, base.search.minQueryLength, 1),
     },
     webNativeMode: doc.webNativeMode !== false,
+    footer,
     updatedAt: updatedAt ?? doc.updatedAt ?? new Date().toISOString(),
   }
 }

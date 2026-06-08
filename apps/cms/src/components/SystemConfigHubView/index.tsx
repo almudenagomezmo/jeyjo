@@ -22,6 +22,12 @@ const cards: HubCard[] = [
     roles: 'Superadmin, Administración (parcial Mantenimiento)',
   },
   {
+    title: 'Pie de página',
+    description: 'Redes sociales, badge UE, enlace blog y visibilidad de secciones del footer.',
+    href: '/admin/globals/footerSettings',
+    roles: 'Superadmin, Administración',
+  },
+  {
     title: 'Pagos B2C',
     description: 'Métodos de pago activos e instrucciones de transferencia.',
     href: '/admin/globals/paymentSettings',

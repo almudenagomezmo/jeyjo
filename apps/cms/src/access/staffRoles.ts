@@ -37,6 +37,9 @@ export const COLLECTION_ACCESS: Record<string, StaffRole[]> = {
   'special-prices': ['superadmin', 'administracion'],
   'group-offers': ['superadmin', 'administracion'],
   'product-reviews': ['superadmin', 'catalogo'],
+  'site-pages': ['superadmin', 'administracion', 'marketing'],
+  'blog-posts': ['superadmin', 'personalizacion', 'marketing'],
+  'blog-categories': ['superadmin', 'personalizacion', 'marketing'],
 }
 
 const CATALOG_WRITE_COLLECTIONS = new Set(['products', 'categories', 'brands', 'suppliers'])
@@ -108,6 +111,14 @@ export function canWriteCollection(
 
   if (collection === 'product-reviews') {
     return hasStaffRole(user, ['superadmin', 'catalogo'])
+  }
+
+  if (collection === 'site-pages') {
+    return hasStaffRole(user, ['superadmin', 'administracion', 'marketing'])
+  }
+
+  if (collection === 'blog-posts' || collection === 'blog-categories') {
+    return hasStaffRole(user, ['superadmin', 'personalizacion', 'marketing'])
   }
 
   if (CATALOG_WRITE_COLLECTIONS.has(collection)) {

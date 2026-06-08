@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **45 / 51** cambios completados (~88 %). Hito reciente: operación 100 % web sin ERP (`web-native-operations`); cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
+**Progreso:** **48 / 51** cambios completados (~94 %). Hito reciente: blog corporativo integrado Payload + storefront (`blog-payload-frontend`, §1.13); cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
 
 
 | #   | Cambio                              | Depende de | US / RF principales          | Estado     | Fecha      |
@@ -43,14 +43,14 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 30  | `dashboard-kpis-alerts`             | 5, 7, 20   | RF-026, US-19                | Completado | 2026-06-05 |
 | 31  | `marketing-coupons-abandoned-cart`  | 17, 20     | RF-027, US-18, US-23         | Completado | 2026-06-05 |
 | 32  | `eva-skai-widget-integration`       | 9, 16, 20  | RI-005, US-20, US-22         | Completado | 2026-06-05 |
-| 33  | `blog-payload-frontend`             | 3, 9       | US-24                        | Pendiente  | —          |
+| 33  | `blog-payload-frontend`             | 3, 9       | US-24                        | Completado | 2026-06-08 |
 | 34  | `analytics-ga4-merchant-feed`       | 10, 11, 20 | RF-028                       | Completado | 2026-06-05 |
 | 35  | `wishlist-stock-alerts`             | 8, 16, 28  | Alcance wishlist             | Completado | 2026-06-05 |
 | 36  | `erp-api-write-implementation`      | 4, 29      | RF-023, RI-001               | Congelado  | —          |
 | 37  | `area-documental-financiera`        | 4, 22, 28  | RF-016, RF-017, US-08, US-09 | Completado | 2026-06-05 |
-| 38  | `product-comparison-plp`            | 10         | US-06                        | Pendiente  | —          |
+| 38  | `product-comparison-plp`            | 10         | US-06                        | Completado | 2026-06-08 |
 | 39  | `newsletter-subscription`           | 9, 16, 28  | Alcance §1.14                | Completado | 2026-06-05 |
-| 40  | `footer-eva-omnichannel-complete`   | 9, 32      | Alcance §1.12                | Pendiente  | —          |
+| 40  | `footer-eva-omnichannel-complete`   | 9, 32      | Alcance §1.12                | Completado | 2026-06-08 |
 | 41  | `downloads-catalogs-portal`         | 22, 3      | Alcance §1.24                | Completado | 2026-06-05 |
 | 42  | `system-config-backoffice`          | 5, 30      | Alcance §1.36                | Completado | 2026-06-05 |
 | 43  | `seo-technical-auditor`             | 21, 34     | Alcance auditor SEO          | Pendiente  | —          |
@@ -64,7 +64,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 51  | `web-native-operations`                | 42, 29, 37, 25 | RF-005–007, RF-016–017, RF-020, US-15 | En curso | —          |
 
 
-**Siguiente cambio recomendado:** #40 `footer-eva-omnichannel-complete` (depende de #9, #32) o #33 `blog-payload-frontend` (depende de #3, #9).
+**Siguiente cambio recomendado:** #43 `seo-technical-auditor` (depende de #21, #34) o cerrar #51 `web-native-operations`.
 
 **Portal B2B — estado actual:** operativo histórico (#23), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27), notificaciones (#28), avisos stock wishlist (#35), descargas catálogos (#41) y contabilidad documental (#37).
 
