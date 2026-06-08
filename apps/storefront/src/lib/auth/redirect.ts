@@ -1,12 +1,6 @@
 import type { CustomerContext } from './customer-context'
 
-export function loginRedirectPath(ctx: CustomerContext): string {
-  if (!ctx.validatedAt && ctx.customerGroup > 1) {
-    return '/cuenta'
-  }
-  if (ctx.validatedAt && ctx.customerGroup >= 2 && ctx.customerGroup <= 4) {
-    return '/intranet'
-  }
+export function loginRedirectPath(_ctx: CustomerContext): string {
   return '/cuenta'
 }
 

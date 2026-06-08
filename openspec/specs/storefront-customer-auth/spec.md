@@ -30,11 +30,11 @@ The storefront SHALL provide `/login` with a form that authenticates via Supabas
 - **THEN** the system creates a session and redirects to `/cuenta`
 - **AND** the header account control shows the customer `commercial_name`
 
-#### Scenario: B2B login redirects to intranet (CA-AUTH-002)
+#### Scenario: B2B login redirects to account area (CA-AUTH-002)
 
 - **WHEN** a user with `customer_group` in (2, 3, 4), `validated_at` IS NOT NULL, and valid credentials submits the login form
-- **THEN** the system redirects to `/intranet`
-- **AND** does not redirect to `/cuenta` as the primary landing
+- **THEN** the system redirects to `/cuenta`
+- **AND** the B2B empresa section is available in the account sidebar
 
 #### Scenario: Failed login increments lock counter (CA-AUTH-004)
 
@@ -77,14 +77,14 @@ On successful customer login, the system SHALL record an audit event (Supabase `
 - **WHEN** login succeeds for an active customer
 - **THEN** a new immutable row exists in `audit_log` describing the login action
 
-### Requirement: B2B subuser login redirects to intranet
+### Requirement: B2B subuser login redirects to cuenta
 
 The login flow SHALL treat validated `b2b_subuser` the same as B2B superadmin for redirect purposes (RF-001).
 
-#### Scenario: Subuser login redirects to intranet
+#### Scenario: Subuser login redirects to cuenta
 
 - **WHEN** a user with `role = b2b_subuser`, `is_active = true`, validated company, and valid credentials submits login
-- **THEN** the system redirects to `/intranet`
+- **THEN** the system redirects to `/cuenta`
 - **AND** loads effective permissions for navigation
 
 #### Scenario: Deactivated subuser login blocked

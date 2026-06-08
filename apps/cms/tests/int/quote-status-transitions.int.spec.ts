@@ -4,6 +4,7 @@ import {
   assertAllowedQuoteTransition,
   canConvertQuoteToOrder,
   isStaffQuoteTransition,
+  staffSelectableQuoteStatuses,
 } from '@/collections/Quotes/status-transitions'
 import {
   mapQuoteToOrderCreateData,
@@ -24,6 +25,18 @@ describe('quote status transitions', () => {
   it('only accepted can convert to order', () => {
     expect(canConvertQuoteToOrder('accepted')).toBe(true)
     expect(canConvertQuoteToOrder('sent')).toBe(false)
+  })
+
+  it('limits admin dropdown to current status and allowed transitions', () => {
+    expect(staffSelectableQuoteStatuses('requested')).toEqual([
+      'requested',
+      'in_review',
+      'cancelled',
+    ])
+    expect(staffSelectableQuoteStatuses('sent')).toEqual(['sent', 'accepted', 'cancelled'])
+    expect(staffSelectableQuoteStatuses('accepted')).toEqual(['accepted', 'cancelled'])
+    expect(staffSelectableQuoteStatuses('ordered')).toEqual(['ordered'])
+    expect(staffSelectableQuoteStatuses('cancelled')).toEqual(['cancelled'])
   })
 })
 

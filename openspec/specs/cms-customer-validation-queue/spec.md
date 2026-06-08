@@ -36,12 +36,12 @@ Staff with roles `superadmin` or `administracion` and valid MFA session SHALL va
 - **THEN** the validate action is rejected with an error
 - **AND** no `customers` or `web_profiles` row is updated
 
-#### Scenario: Validate B2B company enables intranet access
+#### Scenario: Validate B2B company enables empresa access
 
 - **WHEN** staff validates a pending company with `customer_group = 2`
 - **THEN** `validated_at` is set
 - **AND** `web_profiles.role` becomes `b2b_superadmin`
-- **AND** the next login for that user redirects to `/intranet`
+- **AND** the next login for that user redirects to `/cuenta`
 
 #### Scenario: Validate B2C keeps group 1
 
@@ -49,19 +49,19 @@ Staff with roles `superadmin` or `administracion` and valid MFA session SHALL va
 - **THEN** `validated_at` is set
 - **AND** `web_profiles.role` becomes `b2c`
 
-#### Scenario: Validate school group 3 enables intranet
+#### Scenario: Validate school group 3 enables empresa access
 
 - **WHEN** staff validates a pending registration with `customer_group = 3`
 - **THEN** `validated_at` is set
 - **AND** `web_profiles.role` becomes `b2b_superadmin`
-- **AND** the next login redirects to `/intranet`
+- **AND** the next login redirects to `/cuenta`
 
-#### Scenario: Validate public tender group 4 enables intranet
+#### Scenario: Validate public tender group 4 enables empresa access
 
 - **WHEN** staff validates a pending registration with `customer_group = 4`
 - **THEN** `validated_at` is set
 - **AND** `web_profiles.role` becomes `b2b_superadmin`
-- **AND** the next login redirects to `/intranet`
+- **AND** the next login redirects to `/cuenta`
 
 ### Requirement: Validation action is audited
 
@@ -114,7 +114,7 @@ Staff with roles `superadmin` or `administracion` and valid MFA session SHALL re
 - **THEN** `customers.customer_group` becomes 2
 - **AND** the titular `web_profiles.role` becomes `b2b_superadmin`
 - **AND** `validated_at` is unchanged
-- **AND** the customer's next login redirects to `/intranet`
+- **AND** the customer's next login redirects to `/cuenta`
 
 #### Scenario: Fix desynchronized role on validated B2B customer
 
@@ -179,7 +179,7 @@ Reclassification SHALL NOT trigger the customer approval email template used on 
 
 ### Requirement: Approval email on validation
 
-When staff successfully validates a customer, the CMS SHALL send a transactional email via Payload email transport (Mailpit in development, Resend SMTP in production) to the customer email. The email SHALL state that Jeyjo has approved the account, include assigned customer group and tax id when present, and link to `/cuenta` for group 1 or `/intranet` for groups 2–4. B2B templates SHALL vary copy by group (empresa, colegio/instituto, concurso público).
+When staff successfully validates a customer, the CMS SHALL send a transactional email via Payload email transport (Mailpit in development, Resend SMTP in production) to the customer email. The email SHALL state that Jeyjo has approved the account, include assigned customer group and tax id when present, and link to `/cuenta` for all customer groups. B2B templates SHALL vary copy by group (empresa, colegio/instituto, concurso público).
 
 #### Scenario: B2C approval email sent
 
@@ -187,11 +187,11 @@ When staff successfully validates a customer, the CMS SHALL send a transactional
 - **THEN** an approval email is sent to the customer address
 - **AND** the email contains a link to the storefront account area
 
-#### Scenario: B2B approval email sent for group 3
+#### Scenario: B2B approval email links to cuenta
 
-- **WHEN** staff validates a customer with `customer_group = 3`
-- **THEN** an approval email is sent mentioning centro educativo / catálogo escolar context
-- **AND** the email contains a link to `/intranet`
+- **WHEN** staff validates a customer with `customer_group` 2, 3, or 4
+- **THEN** the approval email contains a link to `/cuenta`
+- **AND** does not link to `/intranet`
 
 #### Scenario: Email failure does not roll back validation
 

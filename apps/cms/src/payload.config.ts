@@ -21,11 +21,8 @@ import { Quotes } from '@/collections/Quotes'
 import { B2bCatalogDownloads } from '@/collections/B2bCatalogDownloads'
 import { RmaIncidents } from '@/collections/RmaIncidents'
 import { Media } from '@/collections/Media'
-import { Pages } from '@/collections/Pages'
 import { Suppliers } from '@/collections/Suppliers'
 import { Users } from '@/collections/Users'
-import { Footer } from '@/globals/Footer'
-import { Header } from '@/globals/Header'
 import { Home } from '@/globals/Home'
 import { MarketingSettings } from '@/globals/MarketingSettings'
 import { NewsletterSettings } from '@/globals/NewsletterSettings'
@@ -90,11 +87,11 @@ export default buildConfig({
   admin: {
     components: {
       beforeLogin: ['@/components/BeforeLogin#BeforeLogin'],
-      beforeDashboard: [
+      beforeDashboard: ['@/components/DashboardKpisView#DashboardKpisView'],
+      afterNavLinks: [
         '@/components/MfaGate#MfaGate',
-        '@/components/DashboardKpisView#DashboardKpisView',
+        '@/components/CustomersAdminNavLink#CustomersAdminNavLink',
       ],
-      afterNavLinks: ['@/components/CustomersAdminNavLink#CustomersAdminNavLink'],
       views: {
         auditLog: {
           Component: '@/components/AuditLogView#AuditLogView',
@@ -162,7 +159,6 @@ export default buildConfig({
   },
   collections: [
     Users,
-    Pages,
     Categories,
     Suppliers,
     Media,
@@ -192,7 +188,7 @@ export default buildConfig({
         OrderedListFeature(),
         UnorderedListFeature(),
         LinkFeature({
-          enabledCollections: ['pages'],
+          enabledCollections: ['products'],
           fields: ({ defaultFields }) => {
             const defaultFieldsWithoutUrl = defaultFields.filter((field) => {
               if ('name' in field && field.name === 'url') return false
@@ -239,8 +235,6 @@ export default buildConfig({
     ...newsletterEndpoints,
   ],
   globals: [
-    Header,
-    Footer,
     Home,
     SystemSettings,
     PaymentSettings,

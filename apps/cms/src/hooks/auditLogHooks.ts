@@ -14,7 +14,6 @@ const ENTITY_TYPE_BY_COLLECTION: Record<string, string> = {
   orders: 'order',
   users: 'user',
   media: 'media',
-  pages: 'page',
 }
 
 const DEFAULT_PICK_FIELDS: Record<string, string[]> = {
@@ -24,7 +23,6 @@ const DEFAULT_PICK_FIELDS: Record<string, string[]> = {
   orders: ['orderNumber', 'origin', 'jeyjoStatus', 'total'],
   users: ['email', 'name', 'staffRoles', 'twoFactorEnabled'],
   media: ['alt', 'filename'],
-  pages: ['title', 'slug', '_status'],
 }
 
 export type AuditedCollection = keyof typeof ENTITY_TYPE_BY_COLLECTION

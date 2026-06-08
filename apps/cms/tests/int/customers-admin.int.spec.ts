@@ -59,7 +59,7 @@ describe('customer approval email', () => {
     expect(html).not.toContain('/intranet')
   })
 
-  it('links B2B groups 2–4 to intranet', () => {
+  it('links B2B groups 2–4 to cuenta', () => {
     for (const group of [2, 3, 4] as const) {
       const { portalPath, html } = buildCustomerApprovalEmail({
         to: 'b@b.com',
@@ -67,8 +67,8 @@ describe('customer approval email', () => {
         customerGroup: group,
         taxId: 'B12345678',
       })
-      expect(portalPath).toBe('/intranet')
-      expect(html).toContain('/intranet')
+      expect(portalPath).toBe('/cuenta')
+      expect(html).toContain('/cuenta')
       expect(html).toContain('B12345678')
     }
   })

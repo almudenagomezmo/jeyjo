@@ -4,6 +4,7 @@ import type { Database } from '@jeyjo/database-types'
 
 import { requireB2bApiSession } from '@/lib/intranet/b2b-api-guard'
 import type { NotificationPreferences } from '@/lib/notifications/types'
+import { getSupabaseAdminClient } from '@/lib/supabase/admin'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 type Channel = Database['public']['Enums']['notification_channel']
@@ -96,27 +97,24 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
 
-  const supabase = await createSupabaseServerClient()
-  const { data: existing } = await supabase
-    .from('notification_preferences')
-    .select('web_profile_id')
-    .eq('web_profile_id', guard.ctx.userId)
-    .maybeSingle()
+  const admin = getSupabaseAdminClient()
+  if (!admin) {
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
 
-  const write = existing
-    ? supabase
-        .from('notification_preferences')
-        .update(patch)
-        .eq('web_profile_id', guard.ctx.userId)
-    : supabase.from('notification_preferences').insert({
+  const { data, error } = await admin
+    .from('notification_preferences')
+    .upsert(
+      {
         web_profile_id: guard.ctx.userId,
         invoice_channel: invoice ?? 'email',
         order_channel: order ?? 'email',
         quote_channel: quote ?? 'email',
         wishlist_channel: wishlist ?? 'email',
-      })
-
-  const { data, error } = await write
+        ...patch,
+      },
+      { onConflict: 'web_profile_id' },
+    )
     .select('invoice_channel, order_channel, quote_channel, wishlist_channel, email_disabled_at')
     .single()
 

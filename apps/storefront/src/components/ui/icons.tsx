@@ -88,6 +88,26 @@ export const FilterIcon = createIcon(
   </>,
   "FilterIcon",
 );
+export const GridIcon = createIcon(
+  <>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+  </>,
+  "GridIcon",
+);
+export const ListIcon = createIcon(
+  <>
+    <path d="M8 6h13" />
+    <path d="M8 12h13" />
+    <path d="M8 18h13" />
+    <path d="M3 6h.01" />
+    <path d="M3 12h.01" />
+    <path d="M3 18h.01" />
+  </>,
+  "ListIcon",
+);
 export const TruckIcon = createIcon(
   <>
     <path d="M3 7h11v9H3z" />

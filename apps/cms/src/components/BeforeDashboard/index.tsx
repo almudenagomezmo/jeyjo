@@ -16,10 +16,19 @@ export const BeforeDashboard: React.FC = () => {
       <ul className={`${baseClass}__instructions`}>
         <li>
           <SeedButton />
-          {' with a few products and pages to jump-start your new project, then '}
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a href="/">visit your website</a>
-          {' to see the results.'}
+          {' con datos de catálogo de ejemplo. El storefront está en '}
+          <a
+            href={
+              process.env.NEXT_PUBLIC_STOREFRONT_URL?.trim() ||
+              process.env.STOREFRONT_URL?.trim() ||
+              'http://localhost:3000'
+            }
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            la tienda
+          </a>
+          .
         </li>
         <li>
           {'Head over to '}

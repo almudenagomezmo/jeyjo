@@ -77,14 +77,9 @@ The sticky header SHALL keep logo, category navigation, centered predictive sear
 - **WHEN** no customer session exists
 - **THEN** the account control links to `/login`
 
-#### Scenario: Authenticated account link goes to correct home
+#### Scenario: Authenticated account link goes to cuenta
 
-- **WHEN** a validated B2B session exists (`customer_group` 2–4)
-- **THEN** the account control links to `/intranet`
-
-#### Scenario: Authenticated B2C account link goes to cuenta
-
-- **WHEN** a B2C or pending session exists (`customer_group` 1 or pending validation)
+- **WHEN** any authenticated customer session exists (B2C, pending, or validated B2B)
 - **THEN** the account control links to `/cuenta`
 
 ### Requirement: Skip link and keyboard accessibility for shell navigation
@@ -130,32 +125,32 @@ The footer SHALL link catalog columns to root category routes from the navigatio
 
 ### Requirement: Portal mode suppresses public shop chrome
 
-When the active route is under `/intranet/*`, the navigation shell SHALL render the portal top bar defined in `storefront-b2b-portal-shell` instead of the sticky shop header and SHALL omit the public footer.
+When the active route is under `/cuenta/empresa/*`, the navigation shell SHALL render the portal top bar defined in `storefront-b2b-portal-shell` instead of the sticky shop header and SHALL omit the public footer.
 
-#### Scenario: Footer hidden on intranet
+#### Scenario: Footer hidden on empresa routes
 
-- **WHEN** a validated B2B user loads any `/intranet/*` path
+- **WHEN** a validated B2B user loads any `/cuenta/empresa/*` path
 - **THEN** the public shop footer is not rendered
 
-#### Scenario: Shop header hidden on intranet
+#### Scenario: Shop header hidden on empresa routes
 
-- **WHEN** a validated B2B user loads `/intranet`
+- **WHEN** a validated B2B user loads `/cuenta/empresa/pedidos`
 - **THEN** the category mega menu and header search bar are not rendered
 
 ### Requirement: Route groups separate shop and account layouts
 
-The App Router SHALL use route groups `(shop)`, `(account)`, and `(b2b)` so catalog, B2C account, and B2B portal areas can share the root layout while applying segment-specific layout wrappers without changing public URLs.
+The App Router SHALL use route groups `(shop)` and `(account)` so catalog and account areas share the root layout while applying segment-specific layout wrappers without changing public URLs.
 
-#### Scenario: Account route keeps global shell
+#### Scenario: Account route keeps global shell on personal pages
 
-- **WHEN** a user opens `/cuenta`
+- **WHEN** a user opens `/cuenta/perfil`
 - **THEN** TopBar, Header, and Footer from the root layout remain visible and the account segment layout wraps page content
 
-#### Scenario: Intranet route uses portal shell
+#### Scenario: Empresa route uses portal shell
 
-- **WHEN** a validated B2B user opens `/intranet/pedidos`
+- **WHEN** a validated B2B user opens `/cuenta/empresa/pedidos`
 - **THEN** the portal top bar is shown instead of the full shop header
-- **AND** the intranet segment layout wraps page content with sidebar navigation
+- **AND** the account segment layout wraps page content with unified sidebar navigation
 
 ### Requirement: Minicart mounted globally in root layout
 

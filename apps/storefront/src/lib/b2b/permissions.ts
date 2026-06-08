@@ -1,6 +1,7 @@
 import type { Json } from '@jeyjo/database-types'
 
 import type { CustomerContext } from '@/lib/auth/customer-context'
+import { isB2bValidated } from '@/lib/auth/redirect'
 import type { IntranetNavItem } from '@/lib/intranet/navigation'
 
 export type B2bSection = 'finance' | 'orders' | 'account'
@@ -52,12 +53,20 @@ export function permissionsToJson(perms: B2bPermissions): Json {
   }
 }
 
+/** Validated B2B company owner (not a subuser), including legacy `pending`/`b2c` roles. */
+export function isB2bCompanyOwner(ctx: CustomerContext): boolean {
+  return isB2bValidated(ctx) && ctx.role !== 'b2b_subuser' && !ctx.parentCustomerId
+}
+
 export function resolveEffectivePermissions(ctx: CustomerContext): EffectiveB2bPermissions {
   if (ctx.role === 'b2b_superadmin') {
     return { ...SUPERADMIN_PERMISSIONS, isSuperadmin: true }
   }
   if (ctx.role === 'b2b_subuser') {
     return { ...parseB2bPermissions(ctx.permissionsRaw), isSuperadmin: false }
+  }
+  if (isB2bCompanyOwner(ctx)) {
+    return { ...SUPERADMIN_PERMISSIONS, isSuperadmin: true }
   }
   return { ...DEFAULT_SUBUSER_PERMISSIONS, finance: false, orders: false, account: false, isSuperadmin: false }
 }
@@ -68,30 +77,28 @@ export function canAccessSection(ctx: CustomerContext, section: B2bSection): boo
 }
 
 const NAV_SECTION_BY_HREF: Record<string, B2bSection> = {
-  '/intranet/mi-cuenta': 'account',
-  '/intranet/contabilidad': 'finance',
-  '/intranet/pedidos': 'orders',
-  '/intranet/pedido-rapido': 'orders',
-  '/intranet/precios': 'orders',
-  '/intranet/rma': 'orders',
-  '/intranet/stock': 'orders',
-  '/intranet/descargas': 'orders',
-  '/intranet/contacto': 'orders',
+  '/cuenta/empresa/preferencias': 'account',
+  '/cuenta/empresa/contabilidad': 'finance',
+  '/cuenta/empresa/pedidos': 'orders',
+  '/cuenta/empresa/pedido-rapido': 'orders',
+  '/cuenta/empresa/precios': 'orders',
+  '/cuenta/empresa/rma': 'orders',
+  '/cuenta/empresa/descargas': 'orders',
+  '/cuenta/empresa/contacto': 'orders',
 }
 
 const PATH_PREFIX_SECTION: Array<{ prefix: string; section: B2bSection }> = [
-  { prefix: '/intranet/contabilidad', section: 'finance' },
-  { prefix: '/intranet/mi-cuenta', section: 'account' },
-  { prefix: '/intranet/pedidos', section: 'orders' },
-  { prefix: '/intranet/pedido-rapido', section: 'orders' },
-  { prefix: '/intranet/precios', section: 'orders' },
-  { prefix: '/intranet/rma', section: 'orders' },
-  { prefix: '/intranet/stock', section: 'orders' },
-  { prefix: '/intranet/descargas', section: 'orders' },
-  { prefix: '/intranet/contacto', section: 'orders' },
+  { prefix: '/cuenta/empresa/contabilidad', section: 'finance' },
+  { prefix: '/cuenta/empresa/preferencias', section: 'account' },
+  { prefix: '/cuenta/empresa/pedidos', section: 'orders' },
+  { prefix: '/cuenta/empresa/pedido-rapido', section: 'orders' },
+  { prefix: '/cuenta/empresa/precios', section: 'orders' },
+  { prefix: '/cuenta/empresa/rma', section: 'orders' },
+  { prefix: '/cuenta/empresa/descargas', section: 'orders' },
+  { prefix: '/cuenta/empresa/contacto', section: 'orders' },
 ]
 
-export function sectionForIntranetPath(pathname: string): B2bSection | null {
+export function sectionForEmpresaPath(pathname: string): B2bSection | null {
   for (const { prefix, section } of PATH_PREFIX_SECTION) {
     if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
       return section
@@ -100,11 +107,16 @@ export function sectionForIntranetPath(pathname: string): B2bSection | null {
   return null
 }
 
+/** @deprecated Use sectionForEmpresaPath */
+export function sectionForIntranetPath(pathname: string): B2bSection | null {
+  return sectionForEmpresaPath(pathname)
+}
+
 export function sectionForNavHref(href: string): B2bSection | null {
   return NAV_SECTION_BY_HREF[href] ?? null
 }
 
-export function filterIntranetNav(
+export function filterEmpresaNav(
   items: IntranetNavItem[],
   ctx: CustomerContext,
 ): IntranetNavItem[] {
@@ -116,8 +128,16 @@ export function filterIntranetNav(
   })
 }
 
+/** @deprecated Use filterEmpresaNav */
+export function filterIntranetNav(
+  items: IntranetNavItem[],
+  ctx: CustomerContext,
+): IntranetNavItem[] {
+  return filterEmpresaNav(items, ctx)
+}
+
 export function canManageSubusers(ctx: CustomerContext): boolean {
-  return ctx.role === 'b2b_superadmin'
+  return ctx.role === 'b2b_superadmin' || isB2bCompanyOwner(ctx)
 }
 
 export function requiresOrderCompanyApproval(ctx: CustomerContext): boolean {

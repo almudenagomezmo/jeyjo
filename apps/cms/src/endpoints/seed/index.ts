@@ -1,7 +1,5 @@
-import type { CollectionSlug, GlobalSlug, Payload, PayloadRequest, File } from 'payload'
+import type { CollectionSlug, Payload, PayloadRequest, File } from 'payload'
 
-import { contactFormData } from './contact-form'
-import { contactPageData } from './contact-page'
 import { seedCatalogDatabase } from './seed-catalog-database'
 import { seedStaffUsers } from './staff-users'
 import { seedDashboardFixtures } from './dashboard-fixtures'
@@ -11,7 +9,6 @@ import { seedMarketingCoupons } from './marketing-coupons'
 import { seedSampleQuotes } from './sample-quotes'
 import { productHatData } from './product-hat'
 import { productTshirtData, productTshirtVariant } from './product-tshirt'
-import { homePageData } from './home'
 import { imageHatData } from './image-hat'
 import { imageTshirtBlackData } from './image-tshirt-black'
 import { imageTshirtWhiteData } from './image-tshirt-white'
@@ -22,10 +19,7 @@ const collections: CollectionSlug[] = [
   'categories',
   'suppliers',
   'media',
-  'pages',
   'products',
-  'forms',
-  'form-submissions',
   'variants',
   'variantOptions',
   'variantTypes',
@@ -49,8 +43,6 @@ const colorVariantOptions = [
   { label: 'Black', value: 'black' },
   { label: 'White', value: 'white' },
 ]
-
-const globals: GlobalSlug[] = ['header', 'footer', 'home']
 
 const baseAddressUSData: Transaction['billingAddress'] = {
   title: 'Dr.',
@@ -110,14 +102,6 @@ export const seed = async ({
       depth: 0,
       context: { disableRevalidate: true },
     }),
-    ...(['header', 'footer'] as const).map((global) =>
-      payload.updateGlobal({
-        slug: global,
-        data: { navItems: [] },
-        depth: 0,
-        context: { disableRevalidate: true },
-      }),
-    ),
   ])
 
   for (const collection of collections) {
@@ -320,34 +304,6 @@ export const seed = async ({
     ),
   )
 
-  payload.logger.info(`— Seeding contact form...`)
-
-  const contactForm = await payload.create({
-    collection: 'forms',
-    depth: 0,
-    data: contactFormData(),
-  })
-
-  payload.logger.info(`— Seeding pages...`)
-
-  const [_, contactPage] = await Promise.all([
-    payload.create({
-      collection: 'pages',
-      depth: 0,
-      data: homePageData({
-        contentImage: imageHero,
-        metaImage: imageHat,
-      }),
-    }),
-    payload.create({
-      collection: 'pages',
-      depth: 0,
-      data: contactPageData({
-        contactForm: contactForm,
-      }),
-    }),
-  ])
-
   payload.logger.info(`— Seeding addresses...`)
 
   const customerUSAddress = await payload.create({
@@ -524,76 +480,6 @@ export const seed = async ({
       transactions: [succeededTransaction.id],
     },
   })
-
-  payload.logger.info(`— Seeding globals...`)
-
-  await Promise.all([
-    payload.updateGlobal({
-      slug: 'header',
-      data: {
-        navItems: [
-          {
-            link: {
-              type: 'custom',
-              label: 'Home',
-              url: '/',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Shop',
-              url: '/shop',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Account',
-              url: '/account',
-            },
-          },
-        ],
-      },
-    }),
-    payload.updateGlobal({
-      slug: 'footer',
-      data: {
-        navItems: [
-          {
-            link: {
-              type: 'custom',
-              label: 'Admin',
-              url: '/admin',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Find my order',
-              url: '/find-order',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Source Code',
-              newTab: true,
-              url: 'https://github.com/payloadcms/payload/tree/3.x/templates/website',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Payload',
-              newTab: true,
-              url: 'https://payloadcms.com/',
-            },
-          },
-        ],
-      },
-    }),
-  ])
 
   await seedCatalogDatabase({
     payload,

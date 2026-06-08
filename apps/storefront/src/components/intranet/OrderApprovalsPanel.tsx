@@ -105,7 +105,7 @@ export function OrderApprovalsBadge({ count }: { count: number }) {
       <p className="font-semibold text-text-brand">
         {count} pedido{count === 1 ? "" : "s"} pendiente{count === 1 ? "" : "s"} de tu aprobación
       </p>
-      <a href="/intranet/mi-cuenta#aprobaciones" className="mt-2 inline-block text-sm font-semibold underline">
+      <a href="/cuenta/empresa/preferencias#aprobaciones" className="mt-2 inline-block text-sm font-semibold underline">
         Revisar cola de aprobación
       </a>
     </Card>

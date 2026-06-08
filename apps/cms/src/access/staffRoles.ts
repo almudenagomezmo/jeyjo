@@ -23,9 +23,6 @@ export const COLLECTION_ACCESS: Record<string, StaffRole[]> = {
   categories: ['superadmin', 'catalogo'],
   suppliers: ['superadmin', 'catalogo'],
   media: ['superadmin', 'catalogo', 'personalizacion'],
-  pages: ['superadmin', 'personalizacion'],
-  forms: ['superadmin', 'personalizacion'],
-  'form-submissions': ['superadmin', 'personalizacion', 'administracion'],
   orders: ['superadmin', 'administracion'],
   quotes: ['superadmin', 'administracion'],
   'rma-incidents': ['superadmin', 'administracion'],
@@ -92,7 +89,7 @@ export function canWriteCollection(
     return hasStaffRole(user, ['superadmin', 'marketing', 'personalizacion'])
   }
 
-  if (['pages', 'forms', 'form-submissions', 'media'].includes(collection)) {
+  if (collection === 'media') {
     return hasStaffRole(user, ['superadmin', 'personalizacion', 'catalogo'])
   }
 

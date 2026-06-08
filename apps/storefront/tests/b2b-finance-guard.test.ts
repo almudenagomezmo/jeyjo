@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { CustomerContext } from '@/lib/auth/customer-context'
-import { canAccessSection, sectionForIntranetPath } from '@/lib/b2b/permissions'
+import { canAccessSection, sectionForEmpresaPath } from '@/lib/b2b/permissions'
 
 const subuserNoFinance: CustomerContext = {
   userId: 'u2',
@@ -28,7 +28,7 @@ const subuserNoFinance: CustomerContext = {
 
 describe('RF-003 finance access guard', () => {
   it('maps facturas to finance section', () => {
-    expect(sectionForIntranetPath('/intranet/contabilidad/facturas')).toBe('finance')
+    expect(sectionForEmpresaPath('/cuenta/empresa/contabilidad/facturas')).toBe('finance')
   })
 
   it('denies finance section for subuser without permission', () => {

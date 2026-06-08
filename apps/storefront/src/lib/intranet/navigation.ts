@@ -11,67 +11,67 @@ export type IntranetNavItem = {
   children?: IntranetNavItem[]
 }
 
-export const INTRANET_DASHBOARD_HREF = '/intranet'
+export const ACCOUNT_DASHBOARD_HREF = '/cuenta'
+export const EMPRESA_PREFIX = '/cuenta/empresa'
+
+/** @deprecated Use ACCOUNT_DASHBOARD_HREF */
+export const INTRANET_DASHBOARD_HREF = ACCOUNT_DASHBOARD_HREF
 
 export const CONTABILIDAD_SUBNAV: IntranetNavItem[] = [
   {
-    href: '/intranet/contabilidad/facturas',
+    href: '/cuenta/empresa/contabilidad/facturas',
     label: 'Facturas emitidas',
   },
   {
-    href: '/intranet/contabilidad/albaranes',
+    href: '/cuenta/empresa/contabilidad/albaranes',
     label: 'Albaranes',
   },
   {
-    href: '/intranet/contabilidad/vencimientos',
+    href: '/cuenta/empresa/contabilidad/vencimientos',
     label: 'Vencimientos',
   },
   {
-    href: '/intranet/contabilidad/cifra-347',
+    href: '/cuenta/empresa/contabilidad/cifra-347',
     label: 'Cifra 347',
   },
   {
-    href: '/intranet/contabilidad/presupuestos',
+    href: '/cuenta/empresa/contabilidad/presupuestos',
     label: 'Presupuestos',
   },
 ]
 
-export const INTRANET_PRIMARY_NAV: IntranetNavItem[] = [
+export const EMPRESA_PRIMARY_NAV: IntranetNavItem[] = [
   {
-    href: '/intranet/mi-cuenta',
-    label: 'Mi cuenta',
+    href: '/cuenta/empresa/preferencias',
+    label: 'Preferencias',
   },
   {
-    href: '/intranet/contabilidad',
+    href: '/cuenta/empresa/contabilidad',
     label: 'Contabilidad',
     children: CONTABILIDAD_SUBNAV,
   },
   {
-    href: '/intranet/pedidos',
+    href: '/cuenta/empresa/pedidos',
     label: 'Histórico de pedidos',
   },
   {
-    href: '/intranet/pedido-rapido',
+    href: '/cuenta/empresa/pedido-rapido',
     label: 'Pedido rápido',
   },
   {
-    href: '/intranet/precios',
+    href: '/cuenta/empresa/precios',
     label: 'Precios especiales',
   },
   {
-    href: '/intranet/rma',
+    href: '/cuenta/empresa/rma',
     label: 'RMA e incidencias',
   },
   {
-    href: '/intranet/stock',
-    label: 'Avisos de stock',
-  },
-  {
-    href: '/intranet/descargas',
+    href: '/cuenta/empresa/descargas',
     label: 'Descargas',
   },
   {
-    href: '/intranet/contacto',
+    href: '/cuenta/empresa/contacto',
     label: 'Contacto',
     scaffold: {
       title: 'Contacto',
@@ -81,6 +81,9 @@ export const INTRANET_PRIMARY_NAV: IntranetNavItem[] = [
     },
   },
 ]
+
+/** @deprecated Use EMPRESA_PRIMARY_NAV */
+export const INTRANET_PRIMARY_NAV = EMPRESA_PRIMARY_NAV
 
 export function customerGroupLabel(group: number): string {
   switch (group) {
@@ -96,7 +99,7 @@ export function customerGroupLabel(group: number): string {
 }
 
 export function getScaffoldForPath(pathname: string): IntranetScaffoldMeta | null {
-  for (const item of INTRANET_PRIMARY_NAV) {
+  for (const item of EMPRESA_PRIMARY_NAV) {
     if (item.scaffold && item.href === pathname) return item.scaffold
     for (const child of item.children ?? []) {
       if (child.scaffold && child.href === pathname) return child.scaffold
@@ -106,10 +109,5 @@ export function getScaffoldForPath(pathname: string): IntranetScaffoldMeta | nul
 }
 
 export function getQuickAccessSections(): IntranetNavItem[] {
-  return INTRANET_PRIMARY_NAV
+  return EMPRESA_PRIMARY_NAV
 }
-
-/** Single source for stock watches href/label in intranet nav. */
-export const STOCK_WATCHES_NAV = INTRANET_PRIMARY_NAV.find(
-  (item) => item.href === '/intranet/stock',
-)! as Pick<IntranetNavItem, 'href' | 'label'>

@@ -4,10 +4,10 @@ import { buildIntranetBreadcrumbs } from '@/lib/intranet/breadcrumbs'
 import { isIntranetNavItemActive } from '@/lib/intranet/nav-active'
 import {
   CONTABILIDAD_SUBNAV,
-  INTRANET_PRIMARY_NAV,
+  EMPRESA_PRIMARY_NAV,
   getScaffoldForPath,
 } from '@/lib/intranet/navigation'
-import { isPortalModeFromHeaders, isIntranetPath } from '@/lib/intranet/portal-mode'
+import { isEmpresaPath, isPortalModeFromHeaders } from '@/lib/intranet/portal-mode'
 import { isB2bValidated, loginRedirectPath } from '@/lib/auth/redirect'
 import type { CustomerContext } from '@/lib/auth/customer-context'
 
@@ -34,9 +34,9 @@ const validatedB2b: CustomerContext = {
   parentCustomerId: null,
 }
 
-describe('intranet navigation config', () => {
-  it('defines nine primary sections', () => {
-    expect(INTRANET_PRIMARY_NAV).toHaveLength(9)
+describe('empresa navigation config', () => {
+  it('defines eight primary empresa sections', () => {
+    expect(EMPRESA_PRIMARY_NAV).toHaveLength(8)
   })
 
   it('defines five contabilidad subsections', () => {
@@ -44,38 +44,38 @@ describe('intranet navigation config', () => {
   })
 
   it('contabilidad routes are operational without scaffolds', () => {
-    expect(getScaffoldForPath('/intranet/pedidos')).toBeFalsy()
-    expect(getScaffoldForPath('/intranet/pedido-rapido')).toBeFalsy()
-    expect(getScaffoldForPath('/intranet/contabilidad/facturas')).toBeFalsy()
-    expect(getScaffoldForPath('/intranet/contacto')?.roadmapRef).toContain('#28')
+    expect(getScaffoldForPath('/cuenta/empresa/pedidos')).toBeFalsy()
+    expect(getScaffoldForPath('/cuenta/empresa/pedido-rapido')).toBeFalsy()
+    expect(getScaffoldForPath('/cuenta/empresa/contabilidad/facturas')).toBeFalsy()
+    expect(getScaffoldForPath('/cuenta/empresa/contacto')?.roadmapRef).toContain('#28')
   })
 })
 
 describe('isIntranetNavItemActive', () => {
   it('activates pedidos section only on pedidos path', () => {
-    expect(isIntranetNavItemActive('/intranet/pedidos', '/intranet/pedidos')).toBe(true)
-    expect(isIntranetNavItemActive('/intranet/pedidos', '/intranet/pedido-rapido')).toBe(false)
-    expect(isIntranetNavItemActive('/intranet', '/intranet/pedidos')).toBe(false)
+    expect(isIntranetNavItemActive('/cuenta/empresa/pedidos', '/cuenta/empresa/pedidos')).toBe(true)
+    expect(isIntranetNavItemActive('/cuenta/empresa/pedidos', '/cuenta/empresa/pedido-rapido')).toBe(false)
+    expect(isIntranetNavItemActive('/cuenta', '/cuenta/empresa/pedidos')).toBe(false)
   })
 
   it('activates contabilidad parent for nested routes', () => {
-    expect(isIntranetNavItemActive('/intranet/contabilidad/vencimientos', '/intranet/contabilidad')).toBe(
-      true,
-    )
+    expect(
+      isIntranetNavItemActive('/cuenta/empresa/contabilidad/vencimientos', '/cuenta/empresa/contabilidad'),
+    ).toBe(true)
   })
 })
 
 describe('buildIntranetBreadcrumbs', () => {
   it('builds contabilidad vencimientos trail', () => {
-    expect(buildIntranetBreadcrumbs('/intranet/contabilidad/vencimientos')).toEqual([
-      { label: 'Portal', href: '/intranet' },
-      { label: 'Contabilidad', href: '/intranet/contabilidad' },
-      { label: 'Vencimientos', href: '/intranet/contabilidad/vencimientos' },
+    expect(buildIntranetBreadcrumbs('/cuenta/empresa/contabilidad/vencimientos')).toEqual([
+      { label: 'Mi cuenta', href: '/cuenta' },
+      { label: 'Contabilidad', href: '/cuenta/empresa/contabilidad' },
+      { label: 'Vencimientos', href: '/cuenta/empresa/contabilidad/vencimientos' },
     ])
   })
 
-  it('returns only portal crumb on dashboard', () => {
-    expect(buildIntranetBreadcrumbs('/intranet')).toEqual([{ label: 'Portal', href: '/intranet' }])
+  it('returns only account crumb on dashboard', () => {
+    expect(buildIntranetBreadcrumbs('/cuenta')).toEqual([{ label: 'Mi cuenta', href: '/cuenta' }])
   })
 })
 
@@ -85,20 +85,20 @@ describe('portal mode helpers', () => {
     expect(isPortalModeFromHeaders(headers)).toBe(true)
   })
 
-  it('matches intranet paths', () => {
-    expect(isIntranetPath('/intranet')).toBe(true)
-    expect(isIntranetPath('/intranet/pedidos')).toBe(true)
-    expect(isIntranetPath('/cuenta')).toBe(false)
+  it('matches empresa paths', () => {
+    expect(isEmpresaPath('/cuenta/empresa')).toBe(true)
+    expect(isEmpresaPath('/cuenta/empresa/pedidos')).toBe(true)
+    expect(isEmpresaPath('/cuenta')).toBe(false)
   })
 })
 
-describe('B2B intranet guards', () => {
-  it('redirects validated B2B login to intranet', () => {
-    expect(loginRedirectPath(validatedB2b)).toBe('/intranet')
+describe('B2B cuenta guards', () => {
+  it('redirects validated B2B login to cuenta', () => {
+    expect(loginRedirectPath(validatedB2b)).toBe('/cuenta')
     expect(isB2bValidated(validatedB2b)).toBe(true)
   })
 
-  it('blocks B2C from intranet access check', () => {
+  it('blocks B2C from empresa access check', () => {
     const b2c = { ...validatedB2b, customerGroup: 1, validatedAt: '2026-01-01T00:00:00.000Z', role: 'b2c' as const }
     expect(isB2bValidated(b2c)).toBe(false)
   })

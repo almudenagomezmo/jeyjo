@@ -33,9 +33,9 @@ function escapeHtml(value: string): string {
 export function buildCustomerApprovalEmail(input: ApprovalEmailInput): {
   subject: string
   html: string
-  portalPath: '/cuenta' | '/intranet'
+  portalPath: '/cuenta'
 } {
-  const portalPath = input.customerGroup === 1 ? '/cuenta' : '/intranet'
+  const portalPath = '/cuenta'
   const portalUrl = `${storefrontBaseUrl()}${portalPath}`
   const groupLabel = customerGroupLabel(input.customerGroup)
   const segmentCopy = approvalEmailSegmentCopy(input.customerGroup)

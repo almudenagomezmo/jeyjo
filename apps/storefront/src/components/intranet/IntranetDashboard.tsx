@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { CustomerContext } from "@/lib/auth/customer-context";
-import { filterIntranetNav } from "@/lib/b2b/permissions";
-import { customerGroupLabel, INTRANET_PRIMARY_NAV } from "@/lib/intranet/navigation";
+import { filterEmpresaNav } from "@/lib/b2b/permissions";
+import { customerGroupLabel, EMPRESA_PRIMARY_NAV } from "@/lib/intranet/navigation";
 import { OrderApprovalsBadge } from "@/components/intranet/OrderApprovalsPanel";
 import { Card } from "@/components/ui/Card";
 
@@ -22,7 +22,7 @@ export function IntranetDashboard({
   pendingApprovalCount = 0,
   forbiddenSection = null,
 }: IntranetDashboardProps) {
-  const sections = filterIntranetNav(INTRANET_PRIMARY_NAV, ctx);
+  const sections = filterEmpresaNav(EMPRESA_PRIMARY_NAV, ctx);
 
   return (
     <div className="space-y-8">
@@ -59,21 +59,21 @@ export function IntranetDashboard({
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {sections.map((section) => {
             const href =
-              section.href === "/intranet/contabilidad"
-                ? "/intranet/contabilidad/facturas"
+              section.href === "/cuenta/empresa/contabilidad"
+                ? "/cuenta/empresa/contabilidad/facturas"
                 : section.href;
+            const description =
+              section.scaffold?.description ??
+              (section.children
+                ? "Facturas, albaranes, vencimientos y más documentación contable."
+                : null);
             return (
-              <Link key={section.href} href={href} className="group block">
-                <Card className="p-4 transition-colors group-hover:border-border">
+              <Link key={section.href} href={href} className="group flex h-full">
+                <Card className="flex h-full w-full flex-col p-4 transition-colors group-hover:border-border">
                   <p className="font-semibold text-text-primary">{section.label}</p>
-                  {section.scaffold && (
-                    <p className="mt-1 line-clamp-2 text-xs text-text-secondary">{section.scaffold.description}</p>
-                  )}
-                  {section.children && (
-                    <p className="mt-1 text-xs text-text-secondary">
-                      Facturas, albaranes, vencimientos y más documentación contable.
-                    </p>
-                  )}
+                  <p className="mt-1 min-h-10 line-clamp-2 text-xs text-text-secondary">
+                    {description ?? "\u00A0"}
+                  </p>
                 </Card>
               </Link>
             );

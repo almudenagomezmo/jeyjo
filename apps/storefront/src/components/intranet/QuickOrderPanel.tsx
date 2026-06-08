@@ -31,7 +31,7 @@ type QuickOrderLinePreview = {
   } | null;
 };
 
-const TEMPLATE_HREF = "/intranet/plantilla-pedido-rapido.xlsx";
+const TEMPLATE_HREF = "/api/intranet/quick-order/template";
 
 const statusLabel: Record<QuickOrderLinePreview["status"], string> = {
   ok: "OK",

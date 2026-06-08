@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 import { useAuth } from '@payloadcms/ui'
 
@@ -15,6 +16,7 @@ const defaultMfaMode: MfaMode = process.env.NODE_ENV === 'production' ? 'totp' :
 
 export const MfaGate: React.FC = () => {
   const { user } = useAuth()
+  const [mounted, setMounted] = useState(false)
   const [step, setStep] = useState<MfaStep>('loading')
   const [mode, setMode] = useState<MfaMode | null>(null)
   const [sentToEmail, setSentToEmail] = useState<string | null>(null)
@@ -56,6 +58,10 @@ export const MfaGate: React.FC = () => {
 
     setStep('verify')
   }, [isStaffUser, twoFactorEnabled])
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     void checkMfaSession()
@@ -129,105 +135,115 @@ export const MfaGate: React.FC = () => {
     window.location.reload()
   }
 
-  if (!isStaffUser || step === 'ready' || step === 'loading' || !mode) {
+  if (!mounted || !isStaffUser || step === 'ready') {
     return null
   }
 
   const isEmailMode = mode === 'email'
 
-  return (
-    <div className={baseClass}>
+  const modal = (
+    <div className={baseClass} role="dialog" aria-modal="true" aria-labelledby="mfa-gate-title">
       <div className={`${baseClass}__panel`}>
-        <h2>
-          {isEmailMode
-            ? 'Verificación por email'
-            : 'Autenticación en dos pasos (TOTP)'}
-        </h2>
-
-        {isEmailMode && (
+        {step === 'loading' || !mode ?
           <>
-            <p>
-              {step === 'enroll'
-                ? 'Te hemos enviado un código para activar la autenticación en dos pasos.'
-                : 'Te hemos enviado un código de verificación a tu email.'}
-            </p>
-            {sentToEmail && (
-              <p>
-                <strong>Email:</strong> {sentToEmail}
-              </p>
-            )}
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="Código de 6 dígitos"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <button
-              type="button"
-              onClick={() =>
-                submitCode(
-                  step === 'enroll'
-                    ? '/api/users/mfa/verify-enrollment'
-                    : '/api/users/mfa/verify',
-                )
-              }
-            >
-              {step === 'enroll' ? 'Activar MFA' : 'Verificar'}
-            </button>
-            <button type="button" onClick={() => void sendCode()} disabled={sending}>
-              {sending ? 'Enviando…' : 'Reenviar código'}
-            </button>
+            <h2 id="mfa-gate-title">Verificación MFA</h2>
+            <p>Comprobando sesión…</p>
           </>
-        )}
+        : <>
+            <h2 id="mfa-gate-title">
+              {isEmailMode
+                ? 'Verificación por email'
+                : 'Autenticación en dos pasos (TOTP)'}
+            </h2>
 
-        {!isEmailMode && step === 'enroll' && (
-          <>
-            <p>Escanea este código en Google Authenticator o introduce el secreto manualmente.</p>
-            {secret && (
-              <p>
-                <strong>Secreto:</strong> <code>{secret}</code>
-              </p>
+            {isEmailMode && (
+              <>
+                <p>
+                  {step === 'enroll'
+                    ? 'Te hemos enviado un código para activar la autenticación en dos pasos.'
+                    : 'Te hemos enviado un código de verificación a tu email.'}
+                </p>
+                {sentToEmail && (
+                  <p>
+                    <strong>Email:</strong> {sentToEmail}
+                  </p>
+                )}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Código de 6 dígitos"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    submitCode(
+                      step === 'enroll'
+                        ? '/api/users/mfa/verify-enrollment'
+                        : '/api/users/mfa/verify',
+                    )
+                  }
+                >
+                  {step === 'enroll' ? 'Activar MFA' : 'Verificar'}
+                </button>
+                <button type="button" onClick={() => void sendCode()} disabled={sending}>
+                  {sending ? 'Enviando…' : 'Reenviar código'}
+                </button>
+              </>
             )}
-            {uri && (
-              <p>
-                <strong>URI:</strong>{' '}
-                <a href={uri} rel="noreferrer">
-                  {uri}
-                </a>
-              </p>
+
+            {!isEmailMode && step === 'enroll' && (
+              <>
+                <p>Escanea este código en Google Authenticator o introduce el secreto manualmente.</p>
+                {secret && (
+                  <p>
+                    <strong>Secreto:</strong> <code>{secret}</code>
+                  </p>
+                )}
+                {uri && (
+                  <p>
+                    <strong>URI:</strong>{' '}
+                    <a href={uri} rel="noreferrer">
+                      {uri}
+                    </a>
+                  </p>
+                )}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Código de 6 dígitos"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+                <button type="button" onClick={() => submitCode('/api/users/mfa/verify-enrollment')}>
+                  Activar MFA
+                </button>
+              </>
             )}
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="Código de 6 dígitos"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <button type="button" onClick={() => submitCode('/api/users/mfa/verify-enrollment')}>
-              Activar MFA
-            </button>
-          </>
-        )}
 
-        {!isEmailMode && step === 'verify' && (
-          <>
-            <p>Introduce el código TOTP de tu aplicación autenticadora.</p>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="Código de 6 dígitos"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <button type="button" onClick={() => submitCode('/api/users/mfa/verify')}>
-              Verificar
-            </button>
-          </>
-        )}
+            {!isEmailMode && step === 'verify' && (
+              <>
+                <p>Introduce el código TOTP de tu aplicación autenticadora.</p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Código de 6 dígitos"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+                <button type="button" onClick={() => submitCode('/api/users/mfa/verify')}>
+                  Verificar
+                </button>
+              </>
+            )}
 
-        {error && <p className={`${baseClass}__error`}>{error}</p>}
+            {error && <p className={`${baseClass}__error`}>{error}</p>}
+          </>
+        }
       </div>
     </div>
   )
+
+  return createPortal(modal, document.body)
 }

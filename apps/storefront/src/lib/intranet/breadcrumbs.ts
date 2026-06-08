@@ -1,7 +1,7 @@
 import {
+  ACCOUNT_DASHBOARD_HREF,
   CONTABILIDAD_SUBNAV,
-  INTRANET_DASHBOARD_HREF,
-  INTRANET_PRIMARY_NAV,
+  EMPRESA_PRIMARY_NAV,
   type IntranetNavItem,
 } from '@/lib/intranet/navigation'
 
@@ -11,7 +11,7 @@ export type IntranetBreadcrumb = {
 }
 
 function findPrimaryItem(pathname: string): IntranetNavItem | undefined {
-  return INTRANET_PRIMARY_NAV.find(
+  return EMPRESA_PRIMARY_NAV.find(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   )
 }
@@ -21,9 +21,9 @@ function findContabilidadChild(pathname: string): IntranetNavItem | undefined {
 }
 
 export function buildIntranetBreadcrumbs(pathname: string): IntranetBreadcrumb[] {
-  const crumbs: IntranetBreadcrumb[] = [{ label: 'Portal', href: INTRANET_DASHBOARD_HREF }]
+  const crumbs: IntranetBreadcrumb[] = [{ label: 'Mi cuenta', href: ACCOUNT_DASHBOARD_HREF }]
 
-  if (pathname === INTRANET_DASHBOARD_HREF) {
+  if (!pathname.startsWith('/cuenta/empresa')) {
     return crumbs
   }
 
@@ -34,7 +34,7 @@ export function buildIntranetBreadcrumbs(pathname: string): IntranetBreadcrumb[]
 
   crumbs.push({ label: primary.label, href: primary.href })
 
-  if (primary.href === '/intranet/contabilidad') {
+  if (primary.href === '/cuenta/empresa/contabilidad') {
     const child = findContabilidadChild(pathname)
     if (child && pathname !== primary.href) {
       crumbs.push({ label: child.label, href: child.href })

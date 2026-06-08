@@ -82,7 +82,7 @@ export async function runInvoiceSync(payload: Payload): Promise<{
             invoiceNumber: inv.invoiceNumber ?? inv.id,
             amount: inv.totalAmount,
             currency: inv.currency,
-            href: `/intranet/contabilidad/facturas?highlight=${encodeURIComponent(inv.id)}`,
+            href: `/cuenta/empresa/contabilidad/facturas?highlight=${encodeURIComponent(inv.id)}`,
           },
           idempotencyKey: `invoice:${customer.id}:${inv.id}`,
         })

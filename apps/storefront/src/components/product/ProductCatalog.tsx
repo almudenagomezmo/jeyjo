@@ -5,13 +5,20 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 
 import { FacetSidebar } from "@/components/product/FacetSidebar";
 import { PlpPagination } from "@/components/product/PlpPagination";
+import { PlpViewToggle } from "@/components/product/PlpViewToggle";
 import { ProductGrid } from "@/components/product/ProductGrid";
+import { ProductList } from "@/components/product/ProductList";
 import { QuickViewDialog } from "@/components/product/QuickViewDialog";
 import { Button } from "@/components/ui/Button";
 import { LoadingOverlay } from "@/components/ui/JeyjoLoader";
 import { normalizePlpFilters } from "@/lib/plp/filters-utils";
 import { serializePlpSearchParams } from "@/lib/plp/plp-search-params";
 import type { PlpActiveFilters, PlpPagePayload, PlpSortKey } from "@/lib/plp/types";
+import {
+  readPlpViewMode,
+  writePlpViewMode,
+  type PlpViewMode,
+} from "@/lib/plp/view-mode";
 
 interface ProductCatalogProps {
   data: PlpPagePayload;
@@ -33,6 +40,16 @@ export function ProductCatalog({ data, basePath, searchQuery }: ProductCatalogPr
   const [isNavigating, startNavigation] = useTransition();
   const [quickViewSku, setQuickViewSku] = useState<string | null>(null);
   const [pendingFilters, setPendingFilters] = useState(data.activeFilters);
+  const [viewMode, setViewMode] = useState<PlpViewMode>("grid");
+
+  useEffect(() => {
+    setViewMode(readPlpViewMode());
+  }, []);
+
+  const handleViewModeChange = useCallback((mode: PlpViewMode) => {
+    setViewMode(mode);
+    writePlpViewMode(mode);
+  }, []);
 
   const priceCeiling = data.facets.priceMax;
 
@@ -107,31 +124,34 @@ export function ProductCatalog({ data, basePath, searchQuery }: ProductCatalogPr
           {isNavigating && (
             <LoadingOverlay label="Actualizando resultados…" />
           )}
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-text-tertiary">
               {data.totalFiltered}{" "}
               {data.totalFiltered === 1 ? "producto" : "productos"}
             </p>
-            <label className="flex items-center gap-2 text-sm">
-              <span className="text-text-tertiary">Ordenar</span>
-              <select
-                value={data.sort}
-                onChange={(e) =>
-                  navigate({
-                    filters: data.activeFilters,
-                    sort: e.target.value as PlpSortKey,
-                    page: 1,
-                  })
-                }
-                className="h-9 rounded-md border border-border bg-surface px-2 text-sm outline-none focus:border-primary"
-              >
-                <option value="relevance">Relevancia</option>
-                <option value="price-asc">Precio: menor a mayor</option>
-                <option value="price-desc">Precio: mayor a menor</option>
-                <option value="rating">Mejor valorados</option>
-                <option value="name">Nombre A-Z</option>
-              </select>
-            </label>
+            <div className="flex items-center gap-3">
+              <PlpViewToggle value={viewMode} onChange={handleViewModeChange} />
+              <label className="flex items-center gap-2 text-sm">
+                <span className="text-text-tertiary">Ordenar</span>
+                <select
+                  value={data.sort}
+                  onChange={(e) =>
+                    navigate({
+                      filters: data.activeFilters,
+                      sort: e.target.value as PlpSortKey,
+                      page: 1,
+                    })
+                  }
+                  className="h-9 rounded-md border border-border bg-surface px-2 text-sm outline-none focus:border-primary"
+                >
+                  <option value="relevance">Relevancia</option>
+                  <option value="price-asc">Precio: menor a mayor</option>
+                  <option value="price-desc">Precio: mayor a menor</option>
+                  <option value="rating">Mejor valorados</option>
+                  <option value="name">Nombre A-Z</option>
+                </select>
+              </label>
+            </div>
           </div>
 
           {data.rows.length === 0 ? (
@@ -144,11 +164,15 @@ export function ProductCatalog({ data, basePath, searchQuery }: ProductCatalogPr
             </div>
           ) : (
             <>
-              <ProductGrid
-                plpItems={plpItems}
-                className="lg:grid-cols-3 xl:grid-cols-4"
-                onQuickView={setQuickViewSku}
-              />
+              {viewMode === "grid" ? (
+                <ProductGrid
+                  plpItems={plpItems}
+                  className="lg:grid-cols-3 xl:grid-cols-4"
+                  onQuickView={setQuickViewSku}
+                />
+              ) : (
+                <ProductList plpItems={plpItems} onQuickView={setQuickViewSku} />
+              )}
               <PlpPagination
                 basePath={basePath}
                 page={data.page}

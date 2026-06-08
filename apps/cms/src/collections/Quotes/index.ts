@@ -15,6 +15,7 @@ import { assignNextQuoteNumber } from './quote-number'
 import {
   assertAllowedQuoteTransition,
   isQuoteStatus,
+  staffSelectableQuoteStatuses,
   type QuoteStatus,
 } from './status-transitions'
 
@@ -123,6 +124,18 @@ export const Quotes: CollectionConfig = {
       label: 'Estado',
       defaultValue: 'requested',
       options: QUOTE_STATUS_OPTIONS,
+      filterOptions: ({ options, data }) => {
+        const current = data?.status as QuoteStatus | undefined
+        const allowed = new Set(
+          staffSelectableQuoteStatuses(
+            current && isQuoteStatus(current) ? current : null,
+          ),
+        )
+        return options.filter((option) => {
+          const value = typeof option === 'string' ? option : option.value
+          return allowed.has(value as QuoteStatus)
+        })
+      },
       admin: { position: 'sidebar' },
     },
     {

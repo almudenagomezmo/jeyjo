@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { useAuth } from '@payloadcms/ui'
+
 import {
   CUSTOMER_GROUP_OPTIONS,
   customerGroupLabel,
@@ -75,6 +77,8 @@ function buildProfileRoles(profiles: WebProfileRow[], customerGroup: number): Re
 }
 
 export const CustomersAdminClient: React.FC = () => {
+  const { user } = useAuth()
+  const [mfaReady, setMfaReady] = useState(false)
   const [rows, setRows] = useState<CustomerRow[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -93,6 +97,23 @@ export const CustomersAdminClient: React.FC = () => {
   const [reclassifyGroup, setReclassifyGroup] = useState(1)
   const [profileRoles, setProfileRoles] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
+
+  const staffRoles = (user as { staffRoles?: string[] } | null)?.staffRoles
+  const isStaffUser = Boolean(staffRoles?.length)
+
+  const checkMfa = useCallback(async () => {
+    if (!isStaffUser) {
+      setMfaReady(true)
+      return
+    }
+    const res = await fetch('/api/users/mfa/status', { credentials: 'include' }).catch(() => null)
+    if (!res?.ok) {
+      setMfaReady(false)
+      return
+    }
+    const body = (await res.json()) as { verified?: boolean }
+    setMfaReady(Boolean(body.verified))
+  }, [isStaffUser])
 
   const groupHint = useMemo(
     () => CUSTOMER_GROUP_OPTIONS.find((o) => o.value === validateGroup)?.hint ?? '',
@@ -122,7 +143,11 @@ export const CustomersAdminClient: React.FC = () => {
 
     const res = await fetch(`/api/customers-admin?${params}`, { credentials: 'include' })
     if (!res.ok) {
-      setError(res.status === 403 ? 'Acceso denegado' : 'Error al cargar clientes')
+      setError(
+        res.status === 403
+          ? 'Completa la verificación MFA para acceder a clientes tienda.'
+          : 'Error al cargar clientes',
+      )
       return
     }
     const data = await res.json()
@@ -148,8 +173,13 @@ export const CustomersAdminClient: React.FC = () => {
   }, [])
 
   useEffect(() => {
+    void checkMfa()
+  }, [checkMfa])
+
+  useEffect(() => {
+    if (!mfaReady) return
     void load()
-  }, [load])
+  }, [mfaReady, load])
 
   useEffect(() => {
     if (selectedId) void loadDetail(selectedId)
@@ -224,6 +254,10 @@ export const CustomersAdminClient: React.FC = () => {
   }
 
   const totalPages = Math.max(1, Math.ceil(total / 25))
+
+  if (isStaffUser && !mfaReady) {
+    return null
+  }
 
   return (
     <div className={baseClass}>

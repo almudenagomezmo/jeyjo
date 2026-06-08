@@ -4,13 +4,17 @@ import { ForbiddenBanner } from "@/components/account/ForbiddenBanner";
 import { LogoutButton } from "@/components/account/LogoutButton";
 import { PendingValidationBanner } from "@/components/account/PendingValidationBanner";
 import { StockWatchesQuickAccessCard } from "@/components/account/StockWatchesQuickAccessCard";
+import { IntranetDashboard } from "@/components/intranet/IntranetDashboard";
 import { Card } from "@/components/ui/Card";
 import { getCustomerContext } from "@/lib/auth/customer-context";
+import { isB2bValidated } from "@/lib/auth/redirect";
+import { canManageSubusers } from "@/lib/b2b/permissions";
+import { countPendingCompanyApprovalOrders } from "@/lib/intranet/order-approvals";
 
 export const metadata: Metadata = { title: "Área de cliente" };
 
 type PageProps = {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; forbidden?: string }>;
 };
 
 export default async function AccountDashboardPage({ searchParams }: PageProps) {
@@ -18,11 +22,15 @@ export default async function AccountDashboardPage({ searchParams }: PageProps) 
   if (!ctx) redirect("/login?next=/cuenta");
 
   const params = await searchParams;
+  const isB2b = isB2bValidated(ctx);
   const groupLabel = !ctx.validatedAt
     ? "Pendiente de validación"
     : ctx.customerGroup === 1
       ? "Particular (B2C)"
       : `Empresa (grupo ${ctx.customerGroup})`;
+
+  const pendingApprovalCount =
+    isB2b && canManageSubusers(ctx) ? await countPendingCompanyApprovalOrders(ctx.customerId) : 0;
 
   return (
     <div className="space-y-6">
@@ -60,6 +68,14 @@ export default async function AccountDashboardPage({ searchParams }: PageProps) 
       </Card>
 
       <StockWatchesQuickAccessCard />
+
+      {isB2b && (
+        <IntranetDashboard
+          ctx={ctx}
+          pendingApprovalCount={pendingApprovalCount}
+          forbiddenSection={params.forbidden ?? null}
+        />
+      )}
     </div>
   );
 }

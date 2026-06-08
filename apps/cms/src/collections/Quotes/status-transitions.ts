@@ -45,3 +45,14 @@ export function assertAllowedQuoteTransition(
 export function canConvertQuoteToOrder(status: QuoteStatus | null | undefined): boolean {
   return status === 'accepted'
 }
+
+/** Estados visibles en el admin: el actual más los destinos permitidos para staff. */
+export function staffSelectableQuoteStatuses(
+  from: QuoteStatus | null | undefined,
+): QuoteStatus[] {
+  if (!from || !isQuoteStatus(from)) {
+    return [...QUOTE_STATUS_VALUES]
+  }
+  const next = STAFF_QUOTE_TRANSITIONS[from] ?? []
+  return [from, ...next]
+}

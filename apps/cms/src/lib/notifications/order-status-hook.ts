@@ -43,7 +43,7 @@ export const notifyOrderStatusChange: CollectionAfterChangeHook = async ({
     payload: {
       orderNumber,
       statusLabel: label,
-      href: '/intranet/pedidos',
+      href: '/cuenta/empresa/pedidos',
     },
     idempotencyKey: `order:${doc.id}:status:${next}`,
   })

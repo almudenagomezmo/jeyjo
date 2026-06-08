@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest'
 import type { CustomerContext } from '@/lib/auth/customer-context'
 import {
   canAccessSection,
-  filterIntranetNav,
+  filterEmpresaNav,
   parseB2bPermissions,
   requiresOrderCompanyApproval,
   resolveEffectivePermissions,
-  sectionForIntranetPath,
+  sectionForEmpresaPath,
 } from '@/lib/b2b/permissions'
-import { INTRANET_PRIMARY_NAV } from '@/lib/intranet/navigation'
+import { EMPRESA_PRIMARY_NAV } from '@/lib/intranet/navigation'
 
 const superadmin: CustomerContext = {
   userId: 'u1',
@@ -57,13 +57,13 @@ describe('b2b permissions', () => {
   })
 
   it('maps contabilidad path to finance section', () => {
-    expect(sectionForIntranetPath('/intranet/contabilidad/facturas')).toBe('finance')
+    expect(sectionForEmpresaPath('/cuenta/empresa/contabilidad/facturas')).toBe('finance')
   })
 
   it('filters navigation for subuser without finance', () => {
-    const nav = filterIntranetNav(INTRANET_PRIMARY_NAV, subuserNoFinance)
-    expect(nav.some((item) => item.href === '/intranet/contabilidad')).toBe(false)
-    expect(nav.some((item) => item.href === '/intranet/pedidos')).toBe(true)
+    const nav = filterEmpresaNav(EMPRESA_PRIMARY_NAV, subuserNoFinance)
+    expect(nav.some((item) => item.href === '/cuenta/empresa/contabilidad')).toBe(false)
+    expect(nav.some((item) => item.href === '/cuenta/empresa/pedidos')).toBe(true)
   })
 
   it('parseB2bPermissions applies defaults', () => {
@@ -78,5 +78,15 @@ describe('b2b permissions', () => {
   it('requiresOrderCompanyApproval only for flagged subusers', () => {
     expect(requiresOrderCompanyApproval(superadmin)).toBe(false)
     expect(requiresOrderCompanyApproval(subuserNoFinance)).toBe(true)
+  })
+
+  it('validated B2B owner with legacy pending role gets full nav', () => {
+    const legacyOwner: CustomerContext = {
+      ...superadmin,
+      role: 'pending',
+    }
+    const nav = filterEmpresaNav(EMPRESA_PRIMARY_NAV, legacyOwner)
+    expect(nav.length).toBe(EMPRESA_PRIMARY_NAV.length)
+    expect(canAccessSection(legacyOwner, 'finance')).toBe(true)
   })
 })

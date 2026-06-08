@@ -152,5 +152,5 @@ export function reclassifyImpactCopy(customerGroup: number): string {
   if (customerGroup === 1) {
     return 'El cliente usará precios B2C (P1) y el área /cuenta. No tendrá acceso al portal B2B ni a Contabilidad.'
   }
-  return 'El cliente usará precios B2B (P2–P4 según grupo), accederá a /intranet y podrá ver Contabilidad si es superadmin de empresa.'
+  return 'El cliente usará precios B2B (P2–P4 según grupo), accederá a /cuenta (sección Empresa) y podrá ver Contabilidad si es superadmin de empresa.'
 }

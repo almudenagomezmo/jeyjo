@@ -42,7 +42,7 @@ export async function runQuoteExpiryNotifications(payload: Payload): Promise<{
       body: `El presupuesto ${quoteNumber} caduca en 7 días`,
       payload: {
         quoteNumber,
-        href: '/intranet/contabilidad/presupuestos',
+        href: '/cuenta/empresa/contabilidad/presupuestos',
       },
       idempotencyKey: `quote:${quote.id}:expiring:${targetDay}`,
     })

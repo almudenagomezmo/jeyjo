@@ -54,7 +54,7 @@ export const notifyQuoteStatusChange: CollectionAfterChangeHook = async ({
     payload: {
       quoteNumber,
       statusLabel: label,
-      href: '/intranet/contabilidad/presupuestos',
+      href: '/cuenta/empresa/contabilidad/presupuestos',
     },
     idempotencyKey: `quote:${doc.id}:status:${next}`,
   })

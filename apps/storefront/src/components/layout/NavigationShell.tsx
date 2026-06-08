@@ -26,7 +26,7 @@ export async function NavigationShell({ children }: { children: React.ReactNode 
 
   if (ctx) {
     accountLabel = ctx.commercialName;
-    accountHref = isB2bValidated(ctx) ? "/intranet" : "/cuenta";
+    accountHref = "/cuenta";
     const group = pricingCustomerGroup(ctx);
     if (isB2bValidated(ctx) && isB2BCustomerGroup(group)) {
       sessionPriceMode = "b2b";
