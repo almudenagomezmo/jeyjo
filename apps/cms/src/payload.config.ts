@@ -183,7 +183,7 @@ export default buildConfig({
       // HMR can spawn multiple pg pools; keep each small to avoid EMAXCONNSESSION.
       ...(isSupabase
         ? {
-            max: Number(process.env.PAYLOAD_DB_POOL_MAX ?? 4),
+            max: Number(process.env.PAYLOAD_DB_POOL_MAX ?? 2),
             idleTimeoutMillis: 20_000,
             ssl: { rejectUnauthorized: false },
           }
