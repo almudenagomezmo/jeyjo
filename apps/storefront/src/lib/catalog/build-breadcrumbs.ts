@@ -2,6 +2,41 @@ import type { Crumb } from '@/components/ui/Breadcrumb'
 
 import type { NavNode } from './fetch-navigation-tree'
 
+/** Walks the navigation tree and returns slug segments from root to the target node. */
+export function findCategorySlugPathInTree(
+  tree: NavNode[],
+  targetSlug: string,
+  path: string[] = [],
+): string[] | null {
+  for (const node of tree) {
+    const nextPath = [...path, node.slug]
+    if (node.slug === targetSlug) return nextPath
+    const found = findCategorySlugPathInTree(node.children, targetSlug, nextPath)
+    if (found) return found
+  }
+  return null
+}
+
+export function buildBreadcrumbsFromCategorySlugs(
+  tree: NavNode[],
+  categorySlugs: string[],
+): Crumb[] {
+  let bestPath: string[] | null = null
+
+  for (const slug of categorySlugs) {
+    const path = findCategorySlugPathInTree(tree, slug)
+    if (path && (!bestPath || path.length > bestPath.length)) {
+      bestPath = path
+    }
+  }
+
+  if (!bestPath?.length) {
+    return buildBreadcrumbsFromPath(tree, '/')
+  }
+
+  return buildBreadcrumbsFromPath(tree, `/c/${bestPath.join('/')}`)
+}
+
 export function buildBreadcrumbsFromPath(tree: NavNode[], pathname: string): Crumb[] {
   const crumbs: Crumb[] = [{ label: 'Inicio', href: '/' }]
   const path = pathname.split('?')[0] ?? pathname
@@ -29,8 +64,8 @@ export function buildBreadcrumbsFromPath(tree: NavNode[], pathname: string): Cru
     if (!node) break
 
     href += `/${slug}`
-    const isLast = i === slugs.length - 1
-    crumbs.push(isLast ? { label: node.title } : { label: node.title, href })
+    // Always include href; Breadcrumb only links non-leaf items (current page stays plain text).
+    crumbs.push({ label: node.title, href })
     currentLevel = node.children
   }
 

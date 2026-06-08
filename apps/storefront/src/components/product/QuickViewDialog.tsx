@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { PriceQuote } from "@jeyjo/pricing";
 
@@ -25,11 +26,16 @@ interface QuickViewDialogProps {
 
 export function QuickViewDialog({ row, quote, stock, onClose }: QuickViewDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [mounted, setMounted] = useState(false);
   const hydrated = useHydrated();
   const priceMode = useUiStore((s) => s.priceMode);
   const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
   const addItem = useCartStore((s) => s.addItem);
   const [qty, setQty] = useState(1);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const el = dialogRef.current;
@@ -42,7 +48,7 @@ export function QuickViewDialog({ row, quote, stock, onClose }: QuickViewDialogP
     }
   }, [row]);
 
-  if (!row) return null;
+  if (!mounted || !row) return null;
 
   const product = plpRowToProduct(row, quote ?? undefined);
   const mode = hydrated ? priceMode : "b2c";
@@ -59,10 +65,10 @@ export function QuickViewDialog({ row, quote, stock, onClose }: QuickViewDialogP
     setQty((q) => Math.max(row.packUnit, q + delta * row.packUnit));
   };
 
-  return (
+  return createPortal(
     <dialog
       ref={dialogRef}
-      className="w-[min(100%,28rem)] max-w-lg rounded-lg border border-border bg-surface p-0 shadow-xl backdrop:bg-black/40"
+      className="fixed left-1/2 top-1/2 z-[200] m-0 w-[min(calc(100%-2rem),28rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-surface p-0 shadow-xl backdrop:bg-black/40"
       onClose={onClose}
     >
       <div className="p-5">
@@ -140,6 +146,7 @@ export function QuickViewDialog({ row, quote, stock, onClose }: QuickViewDialogP
           </Button>
         </div>
       </div>
-    </dialog>
+    </dialog>,
+    document.body,
   );
 }

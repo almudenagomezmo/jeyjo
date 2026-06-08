@@ -2,6 +2,7 @@ import * as migration_20260608_075027_web_native_collections from './20260608_07
 import * as migration_20260608_075800_fix_group_offers_enum from './20260608_075800_fix_group_offers_enum';
 import * as migration_20260608_081500_rename_cms_pricing_rels from './20260608_081500_rename_cms_pricing_rels';
 import * as migration_20260608_120000_drop_legacy_inventory from './20260608_120000_drop_legacy_inventory';
+import * as migration_20260608_130000_drop_legacy_variants_usd_prices from './20260608_130000_drop_legacy_variants_usd_prices';
 
 export const migrations = [
   {
@@ -23,5 +24,10 @@ export const migrations = [
     up: migration_20260608_120000_drop_legacy_inventory.up,
     down: migration_20260608_120000_drop_legacy_inventory.down,
     name: '20260608_120000_drop_legacy_inventory',
+  },
+  {
+    up: migration_20260608_130000_drop_legacy_variants_usd_prices.up,
+    down: migration_20260608_130000_drop_legacy_variants_usd_prices.down,
+    name: '20260608_130000_drop_legacy_variants_usd_prices',
   },
 ];

@@ -18,13 +18,15 @@ import {
   InlineToolbarFeature,
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
-import { DefaultDocumentIDType, Where } from 'payload'
-
 import { enrichmentFields } from '@/collections/Products/enrichmentFields'
 import { erpFields } from '@/collections/Products/erpFields'
 import { erpProductBeforeChange } from '@/collections/Products/erpHooks'
 import { stockProductBeforeChange } from '@/collections/Products/stockHooks'
 import { manualStockAfterChange } from '@/collections/Products/manualStockHooks'
+import {
+  relatedProductsAfterChange,
+  relatedProductsAfterDelete,
+} from '@/collections/Products/relatedProductsHooks'
 import { productSlugHooks } from '@/collections/Products/hooks'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
 import {
@@ -76,9 +78,20 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     title: true,
     slug: true,
     skuErp: true,
+    _status: true,
+    isWildcard: true,
     supplier: true,
     providerImageUrl: true,
     ownImage: true,
+    packUnit: true,
+    vatRate: true,
+    facetColor: true,
+    facetMaterial: true,
+    ecoLabel: true,
+    stockIndicator: true,
+    erpStock: true,
+    allowOrderWithoutStock: true,
+    categories: true,
     additionalImages: {
       image: true,
     },
@@ -96,21 +109,17 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
       ...productAuditHooks.beforeChange,
       erpProductBeforeChange,
       stockProductBeforeChange,
-      ({ data }) => {
-        if (data) {
-          data.enableVariants = false
-        }
-        return data
-      },
     ],
     afterChange: [
       ...(defaultCollection?.hooks?.afterChange ?? []),
       manualStockAfterChange,
+      relatedProductsAfterChange,
       ...productSearchEventHooks.afterChange,
       ...productAuditHooks.afterChange,
     ],
     afterDelete: [
       ...(defaultCollection?.hooks?.afterDelete ?? []),
+      relatedProductsAfterDelete,
       ...productSearchEventHooks.afterDelete,
       ...productAuditHooks.afterDelete,
     ],
@@ -136,94 +145,16 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
         {
           fields: [
             {
-              name: 'description',
-              type: 'richText',
-              label: 'Descripción (template)',
-              editor: lexicalEditor({
-                features: ({ rootFeatures }) => {
-                  return [
-                    ...rootFeatures,
-                    HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
-                    FixedToolbarFeature(),
-                    InlineToolbarFeature(),
-                    HorizontalRuleFeature(),
-                  ]
-                },
-              }),
-              required: false,
-              admin: { hidden: true },
-            },
-            {
-              name: 'gallery',
-              type: 'array',
-              admin: { hidden: true },
-              fields: [
-                {
-                  name: 'image',
-                  type: 'upload',
-                  relationTo: 'media',
-                  required: true,
-                },
-                {
-                  name: 'variantOption',
-                  type: 'relationship',
-                  relationTo: 'variantOptions',
-                  admin: {
-                    condition: (data) => {
-                      return data?.enableVariants === true && data?.variantTypes?.length > 0
-                    },
-                  },
-                  filterOptions: ({ data }) => {
-                    if (data?.enableVariants && data?.variantTypes?.length) {
-                      const variantTypeIDs = data.variantTypes.map((item: unknown) => {
-                        if (typeof item === 'object' && item && 'id' in item) {
-                          return (item as { id: DefaultDocumentIDType }).id
-                        }
-                        return item
-                      }) as DefaultDocumentIDType[]
-
-                      if (variantTypeIDs.length === 0)
-                        return {
-                          variantType: {
-                            in: [],
-                          },
-                        }
-
-                      const query: Where = {
-                        variantType: {
-                          in: variantTypeIDs,
-                        },
-                      }
-
-                      return query
-                    }
-
-                    return {
-                      variantType: {
-                        in: [],
-                      },
-                    }
-                  },
-                },
-              ],
-            },
-            {
-              name: 'layout',
-              type: 'blocks',
-              admin: { hidden: true },
-              blocks: [CallToAction, Content, MediaBlock],
-            },
-          ],
-          label: 'Content',
-        },
-        {
-          fields: [
-            ...defaultCollection.fields,
-            {
               name: 'relatedProducts',
               type: 'relationship',
+              label: 'Productos relacionados',
+              admin: {
+                description:
+                  'Se muestran en la ficha del producto en la tienda (máximo 8). La relación es bidireccional: si A relaciona B, B también quedará relacionado con A al guardar. Debes publicar para que la tienda lea los cambios.',
+              },
+              maxRows: 8,
               filterOptions: ({ id }) => {
-                if (id) {
+                if (id != null && id !== '') {
                   return {
                     id: {
                       not_in: [id],
@@ -231,11 +162,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                   }
                 }
 
-                return {
-                  id: {
-                    exists: true,
-                  },
-                }
+                return true
               },
               hasMany: true,
               relationTo: 'products',
@@ -293,5 +220,42 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
       label: 'Categorías',
     },
     slugField(),
+    {
+      name: 'description',
+      type: 'richText',
+      label: 'Descripción (template)',
+      editor: lexicalEditor({
+        features: ({ rootFeatures }) => {
+          return [
+            ...rootFeatures,
+            HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
+            FixedToolbarFeature(),
+            InlineToolbarFeature(),
+            HorizontalRuleFeature(),
+          ]
+        },
+      }),
+      required: false,
+      admin: { hidden: true },
+    },
+    {
+      name: 'gallery',
+      type: 'array',
+      admin: { hidden: true },
+      fields: [
+        {
+          name: 'image',
+          type: 'upload',
+          relationTo: 'media',
+          required: true,
+        },
+      ],
+    },
+    {
+      name: 'layout',
+      type: 'blocks',
+      admin: { hidden: true },
+      blocks: [CallToAction, Content, MediaBlock],
+    },
   ],
 })

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import { readCategorySnapshot } from '@/lib/catalog/category-snapshot'
-import { buildBreadcrumbsFromPath } from '@/lib/catalog/build-breadcrumbs'
+import {
+  appendCrumb,
+  buildBreadcrumbsFromCategorySlugs,
+  buildBreadcrumbsFromPath,
+  findCategorySlugPathInTree,
+} from '@/lib/catalog/build-breadcrumbs'
 import {
   buildNavigationTree,
   collectDescendantSlugs,
@@ -124,6 +129,71 @@ describe('readCategorySnapshot', () => {
   })
 })
 
+describe('findCategorySlugPathInTree', () => {
+  it('returns full path for a nested subcategory slug', () => {
+    expect(findCategorySlugPathInTree(DEMO_TREE, 'boligrafos')).toEqual([
+      'escritura',
+      'boligrafos',
+    ])
+  })
+
+  it('returns full path for a family slug', () => {
+    expect(findCategorySlugPathInTree(DEMO_TREE, 'gel')).toEqual([
+      'escritura',
+      'boligrafos',
+      'gel',
+    ])
+  })
+
+  it('returns null when slug is not in the tree', () => {
+    expect(findCategorySlugPathInTree(DEMO_TREE, 'unknown')).toBeNull()
+  })
+})
+
+describe('buildBreadcrumbsFromCategorySlugs', () => {
+  it('builds full category trail from a leaf slug (PDP)', () => {
+    const crumbs = buildBreadcrumbsFromCategorySlugs(DEMO_TREE, ['boligrafos'])
+
+    expect(crumbs.map((c) => c.label)).toEqual([
+      'Inicio',
+      'Escritura y corrección',
+      'Bolígrafos',
+    ])
+    expect(crumbs[1]?.href).toBe('/c/escritura')
+    expect(crumbs[2]?.href).toBe('/c/escritura/boligrafos')
+  })
+
+  it('keeps subcategory href when product title is appended (PDP)', () => {
+    const base = buildBreadcrumbsFromCategorySlugs(DEMO_TREE, ['boligrafos'])
+    const crumbs = appendCrumb(base, 'Fixture CA-B2B-004')
+
+    expect(crumbs.map((c) => c.label)).toEqual([
+      'Inicio',
+      'Escritura y corrección',
+      'Bolígrafos',
+      'Fixture CA-B2B-004',
+    ])
+    expect(crumbs[2]?.href).toBe('/c/escritura/boligrafos')
+    expect(crumbs[3]?.href).toBeUndefined()
+  })
+
+  it('prefers the deepest matching slug when multiple categories are assigned', () => {
+    const crumbs = buildBreadcrumbsFromCategorySlugs(DEMO_TREE, ['boligrafos', 'gel'])
+
+    expect(crumbs.map((c) => c.label)).toEqual([
+      'Inicio',
+      'Escritura y corrección',
+      'Bolígrafos',
+      'Gel',
+    ])
+  })
+
+  it('returns home only when no category slug matches the tree', () => {
+    const crumbs = buildBreadcrumbsFromCategorySlugs(DEMO_TREE, ['unknown'])
+    expect(crumbs).toEqual([{ label: 'Inicio', href: '/' }])
+  })
+})
+
 describe('buildBreadcrumbsFromPath', () => {
   it('builds trail for subcategory path', () => {
     const crumbs = buildBreadcrumbsFromPath(DEMO_TREE, '/c/escritura/boligrafos')
@@ -133,7 +203,7 @@ describe('buildBreadcrumbsFromPath', () => {
     expect(crumbs[1]?.label).toBe('Escritura y corrección')
     expect(crumbs[1]?.href).toBe('/c/escritura')
     expect(crumbs[2]?.label).toBe('Bolígrafos')
-    expect(crumbs[2]?.href).toBeUndefined()
+    expect(crumbs[2]?.href).toBe('/c/escritura/boligrafos')
   })
 
   it('builds trail for family path', () => {
@@ -146,7 +216,7 @@ describe('buildBreadcrumbsFromPath', () => {
     expect(crumbs[2]?.label).toBe('Bolígrafos')
     expect(crumbs[2]?.href).toBe('/c/escritura/boligrafos')
     expect(crumbs[3]?.label).toBe('Gel')
-    expect(crumbs[3]?.href).toBeUndefined()
+    expect(crumbs[3]?.href).toBe('/c/escritura/boligrafos/gel')
   })
 
   it('includes search crumb', () => {

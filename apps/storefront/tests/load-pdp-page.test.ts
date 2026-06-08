@@ -16,6 +16,7 @@ describe('loadPdpPage', () => {
     const fetchSpy = vi.spyOn(fetchPdp, 'fetchPublicProductPdpBySlug').mockResolvedValue({
       matchedBySku: false,
       doc: {
+        id: 161,
         skuErp: 'ERP-PRT-M404',
         slug: 'impresora-laser-hp-pro-m404',
         title: 'Impresora láser HP Pro M404',
@@ -27,16 +28,36 @@ describe('loadPdpPage', () => {
         vatRate: 21,
         relatedProducts: [
           {
+            id: 160,
             skuErp: 'ERP-TNR-085',
             slug: 'toner-negro-hp-85a',
             title: 'Tóner',
-            _status: 'published',
-            isWildcard: false,
             supplier: { name: 'Demo' },
           },
         ],
       },
     })
+
+    vi.spyOn(fetchPdp, 'resolveRelatedProductRows').mockResolvedValue([
+      {
+        sku: 'ERP-TNR-085',
+        slug: 'toner-negro-hp-85a',
+        title: 'Tóner',
+        brand: 'Demo',
+        facetColor: null,
+        facetMaterial: null,
+        ecoLabel: false,
+        categorySlugs: [],
+        packUnit: 1,
+        vatRate: 21,
+        stockIndicator: 'available',
+        allowOrderWithoutStock: false,
+        rating: 4.5,
+        reviews: 0,
+        hasOffer: false,
+        imageUrl: null,
+      },
+    ])
 
     vi.spyOn(pricingBatch, 'resolvePriceQuotesBatch').mockResolvedValue({
       'ERP-PRT-M404': {

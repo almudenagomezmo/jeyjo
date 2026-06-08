@@ -84,9 +84,6 @@ export interface Config {
     'special-prices': SpecialPrice;
     'group-offers': GroupOffer;
     addresses: Address;
-    variants: Variant;
-    variantTypes: VariantType;
-    variantOptions: VariantOption;
     products: Product;
     carts: Cart;
     orders: Order;
@@ -102,12 +99,6 @@ export interface Config {
       cart: 'carts';
       addresses: 'addresses';
     };
-    variantTypes: {
-      options: 'variantOptions';
-    };
-    products: {
-      variants: 'variants';
-    };
   };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
@@ -122,9 +113,6 @@ export interface Config {
     'special-prices': SpecialPricesSelect<false> | SpecialPricesSelect<true>;
     'group-offers': GroupOffersSelect<false> | GroupOffersSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
-    variants: VariantsSelect<false> | VariantsSelect<true>;
-    variantTypes: VariantTypesSelect<false> | VariantTypesSelect<true>;
-    variantOptions: VariantOptionsSelect<false> | VariantOptionsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     carts: CartsSelect<false> | CartsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
@@ -176,9 +164,6 @@ export interface Config {
       orders: Order;
       products: Product;
       transactions: Transaction;
-      variantOptions: VariantOption;
-      variants: Variant;
-      variantTypes: VariantType;
     };
   };
 }
@@ -340,7 +325,6 @@ export interface Order {
   items?:
     | {
         product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
         quantity: number;
         id?: string | null;
       }[]
@@ -457,38 +441,9 @@ export interface Product {
    * Solo actualizado por sync ERP cuando el modo web-native está desactivado.
    */
   syncErpAt?: string | null;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  gallery?:
-    | {
-        image: number | Media;
-        variantOption?: (number | null) | VariantOption;
-        id?: string | null;
-      }[]
-    | null;
-  layout?: (CallToActionBlock | ContentBlock | MediaBlock)[] | null;
-  enableVariants?: boolean | null;
-  variantTypes?: (number | VariantType)[] | null;
-  variants?: {
-    docs?: (number | Variant)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  priceInUSDEnabled?: boolean | null;
-  priceInUSD?: number | null;
+  /**
+   * Se muestran en la ficha del producto en la tienda (máximo 8). La relación es bidireccional: si A relaciona B, B también quedará relacionado con A al guardar. Debes publicar para que la tienda lea los cambios.
+   */
   relatedProducts?: (number | Product)[] | null;
   /**
    * Título, descripción e imagen para Open Graph, Twitter y datos estructurados. Si no hay meta.image, el storefront usa la imagen de catálogo (propia o proveedor).
@@ -508,6 +463,28 @@ export interface Product {
    */
   generateSlug?: boolean | null;
   slug: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  gallery?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  layout?: (CallToActionBlock | ContentBlock | MediaBlock)[] | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -550,37 +527,61 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variantOptions".
+ * via the `definition` "suppliers".
  */
-export interface VariantOption {
+export interface Supplier {
   id: number;
-  _variantOptions_options_order?: string | null;
-  variantType: number | VariantType;
-  label: string;
+  name: string;
+  erpCode?: string | null;
+  type?: ('wholesaler' | 'manufacturer' | 'distributor' | 'other') | null;
   /**
-   * should be defaulted or dynamic based on label
+   * Prefijo URL para imágenes del proveedor
    */
-  value: string;
+  baseImageUrl?: string | null;
   updatedAt: string;
   createdAt: string;
-  deletedAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variantTypes".
+ * via the `definition` "categories".
  */
-export interface VariantType {
+export interface Category {
   id: number;
-  label: string;
-  name: string;
-  options?: {
-    docs?: (number | VariantOption)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
+  title: string;
+  parent?: (number | null) | Category;
+  sortOrder?: number | null;
+  imageUrl?: string | null;
+  /**
+   * Icono en la rejilla de categorías destacadas de la tienda.
+   */
+  homeGlyph?:
+    | (
+        | 'pen'
+        | 'notebook'
+        | 'paper'
+        | 'toner'
+        | 'ink'
+        | 'folder'
+        | 'binder'
+        | 'stapler'
+        | 'calc'
+        | 'scissors'
+        | 'marker'
+        | 'tape'
+        | 'recycle'
+        | 'bin'
+        | 'battery'
+        | 'printer'
+        | 'box'
+      )
+    | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
   updatedAt: string;
   createdAt: string;
-  deletedAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -682,83 +683,6 @@ export interface MediaBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variants".
- */
-export interface Variant {
-  id: number;
-  /**
-   * Used for administrative purposes, not shown to customers. This is populated by default.
-   */
-  title?: string | null;
-  product: number | Product;
-  options: (number | VariantOption)[];
-  priceInUSDEnabled?: boolean | null;
-  priceInUSD?: number | null;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "suppliers".
- */
-export interface Supplier {
-  id: number;
-  name: string;
-  erpCode?: string | null;
-  type?: ('wholesaler' | 'manufacturer' | 'distributor' | 'other') | null;
-  /**
-   * Prefijo URL para imágenes del proveedor
-   */
-  baseImageUrl?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: number;
-  title: string;
-  parent?: (number | null) | Category;
-  sortOrder?: number | null;
-  imageUrl?: string | null;
-  /**
-   * Icono en la rejilla de categorías destacadas de la tienda.
-   */
-  homeGlyph?:
-    | (
-        | 'pen'
-        | 'notebook'
-        | 'paper'
-        | 'toner'
-        | 'ink'
-        | 'folder'
-        | 'binder'
-        | 'stapler'
-        | 'calc'
-        | 'scissors'
-        | 'marker'
-        | 'tape'
-        | 'recycle'
-        | 'bin'
-        | 'battery'
-        | 'printer'
-        | 'box'
-      )
-    | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "transactions".
  */
 export interface Transaction {
@@ -766,7 +690,6 @@ export interface Transaction {
   items?:
     | {
         product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
         quantity: number;
         id?: string | null;
       }[]
@@ -803,7 +726,6 @@ export interface Cart {
   items?:
     | {
         product?: (number | null) | Product;
-        variant?: (number | null) | Variant;
         quantity: number;
         id?: string | null;
       }[]
@@ -1135,18 +1057,6 @@ export interface PayloadLockedDocument {
         value: number | Address;
       } | null)
     | ({
-        relationTo: 'variants';
-        value: number | Variant;
-      } | null)
-    | ({
-        relationTo: 'variantTypes';
-        value: number | VariantType;
-      } | null)
-    | ({
-        relationTo: 'variantOptions';
-        value: number | VariantOption;
-      } | null)
-    | ({
         relationTo: 'products';
         value: number | Product;
       } | null)
@@ -1433,46 +1343,6 @@ export interface AddressesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variants_select".
- */
-export interface VariantsSelect<T extends boolean = true> {
-  title?: T;
-  product?: T;
-  options?: T;
-  priceInUSDEnabled?: T;
-  priceInUSD?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  deletedAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variantTypes_select".
- */
-export interface VariantTypesSelect<T extends boolean = true> {
-  label?: T;
-  name?: T;
-  options?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  deletedAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variantOptions_select".
- */
-export interface VariantOptionsSelect<T extends boolean = true> {
-  _variantOptions_options_order?: T;
-  variantType?: T;
-  label?: T;
-  value?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  deletedAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products_select".
  */
 export interface ProductsSelect<T extends boolean = true> {
@@ -1516,26 +1386,6 @@ export interface ProductsSelect<T extends boolean = true> {
   erpStock?: T;
   stockIndicator?: T;
   syncErpAt?: T;
-  description?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        variantOption?: T;
-        id?: T;
-      };
-  layout?:
-    | T
-    | {
-        cta?: T | CallToActionBlockSelect<T>;
-        content?: T | ContentBlockSelect<T>;
-        mediaBlock?: T | MediaBlockSelect<T>;
-      };
-  enableVariants?: T;
-  variantTypes?: T;
-  variants?: T;
-  priceInUSDEnabled?: T;
-  priceInUSD?: T;
   relatedProducts?: T;
   meta?:
     | T
@@ -1548,6 +1398,20 @@ export interface ProductsSelect<T extends boolean = true> {
   categories?: T;
   generateSlug?: T;
   slug?: T;
+  description?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  layout?:
+    | T
+    | {
+        cta?: T | CallToActionBlockSelect<T>;
+        content?: T | ContentBlockSelect<T>;
+        mediaBlock?: T | MediaBlockSelect<T>;
+      };
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -1621,7 +1485,6 @@ export interface CartsSelect<T extends boolean = true> {
     | T
     | {
         product?: T;
-        variant?: T;
         quantity?: T;
         id?: T;
       };
@@ -1674,7 +1537,6 @@ export interface OrdersSelect<T extends boolean = true> {
     | T
     | {
         product?: T;
-        variant?: T;
         quantity?: T;
         id?: T;
       };
@@ -1711,7 +1573,6 @@ export interface TransactionsSelect<T extends boolean = true> {
     | T
     | {
         product?: T;
-        variant?: T;
         quantity?: T;
         id?: T;
       };

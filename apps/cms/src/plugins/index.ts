@@ -80,6 +80,8 @@ export const plugins: Plugin[] = [
         : [],
     },
     products: {
+      /** Jeyjo uses ERP pricing; no Payload template variants or USD list prices. */
+      variants: false,
       productsCollectionOverride: ProductsCollection,
     },
   }),

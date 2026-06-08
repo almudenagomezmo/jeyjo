@@ -8,6 +8,7 @@ import {
   type CmsProductSnapshot,
 } from '@/lib/catalog/public-product-filter'
 import {
+  listPublicProductsByIds,
   mapDocToRow,
   type CmsProductListDoc,
 } from '@/lib/catalog/fetch-product-list'
@@ -23,6 +24,7 @@ type CmsMediaRef = {
 
 export type CmsPdpProductDoc = CmsProductSnapshot &
   CmsProductListDoc & {
+    id?: string | number | null
     title?: string | null
     slug?: string | null
     oemRef?: string | null
@@ -99,6 +101,86 @@ function inferGlyph(doc: CmsPdpProductDoc): GlyphKind {
   return 'box'
 }
 
+/** Populated CMS relations may omit `_status` (defaultPopulate); trust CMS read access. */
+function isPublicRelatedProduct(doc: CmsProductSnapshot): boolean {
+  if (doc.isWildcard === true) return false
+  if (doc._status === 'draft') return false
+  return true
+}
+
+export function extractRelatedProductIds(
+  related: CmsPdpProductDoc['relatedProducts'],
+): string[] {
+  if (!related?.length) return []
+  const ids: string[] = []
+  for (const item of related) {
+    if (item == null) continue
+    if (typeof item === 'object' && 'id' in item && item.id != null) {
+      ids.push(String(item.id))
+    } else if (typeof item === 'number' || typeof item === 'string') {
+      ids.push(String(item))
+    }
+  }
+  return ids
+}
+
+/** Forward CMS order first, then products that link back to this one. */
+export function mergeBidirectionalRelatedIds(
+  forwardIds: string[],
+  reverseIds: string[],
+  selfId?: string | number | null,
+): string[] {
+  const self = selfId != null ? String(selfId) : null
+  const seen = new Set<string>()
+  const merged: string[] = []
+
+  for (const raw of [...forwardIds, ...reverseIds]) {
+    const id = raw.trim()
+    if (!id || id === self || seen.has(id)) continue
+    seen.add(id)
+    merged.push(id)
+    if (merged.length >= PDP_RELATED_LIMIT) break
+  }
+
+  return merged
+}
+
+async function fetchProductsLinkingToIdRaw(productId: string): Promise<string[]> {
+  const base = cmsBaseUrl()
+  if (!base || !productId.trim()) return []
+
+  const params = new URLSearchParams({
+    limit: String(PDP_RELATED_LIMIT),
+    depth: '0',
+    'where[_status][equals]': 'published',
+    'where[relatedProducts][contains]': productId.trim(),
+  })
+
+  const res = await fetch(`${base.replace(/\/$/, '')}/api/products?${params.toString()}`, {
+    headers: { Accept: 'application/json' },
+    next: { revalidate: 60 },
+  })
+  if (!res.ok) return []
+
+  const body = (await res.json()) as { docs?: Array<{ id?: string | number }> }
+  const ids: string[] = []
+  for (const doc of body.docs ?? []) {
+    if (doc.id == null) continue
+    ids.push(String(doc.id))
+  }
+  return ids
+}
+
+const cachedProductsLinkingToId = unstable_cache(
+  async (productId: string) => fetchProductsLinkingToIdRaw(productId),
+  ['cms-products-linking-to'],
+  { revalidate: 60 },
+)
+
+export async function fetchProductsLinkingToId(productId: string): Promise<string[]> {
+  return cachedProductsLinkingToId(productId)
+}
+
 export function mapRelatedDocsToRows(
   related: CmsPdpProductDoc['relatedProducts'],
 ): PlpProductRow[] {
@@ -107,12 +189,28 @@ export function mapRelatedDocsToRows(
   for (const item of related) {
     if (!item || typeof item !== 'object') continue
     const doc = item as CmsPdpProductDoc
-    if (!isPublicCatalogProduct(doc)) continue
+    if (!isPublicRelatedProduct(doc)) continue
     const row = mapDocToRow(doc)
     if (row) rows.push(row)
     if (rows.length >= PDP_RELATED_LIMIT) break
   }
   return rows
+}
+
+/** Resolves related products with full PLP row data (supplier, stock, image). */
+export async function resolveRelatedProductRows(
+  related: CmsPdpProductDoc['relatedProducts'],
+  options?: { productId?: string | number | null },
+): Promise<PlpProductRow[]> {
+  const forwardIds = extractRelatedProductIds(related)
+  const selfId = options?.productId
+  const reverseIds = selfId != null ? await fetchProductsLinkingToId(String(selfId)) : []
+  const ids = mergeBidirectionalRelatedIds(forwardIds, reverseIds, selfId)
+
+  if (ids.length > 0) {
+    return listPublicProductsByIds(ids)
+  }
+  return mapRelatedDocsToRows(related)
 }
 
 export function mapPdpDocToView(doc: CmsPdpProductDoc): PdpProductView | null {

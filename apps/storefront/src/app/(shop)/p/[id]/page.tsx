@@ -7,7 +7,7 @@ import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductBuyBox } from "@/components/product/ProductBuyBox";
 import { ProductTabs } from "@/components/product/ProductTabs";
 import { StarIcon } from "@/components/ui/icons";
-import { appendCrumb, buildBreadcrumbsFromPath } from "@/lib/catalog/build-breadcrumbs";
+import { appendCrumb, buildBreadcrumbsFromCategorySlugs } from "@/lib/catalog/build-breadcrumbs";
 import { getNavigationTree } from "@/lib/catalog/fetch-navigation-tree";
 import { listPublishedProductSlugs } from "@/lib/catalog/fetch-product-pdp";
 import { getCustomerContext } from "@/lib/auth/customer-context";
@@ -48,8 +48,7 @@ export default async function ProductPage({ params }: PageProps) {
   const ctx = await getCustomerContext();
   const b2bValidatedForAlerts = ctx ? isB2bValidated(ctx) : false;
   const tree = await getNavigationTree();
-  const categorySlug = product.categorySlugs[0] ?? "general";
-  const baseCrumbs = buildBreadcrumbsFromPath(tree, `/c/${categorySlug}`);
+  const baseCrumbs = buildBreadcrumbsFromCategorySlugs(tree, product.categorySlugs);
   const crumbs = appendCrumb(baseCrumbs, product.title);
 
   const glyphProduct = plpRowToProduct({

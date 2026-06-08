@@ -109,8 +109,6 @@ export class ErpCatalogSyncService {
         slug,
         _status: 'draft',
         ...(data as Partial<Product>),
-        enableVariants: false,
-        priceInUSDEnabled: false,
       },
       overrideAccess: true,
       req: syncReq,

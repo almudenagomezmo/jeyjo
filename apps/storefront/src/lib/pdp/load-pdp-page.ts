@@ -3,7 +3,7 @@ import type { PriceQuote } from '@jeyjo/pricing'
 import {
   fetchPublicProductPdpBySlug,
   mapPdpDocToView,
-  mapRelatedDocsToRows,
+  resolveRelatedProductRows,
 } from '@/lib/catalog/fetch-product-pdp'
 import type { PdpPagePayload } from '@/lib/pdp/types'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
@@ -34,7 +34,9 @@ export async function loadPdpPage(slugOrSku: string): Promise<PdpPagePayload | n
   const product = mapPdpDocToView(fetched.doc)
   if (!product) return null
 
-  const relatedRows = mapRelatedDocsToRows(fetched.doc.relatedProducts)
+  const relatedRows = await resolveRelatedProductRows(fetched.doc.relatedProducts, {
+    productId: fetched.doc.id,
+  })
   const relatedSkus = relatedRows.map((r) => r.sku)
 
   const [quote, stock, quotesBySku] = await Promise.all([

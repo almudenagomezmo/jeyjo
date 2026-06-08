@@ -1,11 +1,10 @@
-import type { Category, Media, Product, VariantOption, VariantType } from '@/payload-types'
+import type { Category, Media, Product } from '@/payload-types'
 import { RequiredDataFromCollectionSlug } from 'payload'
 
 type ProductArgs = {
   galleryImages: NonNullable<Product['gallery']>
   metaImage: Media
   contentImage: Media
-  variantTypes: VariantType[]
   categories: Category[]
   relatedProducts: Product[]
 }
@@ -17,12 +16,9 @@ export const productTshirtData: (
   relatedProducts,
   metaImage,
   contentImage,
-  variantTypes,
   categories,
 }) => {
   return {
-    enableVariants: true,
-    variantTypes: variantTypes,
     meta: {
       title: 'Tshirt | Payload Ecommerce Template',
       image: metaImage,
@@ -1168,30 +1164,6 @@ export const productTshirtData: (
     gallery: galleryImages,
     title: 'Tshirt',
     slug: 'tshirt',
-    priceInUSDEnabled: true,
-    priceInUSD: 4999,
     relatedProducts: relatedProducts,
-  }
-}
-
-type ProductVariantArgs = {
-  product: Product
-  variantOptions: VariantOption[]
-  priceInUSD?: number
-}
-
-export const productTshirtVariant: (
-  args: ProductVariantArgs,
-) => RequiredDataFromCollectionSlug<'variants'> = ({
-  product,
-  variantOptions,
-  priceInUSD = 4999,
-}) => {
-  return {
-    product: product,
-    options: variantOptions,
-    priceInUSDEnabled: true,
-    priceInUSD,
-    _status: 'published',
   }
 }

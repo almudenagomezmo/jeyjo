@@ -74,8 +74,6 @@ function buildProductData(
     ...(product.facetColor ? { facetColor: product.facetColor } : {}),
     ...(product.facetMaterial ? { facetMaterial: product.facetMaterial } : {}),
     ecoLabel: product.ecoLabel ?? false,
-    enableVariants: false,
-    priceInUSDEnabled: false,
   }
 }
 

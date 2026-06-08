@@ -179,8 +179,14 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString,
+      // Supabase session pooler (port 5432) caps concurrent clients (~15). Next.js dev
+      // HMR can spawn multiple pg pools; keep each small to avoid EMAXCONNSESSION.
       ...(isSupabase
-        ? { ssl: { rejectUnauthorized: false } }
+        ? {
+            max: Number(process.env.PAYLOAD_DB_POOL_MAX ?? 4),
+            idleTimeoutMillis: 20_000,
+            ssl: { rejectUnauthorized: false },
+          }
         : {}),
     },
     push: pushSchema,

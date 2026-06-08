@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { isPublicCatalogProduct } from '@/lib/catalog/public-product-filter'
-import { mapPdpDocToView, mapRelatedDocsToRows } from '@/lib/catalog/fetch-product-pdp'
+import {
+  mapPdpDocToView,
+  mapRelatedDocsToRows,
+  mergeBidirectionalRelatedIds,
+} from '@/lib/catalog/fetch-product-pdp'
 import type { CmsPdpProductDoc } from '@/lib/catalog/fetch-product-pdp'
 
 describe('PDP catalog visibility', () => {
@@ -16,7 +20,30 @@ describe('PDP catalog visibility', () => {
   })
 })
 
+describe('mergeBidirectionalRelatedIds', () => {
+  it('merges forward and reverse ids without duplicates or self', () => {
+    const merged = mergeBidirectionalRelatedIds(['10', '20'], ['30', '10'], 5)
+    expect(merged).toEqual(['10', '20', '30'])
+  })
+})
+
 describe('mapRelatedDocsToRows', () => {
+  it('includes populated related products when _status is omitted by CMS defaultPopulate', () => {
+    const related = [
+      {
+        id: 160,
+        skuErp: 'ERP-TNR-085',
+        slug: 'toner-negro-hp-85a',
+        title: 'Tóner negro HP 85A',
+        supplier: { name: 'HP' },
+      },
+    ] as CmsPdpProductDoc[]
+
+    const rows = mapRelatedDocsToRows(related)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.sku).toBe('ERP-TNR-085')
+  })
+
   it('excludes draft and wildcard related products', () => {
     const related = [
       {
