@@ -52,8 +52,8 @@ export async function fetchCustomerDetail(
     })
   }
 
-  const canValidate = !customer.validated_at && enrichedProfiles.length > 0
-  const canReclassify = Boolean(customer.validated_at) && enrichedProfiles.length > 0
+  const canValidate = !customer.validated_at
+  const canReclassify = Boolean(customer.validated_at)
 
   return {
     customer,

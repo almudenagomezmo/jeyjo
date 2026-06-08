@@ -190,6 +190,17 @@ describe('reclassify validation', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.status).toBe(400)
   })
+
+  it('allows group-only reclassify when there are no web profiles', () => {
+    const result = validateReclassifyInput({
+      customerGroup: 3,
+      profileRoles: [],
+      profiles: [],
+      validatedAt: '2026-01-01T00:00:00.000Z',
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.assignments).toEqual([])
+  })
 })
 
 describe('reclassify customer service', () => {

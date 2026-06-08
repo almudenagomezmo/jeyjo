@@ -38,7 +38,14 @@ export function validateReclassifyInput(input: {
   }
 
   if (!profiles.length) {
-    return { ok: false, status: 400, message: 'Customer has no web profiles to reclassify' }
+    if (profileRoles.length > 0) {
+      return {
+        ok: false,
+        status: 400,
+        message: 'Customer has no web profiles; send an empty profileRoles array',
+      }
+    }
+    return { ok: true, assignments: [] }
   }
 
   if (profileRoles.length !== profiles.length) {
