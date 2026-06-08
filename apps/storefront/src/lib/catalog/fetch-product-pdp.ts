@@ -261,8 +261,9 @@ export function mapPdpDocToView(doc: CmsPdpProductDoc): PdpProductView | null {
     specRows,
     attachments: mapAttachments(doc),
     glyph: inferGlyph(doc),
-    rating: null,
-    reviews: null,
+    rating:
+      (doc.reviewCount ?? 0) > 0 && doc.ratingAverage != null ? doc.ratingAverage : null,
+    reviews: doc.reviewCount ?? 0,
   }
 }
 

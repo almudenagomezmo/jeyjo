@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import * as customerContext from '@/lib/auth/customer-context'
 import * as fetchPdp from '@/lib/catalog/fetch-product-pdp'
 import * as pricingBatch from '@/lib/pricing/resolve-batch'
+import * as reviewsPayload from '@/lib/reviews/payload-product-reviews'
+import * as purchasedSku from '@/lib/reviews/assert-customer-purchased-sku'
 import * as stockModule from '@/lib/stock/get-stock-indicator'
 
 const { loadPdpPage } = await import('@/lib/pdp/load-pdp-page')
@@ -104,6 +107,16 @@ describe('loadPdpPage', () => {
       p2Price: 175,
       vatRate: 21,
     })
+
+    vi.spyOn(customerContext, 'getCustomerContext').mockResolvedValue(null)
+    vi.spyOn(reviewsPayload, 'listApprovedProductReviews').mockResolvedValue({
+      docs: [],
+      total: 0,
+      page: 1,
+      pageSize: 10,
+    })
+    vi.spyOn(reviewsPayload, 'fetchCustomerProductReview').mockResolvedValue(null)
+    vi.spyOn(purchasedSku, 'assertCustomerPurchasedSku').mockResolvedValue(false)
 
     const result = await loadPdpPage('impresora-laser-hp-pro-m404')
 

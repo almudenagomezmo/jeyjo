@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/account/LogoutButton";
 import { PendingValidationBanner } from "@/components/account/PendingValidationBanner";
+import { ProfileDisplayNameForm } from "@/components/account/ProfileDisplayNameForm";
 import { Card } from "@/components/ui/Card";
 import { getCustomerContext } from "@/lib/auth/customer-context";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Perfil" };
 
@@ -27,8 +30,11 @@ export default async function AccountProfilePage() {
       </div>
       {!ctx.validatedAt && <PendingValidationBanner />}
       <Card className="p-6">
+        <ProfileDisplayNameForm initialDisplayName={ctx.displayName} />
+      </Card>
+      <Card className="p-6">
         <p className="text-sm text-text-secondary">
-          Los datos de registro son de solo lectura en esta versión. Para cambiar la contraseña usa el enlace de
+          Los demás datos de registro son de solo lectura. Para cambiar la contraseña usa el enlace de
           recuperación de Supabase Auth.
         </p>
         <dl className="mt-4 space-y-3 text-sm">

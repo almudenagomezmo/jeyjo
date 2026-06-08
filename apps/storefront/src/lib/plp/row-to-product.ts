@@ -24,7 +24,7 @@ export function plpRowToProduct(row: PlpProductRow, quote?: PriceQuote): Product
     vat,
     packSize: row.packUnit,
     stock: row.stockIndicator === 'available' ? 100 : row.stockIndicator === 'low' ? 3 : 0,
-    rating: row.rating,
+    rating: row.rating ?? 0,
     reviews: row.reviews,
     glyph: DEFAULT_GLYPH,
     colors: ['#94a3b8', '#64748b'] as const,

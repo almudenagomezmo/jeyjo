@@ -1,6 +1,7 @@
 import type { PriceQuote } from '@jeyjo/pricing'
 
 import type { PlpProductRow } from '@/lib/plp/types'
+import type { ProductReviewsPage, ProductReviewMine } from '@/lib/reviews/types'
 import type { PublicStockIndicator } from '@/lib/stock/types'
 import type { GlyphKind } from '@/lib/types'
 
@@ -46,6 +47,10 @@ export type PdpPagePayload = {
   stockBySku: Record<string, PublicStockIndicator>
   /** When the request used SKU but a canonical slug exists. */
   redirectToSlug: string | null
+  productId: number | null
+  approvedReviews: ProductReviewsPage | null
+  customerReview: ProductReviewMine | null
+  canReview: boolean
 }
 
 export const PDP_RELATED_LIMIT = 8

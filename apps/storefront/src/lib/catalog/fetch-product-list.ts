@@ -24,6 +24,8 @@ export type CmsProductListDoc = CmsProductSnapshot & {
   brand?: { name?: string | null } | string | number | null
   supplier?: { name?: string | null } | string | number | null
   categories?: Array<{ slug?: string | null } | string | number> | null
+  reviewCount?: number | null
+  ratingAverage?: number | null
 }
 
 function cmsBaseUrl(): string | null {
@@ -78,8 +80,9 @@ export function mapDocToRow(doc: CmsProductListDoc): PlpProductRow | null {
     vatRate: doc.vatRate ?? 21,
     stockIndicator: level,
     allowOrderWithoutStock: doc.allowOrderWithoutStock === true,
-    rating: 4.5,
-    reviews: 0,
+    rating:
+      (doc.reviewCount ?? 0) > 0 && doc.ratingAverage != null ? doc.ratingAverage : null,
+    reviews: doc.reviewCount ?? 0,
     hasOffer: false,
     imageUrl: absoluteMediaUrlOrNull(catalogRaw),
   }

@@ -23,6 +23,7 @@ import { CustomerDocuments } from '@/collections/CustomerDocuments'
 import { GroupOffers } from '@/collections/GroupOffers'
 import { SpecialPrices } from '@/collections/SpecialPrices'
 import { RmaIncidents } from '@/collections/RmaIncidents'
+import { ProductReviews } from '@/collections/ProductReviews'
 import { Media } from '@/collections/Media'
 import { Brands } from '@/collections/Brands'
 import { Suppliers } from '@/collections/Suppliers'
@@ -138,6 +139,10 @@ export default buildConfig({
           Component: '@/components/RmaInboxView#RmaInboxView',
           path: '/rma',
         },
+        productReviewsInbox: {
+          Component: '@/components/ProductReviewsInboxView#ProductReviewsInboxView',
+          path: '/product-reviews',
+        },
         catalogImport: {
           Component: '@/components/CatalogImportView#CatalogImportView',
           path: '/catalog-import',
@@ -170,6 +175,7 @@ export default buildConfig({
     Media,
     Quotes,
     RmaIncidents,
+    ProductReviews,
     Coupons,
     B2bCatalogDownloads,
     CustomerDocuments,

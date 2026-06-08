@@ -79,6 +79,7 @@ export interface Config {
     media: Media;
     quotes: Quote;
     'rma-incidents': RmaIncident;
+    'product-reviews': ProductReview;
     coupons: Coupon;
     'b2b-catalog-downloads': B2BCatalogDownload;
     'customer-documents': CustomerDocument;
@@ -109,6 +110,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     quotes: QuotesSelect<false> | QuotesSelect<true>;
     'rma-incidents': RmaIncidentsSelect<false> | RmaIncidentsSelect<true>;
+    'product-reviews': ProductReviewsSelect<false> | ProductReviewsSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
     'b2b-catalog-downloads': B2BCatalogDownloadsSelect<false> | B2BCatalogDownloadsSelect<true>;
     'customer-documents': CustomerDocumentsSelect<false> | CustomerDocumentsSelect<true>;
@@ -461,6 +463,8 @@ export interface Product {
   brand?: (number | null) | Brand;
   supplier?: (number | null) | Supplier;
   categories?: (number | Category)[] | null;
+  reviewCount?: number | null;
+  ratingAverage?: number | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
@@ -890,6 +894,30 @@ export interface RmaIncident {
   createdAt: string;
 }
 /**
+ * Bandeja operativa: /admin/product-reviews
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-reviews".
+ */
+export interface ProductReview {
+  id: number;
+  reviewKey?: string | null;
+  status?: ('pending' | 'approved' | 'rejected') | null;
+  previousStatus?: ('pending' | 'approved' | 'rejected') | null;
+  product: number | Product;
+  skuErp: string;
+  customerId: string;
+  webProfileId: string;
+  authorDisplayName: string;
+  rating: number;
+  comment: string;
+  rejectionNote?: string | null;
+  moderatedBy?: (number | null) | User;
+  moderatedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "coupons".
  */
@@ -1056,6 +1084,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'rma-incidents';
         value: number | RmaIncident;
+      } | null)
+    | ({
+        relationTo: 'product-reviews';
+        value: number | ProductReview;
       } | null)
     | ({
         relationTo: 'coupons';
@@ -1270,6 +1302,27 @@ export interface RmaIncidentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-reviews_select".
+ */
+export interface ProductReviewsSelect<T extends boolean = true> {
+  reviewKey?: T;
+  status?: T;
+  previousStatus?: T;
+  product?: T;
+  skuErp?: T;
+  customerId?: T;
+  webProfileId?: T;
+  authorDisplayName?: T;
+  rating?: T;
+  comment?: T;
+  rejectionNote?: T;
+  moderatedBy?: T;
+  moderatedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "coupons_select".
  */
 export interface CouponsSelect<T extends boolean = true> {
@@ -1433,6 +1486,8 @@ export interface ProductsSelect<T extends boolean = true> {
   brand?: T;
   supplier?: T;
   categories?: T;
+  reviewCount?: T;
+  ratingAverage?: T;
   generateSlug?: T;
   slug?: T;
   description?: T;

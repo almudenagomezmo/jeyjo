@@ -64,6 +64,32 @@ describe('mapDocToRow', () => {
     expect(row?.supplier).toBe('Distrisantiago')
   })
 
+  it('maps real review aggregates and null rating when reviewCount is zero', () => {
+    const withReviews = mapDocToRow({
+      skuErp: 'REF-002',
+      slug: 'ref-002',
+      title: 'Con valoraciones',
+      reviewCount: 8,
+      ratingAverage: 4.5,
+      _status: 'published',
+      isWildcard: false,
+    })
+    expect(withReviews?.rating).toBe(4.5)
+    expect(withReviews?.reviews).toBe(8)
+
+    const withoutReviews = mapDocToRow({
+      skuErp: 'REF-003',
+      slug: 'ref-003',
+      title: 'Sin valoraciones',
+      reviewCount: 0,
+      ratingAverage: null,
+      _status: 'published',
+      isWildcard: false,
+    })
+    expect(withoutReviews?.rating).toBeNull()
+    expect(withoutReviews?.reviews).toBe(0)
+  })
+
   it('does not derive brand from supplier when brand is unset', () => {
     const row = mapDocToRow({
       skuErp: 'REF-001',

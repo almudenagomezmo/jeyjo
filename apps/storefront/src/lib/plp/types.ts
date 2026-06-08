@@ -19,7 +19,7 @@ export type PlpProductRow = {
   vatRate: number
   stockIndicator: StockIndicatorLevel
   allowOrderWithoutStock: boolean
-  rating: number
+  rating: number | null
   reviews: number
   hasOffer: boolean
   imageUrl: string | null

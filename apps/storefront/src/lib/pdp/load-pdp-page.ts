@@ -1,5 +1,6 @@
 import type { PriceQuote } from '@jeyjo/pricing'
 
+import { getCustomerContext } from '@/lib/auth/customer-context'
 import {
   fetchPublicProductPdpBySlug,
   mapPdpDocToView,
@@ -10,6 +11,11 @@ import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
 import { getProductPriceBase } from '@/lib/pricing/product-catalog'
 import { getStorefrontPricingRepository } from '@/lib/pricing/repository'
 import { resolvePrice } from '@jeyjo/pricing'
+import { assertCustomerPurchasedSku } from '@/lib/reviews/assert-customer-purchased-sku'
+import {
+  fetchCustomerProductReview,
+  listApprovedProductReviews,
+} from '@/lib/reviews/payload-product-reviews'
 import { getStockIndicator } from '@/lib/stock/get-stock-indicator'
 import { stockIndicatorsFromRows } from '@/lib/stock/get-stock-indicators-batch'
 
@@ -52,6 +58,27 @@ export async function loadPdpPage(slugOrSku: string): Promise<PdpPagePayload | n
   const redirectToSlug =
     fetched.matchedBySku && product.slug && product.slug !== key ? product.slug : null
 
+  const rawId = fetched.doc.id
+  const productId =
+    typeof rawId === 'number'
+      ? rawId
+      : rawId != null
+        ? Number.parseInt(String(rawId), 10)
+        : null
+
+  const ctx = await getCustomerContext()
+  const [approvedReviews, customerReview, canReview] = await Promise.all([
+    productId != null && Number.isFinite(productId)
+      ? listApprovedProductReviews(productId, 1, 10)
+      : Promise.resolve(null),
+    productId != null && Number.isFinite(productId) && ctx
+      ? fetchCustomerProductReview(productId, ctx.userId)
+      : Promise.resolve(null),
+    ctx
+      ? assertCustomerPurchasedSku(ctx.customerId, product.sku)
+      : Promise.resolve(false),
+  ])
+
   return {
     product,
     quote,
@@ -60,5 +87,9 @@ export async function loadPdpPage(slugOrSku: string): Promise<PdpPagePayload | n
     quotesBySku,
     stockBySku,
     redirectToSlug,
+    productId: productId != null && Number.isFinite(productId) ? productId : null,
+    approvedReviews,
+    customerReview,
+    canReview,
   }
 }

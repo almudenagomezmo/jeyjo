@@ -116,11 +116,13 @@ export function ProductListRow(props: ProductListRowProps) {
           {product.name}
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-tertiary">
-          <span className="inline-flex items-center gap-1">
-            <StarIcon size={11} className="text-warning" fill="currentColor" />
-            <span className="font-semibold text-text-secondary">{product.rating}</span>
-            <span>({product.reviews})</span>
-          </span>
+          {product.reviews > 0 && product.rating > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <StarIcon size={11} className="text-warning" fill="currentColor" />
+              <span className="font-semibold text-text-secondary">{product.rating}</span>
+              <span>({product.reviews})</span>
+            </span>
+          )}
           {product.bestseller && (
             <Badge tone="warning" size="sm" icon={<StarIcon size={10} />}>
               Top ventas

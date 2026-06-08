@@ -93,6 +93,8 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     erpStock: true,
     allowOrderWithoutStock: true,
     categories: true,
+    reviewCount: true,
+    ratingAverage: true,
     additionalImages: {
       image: true,
     },
@@ -228,6 +230,19 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
       hasMany: true,
       relationTo: 'categories',
       label: 'Categorías',
+    },
+    {
+      name: 'reviewCount',
+      type: 'number',
+      label: 'Nº valoraciones',
+      defaultValue: 0,
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    {
+      name: 'ratingAverage',
+      type: 'number',
+      label: 'Media valoraciones',
+      admin: { position: 'sidebar', readOnly: true, step: 0.1 },
     },
     slugField(),
     {

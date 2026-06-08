@@ -5,6 +5,7 @@ import * as migration_20260608_120000_drop_legacy_inventory from './20260608_120
 import * as migration_20260608_130000_drop_legacy_variants_usd_prices from './20260608_130000_drop_legacy_variants_usd_prices';
 import * as migration_20260608_105220_promo_banner_storefront_link from './20260608_105220_promo_banner_storefront_link';
 import * as migration_20260608_140000_product_brands from './20260608_140000_product_brands';
+import * as migration_20260608_150000_product_reviews from './20260608_150000_product_reviews';
 
 export const migrations = [
   {
@@ -41,5 +42,10 @@ export const migrations = [
     up: migration_20260608_140000_product_brands.up,
     down: migration_20260608_140000_product_brands.down,
     name: '20260608_140000_product_brands',
+  },
+  {
+    up: migration_20260608_150000_product_reviews.up,
+    down: migration_20260608_150000_product_reviews.down,
+    name: '20260608_150000_product_reviews',
   },
 ];

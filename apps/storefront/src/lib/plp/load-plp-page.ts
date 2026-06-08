@@ -30,7 +30,7 @@ function sortRows(
       )
       break
     case 'rating':
-      list.sort((a, b) => b.rating - a.rating)
+      list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
       break
     case 'name':
       list.sort((a, b) => a.title.localeCompare(b.title, 'es'))

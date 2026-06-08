@@ -44,7 +44,17 @@ export default async function ProductPage({ params }: PageProps) {
     permanentRedirect(`/p/${payload.redirectToSlug}`);
   }
 
-  const { product, quote, stock, relatedRows, quotesBySku, stockBySku } = payload;
+  const {
+    product,
+    quote,
+    stock,
+    relatedRows,
+    quotesBySku,
+    stockBySku,
+    approvedReviews,
+    customerReview,
+    canReview,
+  } = payload;
   const ctx = await getCustomerContext();
   const b2bValidatedForAlerts = ctx ? isB2bValidated(ctx) : false;
   const tree = await getNavigationTree();
@@ -153,9 +163,15 @@ export default async function ProductPage({ params }: PageProps) {
       </div>
 
       <ProductTabs
+        productSlug={product.slug}
         longDescriptionHtml={product.longDescriptionHtml}
         specRows={product.specRows}
         attachments={product.attachments}
+        approvedReviews={approvedReviews}
+        isLoggedIn={Boolean(ctx)}
+        displayName={ctx?.displayName ?? null}
+        canReview={canReview}
+        customerReview={customerReview}
       />
 
       {relatedRows.length > 0 && (

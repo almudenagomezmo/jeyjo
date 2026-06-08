@@ -3,23 +3,39 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import type { PdpAttachment, PdpSpecRow } from "@/lib/pdp/types";
+import type { ProductReviewMine, ProductReviewsPage } from "@/lib/reviews/types";
+import { ProductReviewForm } from "@/components/product/ProductReviewForm";
+import { ProductReviewsList } from "@/components/product/ProductReviewsList";
 
-type Tab = "descripcion" | "especificaciones" | "adjuntos" | "envio";
+type Tab = "descripcion" | "especificaciones" | "adjuntos" | "valoraciones" | "envio";
 
 export function ProductTabs({
+  productSlug,
   longDescriptionHtml,
   specRows,
   attachments,
+  approvedReviews,
+  isLoggedIn,
+  displayName,
+  canReview,
+  customerReview,
 }: {
+  productSlug: string;
   longDescriptionHtml: string | null;
   specRows: PdpSpecRow[];
   attachments: PdpAttachment[];
+  approvedReviews: ProductReviewsPage | null;
+  isLoggedIn: boolean;
+  displayName: string | null;
+  canReview: boolean;
+  customerReview: ProductReviewMine | null;
 }) {
   const hasAttachments = attachments.length > 0;
   const tabs: { id: Tab; label: string }[] = [
     { id: "descripcion", label: "Descripción" },
     { id: "especificaciones", label: "Especificaciones técnicas" },
     ...(hasAttachments ? [{ id: "adjuntos" as Tab, label: "Descargas" }] : []),
+    { id: "valoraciones", label: "Valoraciones" },
     { id: "envio", label: "Envío y devoluciones" },
   ];
 
@@ -93,6 +109,29 @@ export function ProductTabs({
               </li>
             ))}
           </ul>
+        )}
+
+        {tab === "valoraciones" && (
+          <div className="space-y-8">
+            <section>
+              <h3 className="text-base font-bold text-text">Valoraciones de clientes</h3>
+              <div className="mt-4">
+                <ProductReviewsList reviews={approvedReviews?.docs ?? []} />
+              </div>
+            </section>
+            <section>
+              <h3 className="text-base font-bold text-text">Deja tu valoración</h3>
+              <div className="mt-4">
+                <ProductReviewForm
+                  productSlug={productSlug}
+                  isLoggedIn={isLoggedIn}
+                  displayName={displayName}
+                  canReview={canReview}
+                  customerReview={customerReview}
+                />
+              </div>
+            </section>
+          </div>
         )}
 
         {tab === "envio" && (

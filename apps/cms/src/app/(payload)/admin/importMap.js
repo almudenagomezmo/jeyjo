@@ -37,6 +37,7 @@ import { OmsInboxView as OmsInboxView_e9e8ed26e22b88b8327fe273ee5f398b } from '@
 import { EvaOrdersQueueView as EvaOrdersQueueView_a7a9f0e2bc60731d8b0674605c616d10 } from '@/components/EvaOrdersQueueView'
 import { QuotesInboxView as QuotesInboxView_32842f000502387a81d1e28fa6fedb2b } from '@/components/QuotesInboxView'
 import { RmaInboxView as RmaInboxView_6281e42023e8d04db95a29ce524735ac } from '@/components/RmaInboxView'
+import { ProductReviewsInboxView as ProductReviewsInboxView_c2d90dec526ae67e89f4f26250f73bd8 } from '@/components/ProductReviewsInboxView'
 import { CatalogImportView as CatalogImportView_5a92596baa578057d7b607306215db64 } from '@/components/CatalogImportView'
 import { SkaiConfigView as SkaiConfigView_6b8f93d88b4c1ba61bfad5f63e57900f } from '@/components/SkaiConfigView'
 import { AnalyticsConfigView as AnalyticsConfigView_01cd52b7f539f708150433bd79f6eeaf } from '@/components/AnalyticsConfigView'
@@ -85,6 +86,7 @@ export const importMap = {
   "@/components/EvaOrdersQueueView#EvaOrdersQueueView": EvaOrdersQueueView_a7a9f0e2bc60731d8b0674605c616d10,
   "@/components/QuotesInboxView#QuotesInboxView": QuotesInboxView_32842f000502387a81d1e28fa6fedb2b,
   "@/components/RmaInboxView#RmaInboxView": RmaInboxView_6281e42023e8d04db95a29ce524735ac,
+  "@/components/ProductReviewsInboxView#ProductReviewsInboxView": ProductReviewsInboxView_c2d90dec526ae67e89f4f26250f73bd8,
   "@/components/CatalogImportView#CatalogImportView": CatalogImportView_5a92596baa578057d7b607306215db64,
   "@/components/SkaiConfigView#SkaiConfigView": SkaiConfigView_6b8f93d88b4c1ba61bfad5f63e57900f,
   "@/components/AnalyticsConfigView#AnalyticsConfigView": AnalyticsConfigView_01cd52b7f539f708150433bd79f6eeaf,

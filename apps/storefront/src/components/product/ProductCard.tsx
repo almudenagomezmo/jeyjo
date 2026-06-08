@@ -142,11 +142,13 @@ export function ProductCard(props: ProductCardProps) {
         >
           {product.name}
         </Link>
-        <div className="flex items-center gap-1 text-[11px] text-text-tertiary">
-          <StarIcon size={11} className="text-warning" fill="currentColor" />
-          <span className="font-semibold text-text-secondary">{product.rating}</span>
-          <span>({product.reviews})</span>
-        </div>
+        {product.reviews > 0 && product.rating > 0 && (
+          <div className="flex items-center gap-1 text-[11px] text-text-tertiary">
+            <StarIcon size={11} className="text-warning" fill="currentColor" />
+            <span className="font-semibold text-text-secondary">{product.rating}</span>
+            <span>({product.reviews})</span>
+          </div>
+        )}
 
         <div className="mt-1">
           <div className="flex flex-wrap items-baseline gap-1.5">
