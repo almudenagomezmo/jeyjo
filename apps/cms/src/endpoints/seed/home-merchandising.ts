@@ -19,6 +19,19 @@ export async function seedHomeMerchandising({
     sort: 'sortOrder',
   })
 
+  const categoryIdBySlug = new Map(categories.docs.map((c) => [c.slug, c.id]))
+
+  function categoryDestination(slug: string) {
+    const id = categoryIdBySlug.get(slug)
+    if (typeof id !== 'number') {
+      return { type: 'custom' as const, url: `/c/${slug}` }
+    }
+    return {
+      type: 'reference' as const,
+      reference: { relationTo: 'categories' as const, value: id },
+    }
+  }
+
   const products = await payload.find({
     collection: 'products',
     where: {
@@ -79,7 +92,7 @@ export async function seedHomeMerchandising({
       promoBanners: [
         {
           image: heroImageId,
-          href: '/c/escritura',
+          destination: categoryDestination('escritura'),
           alt: 'Escritura y corrección — BIC, Uni-Ball, Staedtler',
           segment: 'b2c',
           startAt: yesterday.toISOString(),
@@ -88,7 +101,7 @@ export async function seedHomeMerchandising({
         },
         {
           image: heroImageId,
-          href: '/c/impresion',
+          destination: categoryDestination('impresion'),
           alt: 'Consumibles e impresión para empresas',
           segment: 'b2b',
           startAt: yesterday.toISOString(),
@@ -97,7 +110,7 @@ export async function seedHomeMerchandising({
         },
         {
           image: heroImageId,
-          href: '/search?q=eco',
+          destination: { type: 'custom', url: '/search?q=eco' },
           alt: 'Campaña eco (expirada — QA)',
           segment: 'both',
           startAt: lastMonth.toISOString(),
@@ -106,7 +119,7 @@ export async function seedHomeMerchandising({
         },
         {
           image: heroImageId,
-          href: '/c/reciclaje',
+          destination: categoryDestination('reciclaje'),
           alt: 'Portes gratis desde 39 € — toda España',
           segment: 'both',
           startAt: yesterday.toISOString(),

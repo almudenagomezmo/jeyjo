@@ -1653,7 +1653,25 @@ export interface Home {
   promoBanners?:
     | {
         image: number | Media;
-        href: string;
+        destination: {
+          type?: ('reference' | 'custom') | null;
+          /**
+           * Selecciona una categoría o un producto publicado en la tienda.
+           */
+          reference?:
+            | ({
+                relationTo: 'categories';
+                value: number | Category;
+              } | null)
+            | ({
+                relationTo: 'products';
+                value: number | Product;
+              } | null);
+          /**
+           * Ruta interna (p. ej. /search?q=eco) o enlace externo (https://…).
+           */
+          url?: string | null;
+        };
         alt?: string | null;
         segment: 'b2c' | 'b2b' | 'both';
         startAt: string;
@@ -1841,7 +1859,13 @@ export interface HomeSelect<T extends boolean = true> {
     | T
     | {
         image?: T;
-        href?: T;
+        destination?:
+          | T
+          | {
+              type?: T;
+              reference?: T;
+              url?: T;
+            };
         alt?: T;
         segment?: T;
         startAt?: T;

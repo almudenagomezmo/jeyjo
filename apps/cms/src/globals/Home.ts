@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { contentStaffUpdate } from '@/access/contentStaffUpdate'
+import { storefrontLink } from '@/fields/storefrontLink'
 
 const segmentOptions = [
   { label: 'B2C', value: 'b2c' },
@@ -34,6 +35,24 @@ export const Home: GlobalConfig = {
               `Banner promocional ${i + 1}: la fecha de fin debe ser igual o posterior a la de inicio.`,
             )
           }
+
+          const destination = banner?.destination as
+            | { type?: string; reference?: unknown; url?: string | null }
+            | undefined
+
+          if (destination?.type === 'custom') {
+            if (!destination.url?.trim()) {
+              throw new Error(
+                `Banner promocional ${i + 1}: indica una URL personalizada o selecciona un destino del catálogo.`,
+              )
+            }
+          } else if (destination?.type === 'reference' || destination?.type == null) {
+            if (!destination?.reference) {
+              throw new Error(
+                `Banner promocional ${i + 1}: selecciona una categoría, un producto o indica una URL personalizada.`,
+              )
+            }
+          }
         }
 
         return data
@@ -54,12 +73,7 @@ export const Home: GlobalConfig = {
           label: 'Imagen',
           required: true,
         },
-        {
-          name: 'href',
-          type: 'text',
-          label: 'Enlace destino',
-          required: true,
-        },
+        storefrontLink({ overrides: { required: true } }),
         {
           name: 'alt',
           type: 'text',

@@ -1,5 +1,10 @@
 import { unstable_cache } from 'next/cache'
 
+import {
+  resolveStorefrontLink,
+  type StorefrontLinkInput,
+} from '@/lib/cms/resolve-storefront-link'
+import { getNavigationTree } from '@/lib/catalog/fetch-navigation-tree'
 import type { GlyphKind } from '@/lib/types'
 
 import {
@@ -23,7 +28,9 @@ type CmsProductRef = { id?: string | number } | string | number
 type CmsHomeGlobal = {
   promoBanners?: Array<{
     id?: string
+    /** @deprecated migrado a `destination` */
     href?: string | null
+    destination?: StorefrontLinkInput | null
     alt?: string | null
     segment?: 'b2c' | 'b2b' | 'both' | null
     startAt?: string | null
@@ -64,15 +71,24 @@ function refIds(refs: CmsProductRef[] | null | undefined): string[] {
     .filter((id): id is string => Boolean(id))
 }
 
-function mapBanners(raw: CmsHomeGlobal['promoBanners']): HomePromoBanner[] {
+function mapBanners(
+  raw: CmsHomeGlobal['promoBanners'],
+  navTree: Awaited<ReturnType<typeof getNavigationTree>>,
+): HomePromoBanner[] {
   if (!raw?.length) return []
 
   const mapped: HomePromoBanner[] = []
   for (const b of raw) {
-    if (!b?.href || !b.startAt || !b.endAt || !b.segment) continue
+    if (!b?.startAt || !b.endAt || !b.segment) continue
+
+    const href =
+      resolveStorefrontLink(b.destination, navTree) ??
+      (typeof b.href === 'string' ? b.href.trim() || null : null)
+    if (!href) continue
+
     mapped.push({
       id: b.id,
-      href: b.href,
+      href,
       alt: b.alt,
       segment: b.segment,
       startAt: b.startAt,
@@ -113,8 +129,9 @@ async function fetchHomeMerchandisingRaw(): Promise<HomeMerchandising | null> {
     }
 
     const body = (await res.json()) as CmsHomeGlobal
+    const navTree = await getNavigationTree()
     return {
-      promoBanners: mapBanners(body.promoBanners),
+      promoBanners: mapBanners(body.promoBanners, navTree),
       featuredCategories: mapFeatured(body.featuredCategories),
       topSalesB2cIds: refIds(body.topSalesB2c),
       topSalesB2bIds: refIds(body.topSalesB2b),
