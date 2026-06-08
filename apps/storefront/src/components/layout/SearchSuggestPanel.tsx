@@ -5,6 +5,9 @@ import Link from "next/link";
 import { JeyjoLoader } from "@/components/ui/JeyjoLoader";
 import { ProductGlyph } from "@/components/ui/ProductGlyph";
 import { ProductImage } from "@/components/ui/ProductImage";
+import { PlusIcon } from "@/components/ui/icons";
+import { useCartStore } from "@/lib/store/cart-store";
+import { useUiStore } from "@/lib/store/ui-store";
 import { formatMoney } from "@/lib/utils/format";
 import { getDualPrice, getPriceViewFromQuote } from "@/lib/utils/price";
 import type { SuggestCategory, SuggestProduct } from "@/lib/search/types";
@@ -62,6 +65,8 @@ export function SearchSuggestPanel({
   onViewAll,
   optionIdPrefix,
 }: SearchSuggestPanelProps) {
+  const addItem = useCartStore((s) => s.addItem);
+  const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
   let optionCounter = 0;
 
   if (loading && products.length === 0 && categories.length === 0) {
@@ -134,28 +139,50 @@ export function SearchSuggestPanel({
 
               return (
                 <li key={p.sku} role="presentation">
-                  <Link
-                    id={`${optionIdPrefix}-opt-${idx}`}
-                    href={p.href}
-                    role="option"
-                    aria-selected={isActive}
-                    onClick={onSelect}
-                    className={`flex items-center gap-3 rounded-md p-2 ${
+                  <div
+                    className={`flex items-center gap-2 rounded-md p-2 ${
                       isActive ? "bg-surface-muted ring-1 ring-border" : "hover:bg-surface-muted"
                     }`}
                   >
-                    <SuggestThumbnail product={p} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-semibold">{p.title}</p>
-                      <p className="font-mono text-[11px] text-text-tertiary">{refsLine(p)}</p>
-                    </div>
-                    {dual && (
-                      <div className="text-right">
-                        <p className="text-sm font-bold">{formatMoney(dual.primary)}</p>
-                        <p className="text-[10px] text-text-tertiary">{dual.primaryLabel}</p>
+                    <Link
+                      id={`${optionIdPrefix}-opt-${idx}`}
+                      href={p.href}
+                      role="option"
+                      aria-selected={isActive}
+                      onClick={onSelect}
+                      className="flex min-w-0 flex-1 items-center gap-3"
+                    >
+                      <SuggestThumbnail product={p} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold">{p.title}</p>
+                        <p className="font-mono text-[11px] text-text-tertiary">{refsLine(p)}</p>
                       </div>
-                    )}
-                  </Link>
+                      {dual && (
+                        <div className="text-right">
+                          <p className="text-sm font-bold">{formatMoney(dual.primary)}</p>
+                          <p className="text-[10px] text-text-tertiary">{dual.primaryLabel}</p>
+                        </div>
+                      )}
+                    </Link>
+                    <button
+                      type="button"
+                      disabled={!p.canAddToCart}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addItem(p.slug, p.packUnit, {
+                          item_id: p.sku,
+                          item_name: p.title,
+                          price: p.priceQuote?.netUnit,
+                        });
+                        setMiniCartOpen(true);
+                      }}
+                      aria-label={`Añadir ${p.title} al carrito`}
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-on-primary disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-tertiary"
+                    >
+                      <PlusIcon size={16} strokeWidth={2.5} />
+                    </button>
+                  </div>
                 </li>
               );
             })}

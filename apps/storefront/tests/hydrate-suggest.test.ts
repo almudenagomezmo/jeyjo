@@ -71,6 +71,55 @@ describe('hydrateSuggestProducts', () => {
 
     expect(products[0]?.imageUrl).toBe('http://cms.test/media/own.jpg')
   })
+
+  it('maps packUnit and canAddToCart from catalog snapshot', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          docs: [
+            {
+              skuErp: 'PACK-12',
+              title: 'Pack product',
+              slug: 'pack-product',
+              _status: 'published',
+              isWildcard: false,
+              packUnit: 12,
+              stockIndicator: 'available',
+            },
+            {
+              skuErp: 'NO-STOCK',
+              title: 'No stock',
+              slug: 'no-stock',
+              _status: 'published',
+              isWildcard: false,
+              stockIndicator: 'limited',
+            },
+            {
+              skuErp: 'BACKORDER',
+              title: 'Backorder',
+              slug: 'backorder',
+              _status: 'published',
+              isWildcard: false,
+              stockIndicator: 'limited',
+              allowOrderWithoutStock: true,
+            },
+          ],
+        }),
+      }),
+    )
+
+    const products = await hydrateSuggestProducts([
+      { sku: 'PACK-12', score: 1, payload: { skuErp: 'PACK-12' } },
+      { sku: 'NO-STOCK', score: 0.9, payload: { skuErp: 'NO-STOCK' } },
+      { sku: 'BACKORDER', score: 0.8, payload: { skuErp: 'BACKORDER' } },
+    ])
+
+    expect(products[0]).toMatchObject({ packUnit: 12, canAddToCart: true })
+    expect(products[1]).toMatchObject({ packUnit: 1, canAddToCart: false })
+    expect(products[2]).toMatchObject({ canAddToCart: true })
+  })
 })
 
 describe('EAN query mock ordering', () => {

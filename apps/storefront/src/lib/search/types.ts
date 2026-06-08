@@ -12,6 +12,8 @@ export type SuggestProduct = {
   priceQuote?: PriceQuote
   glyph?: string
   brand?: string
+  packUnit: number
+  canAddToCart: boolean
 }
 
 export type SuggestCategory = {
