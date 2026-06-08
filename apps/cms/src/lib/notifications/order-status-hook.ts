@@ -34,18 +34,28 @@ export const notifyOrderStatusChange: CollectionAfterChangeHook = async ({
 
   const orderNumber = String(doc.orderNumber ?? doc.id)
   const label = orderStatusLabel(next)
+  const payload = req.payload
 
-  await dispatchNotification(req.payload, {
-    customerId: customerRef,
-    type: 'order_status',
-    title: `Pedido ${orderNumber}: ${label}`,
-    body: `Tu pedido ha pasado a estado ${label}`,
-    payload: {
-      orderNumber,
-      statusLabel: label,
-      href: '/cuenta/empresa/pedidos',
-    },
-    idempotencyKey: `order:${doc.id}:status:${next}`,
+  queueMicrotask(() => {
+    void dispatchNotification(payload, {
+      customerId: customerRef,
+      type: 'order_status',
+      title: `Pedido ${orderNumber}: ${label}`,
+      body: `Tu pedido ha pasado a estado ${label}`,
+      payload: {
+        orderNumber,
+        statusLabel: label,
+        href: '/cuenta/empresa/pedidos',
+      },
+      idempotencyKey: `order:${doc.id}:status:${next}`,
+    }).catch((err) => {
+      payload.logger.error({
+        msg: 'Failed to dispatch order status notification',
+        orderNumber,
+        status: next,
+        err,
+      })
+    })
   })
 
   return doc

@@ -43,7 +43,7 @@ const DELIVERY_METHOD_OPTIONS = [
   { label: 'Recogida Rincón de Soto', value: 'pickup_rincon' },
 ]
 
-function isStorefrontOrderApiKey(req: { headers: Headers }): boolean {
+export function isStorefrontOrderApiKey(req: { headers: Headers }): boolean {
   const expected = process.env.STOREFRONT_PAYLOAD_API_KEY
   if (!expected) return false
   const auth = req.headers.get('authorization')
@@ -304,7 +304,7 @@ const jeyjoOrderFields: Field[] = [
   },
 ]
 
-const orderAuditHooks = createAuditHooks({ collection: 'orders' })
+const orderAuditHooks = createAuditHooks({ collection: 'orders', deferWrites: true })
 
 export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,

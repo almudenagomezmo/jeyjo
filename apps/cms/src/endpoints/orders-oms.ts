@@ -5,6 +5,7 @@ import {
 } from '@jeyjo/order-export'
 import { APIError, type Endpoint, type Where } from 'payload'
 
+import { isStorefrontOrderApiKey } from '@/collections/Orders'
 import { isJeyjoOrderStatus } from '@/collections/Orders/status-transitions'
 import { fetchCustomersByIds, resolveCustomerLabel } from '@/lib/orders/customer-label'
 import { mapOrderToExportInput } from '@/lib/orders/map-export-input'
@@ -376,6 +377,96 @@ export const ordersStatusPatchEndpoint: Endpoint = {
   },
 }
 
+export const ordersStorefrontMineEndpoint: Endpoint = {
+  path: '/storefront-mine',
+  method: 'get',
+  handler: async (req) => {
+    if (!isStorefrontOrderApiKey(req)) {
+      throw new APIError('Unauthorized', 401)
+    }
+
+    const url = new URL(req.url ?? 'http://local', 'http://local')
+    const customerRef = url.searchParams.get('customerRef')?.trim()
+    if (!customerRef) throw new APIError('customerRef required', 400)
+
+    const limitRaw = url.searchParams.get('limit')
+    const limit = limitRaw ? Number.parseInt(limitRaw, 10) : 50
+    const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.min(limit, 200) : 50
+    const includeLineSnapshots = url.searchParams.get('includeLineSnapshots') === '1'
+
+    const found = await req.payload.find({
+      collection: 'orders',
+      where: { customerRef: { equals: customerRef } },
+      sort: '-createdAt',
+      limit: safeLimit,
+      depth: 0,
+      overrideAccess: true,
+    })
+
+    return Response.json({
+      docs: found.docs.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber ?? null,
+        createdAt: order.createdAt,
+        jeyjoStatus: order.jeyjoStatus ?? null,
+        origin: order.origin ?? null,
+        amount: order.amount ?? null,
+        deliveryMethod: order.deliveryMethod ?? null,
+        pickupStoreLabel: order.pickupStoreLabel ?? null,
+        ...(includeLineSnapshots ? { orderLineSnapshots: order.orderLineSnapshots ?? null } : {}),
+      })),
+    })
+  },
+}
+
+function mapStorefrontOrderDetail(order: Order) {
+  return {
+    id: order.id,
+    orderNumber: order.orderNumber ?? null,
+    createdAt: order.createdAt,
+    jeyjoStatus: order.jeyjoStatus ?? null,
+    origin: order.origin ?? null,
+    amount: order.amount ?? null,
+    shippingCost: order.shippingCost ?? null,
+    deliveryMethod: order.deliveryMethod ?? null,
+    pickupStoreLabel: order.pickupStoreLabel ?? null,
+    paymentMethodLabel: order.paymentMethodLabel ?? null,
+    couponCode: order.couponCode ?? null,
+    customerNotes: order.customerNotes ?? null,
+    orderLineSnapshots: order.orderLineSnapshots ?? null,
+  }
+}
+
+export const ordersStorefrontDetailEndpoint: Endpoint = {
+  path: '/storefront-detail',
+  method: 'get',
+  handler: async (req) => {
+    if (!isStorefrontOrderApiKey(req)) {
+      throw new APIError('Unauthorized', 401)
+    }
+
+    const url = new URL(req.url ?? 'http://local', 'http://local')
+    const customerRef = url.searchParams.get('customerRef')?.trim()
+    const orderId = Number(url.searchParams.get('orderId'))
+    if (!customerRef || !Number.isFinite(orderId)) {
+      throw new APIError('customerRef and orderId required', 400)
+    }
+
+    const order = await req.payload.findByID({
+      collection: 'orders',
+      id: orderId,
+      depth: 0,
+      overrideAccess: true,
+    })
+
+    if (order.customerRef?.trim() !== customerRef) {
+      throw new APIError('Order not found', 404)
+    }
+
+    return Response.json({ doc: mapStorefrontOrderDetail(order) })
+  },
+}
+
 export const ordersOmsEndpoints: Endpoint[] = [
   ordersInboxSummaryEndpoint,
   ordersExportAvansuiteEndpoint,
@@ -383,4 +474,6 @@ export const ordersOmsEndpoints: Endpoint[] = [
   ordersEvaRejectEndpoint,
   ordersRecheckStockEndpoint,
   ordersStatusPatchEndpoint,
+  ordersStorefrontMineEndpoint,
+  ordersStorefrontDetailEndpoint,
 ]

@@ -73,14 +73,48 @@ const serverURL =
 
 const corsOrigins = [serverURL, 'http://localhost:3000', 'http://localhost:3001'].filter(Boolean)
 
+function appendQueryParam(url: string, key: string, value: string): string {
+  if (new RegExp(`[?&]${key}=`).test(url)) return url
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}${key}=${value}`
+}
+
+/**
+ * Supabase session pooler (:5432) caps concurrent clients (~15). Payload admin
+ * (form-state + save + document locks) exhausts tiny pg pools in dev.
+ * Transaction pooler (:6543) tolerates more parallel queries from Next HMR.
+ */
+function resolveSupabaseConnectionString(raw: string): string {
+  let url = raw.trim()
+  if (!url) return url
+
+  const preferSession = process.env.PAYLOAD_USE_SESSION_POOLER === 'true'
+  const useTxPooler =
+    !preferSession &&
+    (process.env.PAYLOAD_USE_TX_POOLER === 'true' ||
+      (process.env.NODE_ENV === 'development' &&
+        /pooler\.supabase\.com:5432/i.test(url)))
+
+  if (useTxPooler) {
+    url = url.replace(/pooler\.supabase\.com:5432/i, 'pooler.supabase.com:6543')
+    url = appendQueryParam(url, 'pgbouncer', 'true')
+  }
+
+  if (!url.includes('sslmode=')) {
+    url = appendQueryParam(url, 'uselibpqcompat', 'true')
+    url = appendQueryParam(url, 'sslmode', 'require')
+  }
+
+  return url
+}
+
 const databaseUrl = process.env.DATABASE_URL || ''
 const isSupabase =
   databaseUrl.includes('supabase.com') || databaseUrl.includes('supabase.co')
-/** pg v8 trata sslmode=require como verify-full; uselibpqcompat evita fallos de certificado con Supabase. */
-const connectionString =
-  isSupabase && !databaseUrl.includes('sslmode=')
-    ? `${databaseUrl}${databaseUrl.includes('?') ? '&' : '?'}uselibpqcompat=true&sslmode=require`
-    : databaseUrl
+const connectionString = isSupabase
+  ? resolveSupabaseConnectionString(databaseUrl)
+  : databaseUrl
+const usesSupabaseTxPooler = /pooler\.supabase\.com:6543/i.test(connectionString)
 
 /**
  * Payload schema push deletes tables Drizzle does not own. Jeyjo core tables
@@ -187,13 +221,14 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString,
-      // Supabase session pooler (port 5432) caps concurrent clients (~15). Next.js dev
-      // HMR can spawn multiple pg pools; keep each small to avoid EMAXCONNSESSION.
+      // Session pooler: keep max low. Tx pooler (dev default): allow a few more clients.
       ...(isSupabase
         ? {
-            max: Number(process.env.PAYLOAD_DB_POOL_MAX ?? 2),
+            max: Number(
+              process.env.PAYLOAD_DB_POOL_MAX ?? (usesSupabaseTxPooler ? 5 : 2),
+            ),
             idleTimeoutMillis: 20_000,
-            connectionTimeoutMillis: 15_000,
+            connectionTimeoutMillis: 10_000,
             ssl: { rejectUnauthorized: false },
           }
         : {}),

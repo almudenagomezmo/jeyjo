@@ -180,6 +180,11 @@ export function CheckoutPage({
     return true;
   }, [lines, deliveryMethod]);
 
+  useEffect(() => {
+    if (!hydrated || lines.length === 0) return;
+    void runPrepare();
+  }, [hydrated, lines.length, deliveryMethod, runPrepare]);
+
   const goToReview = async () => {
     if (!isLoggedIn && !guestEmail.trim()) {
       setPrepareError("Indica un email de contacto");
@@ -194,10 +199,6 @@ export function CheckoutPage({
     setStep("review");
     persistDraft({ step: "review" });
   };
-
-  useEffect(() => {
-    if (step === "review") void runPrepare();
-  }, [step, runPrepare]);
 
   const billingSnapshot = () => {
     if (!billingLabel) return null;
@@ -529,9 +530,11 @@ export function CheckoutPage({
         <aside>
           <Card className="p-6">
             <h2 className="text-lg font-extrabold">Resumen</h2>
-            {loading || !totals ? (
+            {loading || (!totals && !prepareError) ? (
               <p className="mt-4 text-sm text-text-tertiary">Calculando…</p>
-            ) : (
+            ) : prepareError && !totals ? (
+              <p className="mt-4 text-sm text-danger-text">{prepareError}</p>
+            ) : totals ? (
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-text-secondary">Subtotal {vatNote}</span>
@@ -552,7 +555,7 @@ export function CheckoutPage({
                   <span className="text-xl font-extrabold tabular">{formatMoney(totals.total)}</span>
                 </div>
               </div>
-            )}
+            ) : null}
           </Card>
         </aside>
       </div>

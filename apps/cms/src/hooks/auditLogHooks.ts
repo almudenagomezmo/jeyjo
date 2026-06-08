@@ -33,6 +33,8 @@ type AuditHookOptions = {
   collection: AuditedCollection
   entityType?: string
   pickFields?: string[]
+  /** Release the request pool connection before writing audit_log (orders). */
+  deferWrites?: boolean
 }
 
 function pickSnapshot(doc: Record<string, unknown>, fields: string[]): Record<string, unknown> {
@@ -73,31 +75,41 @@ export function createAuditHooks(options: AuditHookOptions) {
       if (!doc?.id) return doc
       if (req.context?.seedCatalog === true) return doc
 
-      try {
-        const { actorId, actorName } = actorFromReq(req)
-        const current = pickSnapshot(doc as Record<string, unknown>, pickFields)
-        const previous =
-          operation === 'update'
-            ? (context.auditPrevious as Record<string, unknown> | undefined)
-            : undefined
+      const { actorId, actorName } = actorFromReq(req)
+      const current = pickSnapshot(doc as Record<string, unknown>, pickFields)
+      const previous =
+        operation === 'update'
+          ? (context.auditPrevious as Record<string, unknown> | undefined)
+          : undefined
 
-        await writeAuditLog({
-          actorId,
-          actorName,
-          entityType,
-          entityId: doc.id,
-          action: operation === 'create' ? 'create' : 'update',
-          metadata: current,
-          previousValue: previous ?? null,
-          sourceIp: extractSourceIp(req.headers),
-        })
-      } catch (error) {
-        req.payload.logger.error(
-          { err: error, collection: options.collection, id: doc.id },
-          'Failed to write audit log',
-        )
+      const write = async () => {
+        try {
+          await writeAuditLog({
+            actorId,
+            actorName,
+            entityType,
+            entityId: doc.id,
+            action: operation === 'create' ? 'create' : 'update',
+            metadata: current,
+            previousValue: previous ?? null,
+            sourceIp: extractSourceIp(req.headers),
+          })
+        } catch (error) {
+          req.payload.logger.error(
+            { err: error, collection: options.collection, id: doc.id },
+            'Failed to write audit log',
+          )
+        }
       }
 
+      if (options.deferWrites) {
+        queueMicrotask(() => {
+          void write()
+        })
+        return doc
+      }
+
+      await write()
       return doc
     },
   ]

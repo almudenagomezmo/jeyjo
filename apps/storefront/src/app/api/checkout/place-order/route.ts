@@ -175,7 +175,15 @@ export async function POST(request: Request) {
       nextStep,
     })
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Place order failed'
+    const message = formatPlaceOrderError(err)
     return NextResponse.json({ error: message }, { status: 503 })
   }
+}
+
+function formatPlaceOrderError(err: unknown): string {
+  if (!(err instanceof Error)) return 'No se pudo confirmar el pedido'
+  if (err.name === 'TimeoutError' || /timeout/i.test(err.message)) {
+    return 'El servicio de pedidos tardó demasiado. Inténtalo de nuevo.'
+  }
+  return err.message
 }

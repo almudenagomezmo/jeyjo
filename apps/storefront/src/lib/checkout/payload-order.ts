@@ -31,6 +31,13 @@ function payloadBaseUrl(): string | null {
   )
 }
 
+function payloadOrderTimeoutMs(): number {
+  const raw = process.env.CMS_ORDER_TIMEOUT_MS
+  if (!raw) return 15_000
+  const n = Number.parseInt(raw, 10)
+  return Number.isFinite(n) && n > 0 ? n : 15_000
+}
+
 export async function createPayloadCheckoutOrder(
   input: PlaceOrderInput,
 ): Promise<{ orderNumber: string; id: number } | null> {
@@ -74,7 +81,7 @@ export async function createPayloadCheckoutOrder(
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(5000),
+    signal: AbortSignal.timeout(payloadOrderTimeoutMs()),
   })
 
   if (!res.ok) {

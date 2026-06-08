@@ -59,28 +59,85 @@ function windowFromDate(): string {
   return d.toISOString().slice(0, 10)
 }
 
-export async function fetchWebPurchaseHistoryLines(
+export type CustomerWebOrder = {
+  id: number
+  orderNumber: string | null
+  createdAt: string
+  jeyjoStatus: string | null
+  origin: string | null
+  amount: number | null
+  deliveryMethod: string | null
+  pickupStoreLabel: string | null
+  orderLineSnapshots?: unknown
+}
+
+export type CustomerWebOrderDetail = CustomerWebOrder & {
+  shippingCost: number | null
+  paymentMethodLabel: string | null
+  couponCode: string | null
+  customerNotes: string | null
+  orderLineSnapshots: unknown
+}
+
+type FetchCustomerWebOrdersOptions = {
+  limit?: number
+  includeLineSnapshots?: boolean
+}
+
+export async function fetchCustomerWebOrders(
   customerId: string,
-): Promise<RawPurchaseHistoryLine[]> {
+  options?: FetchCustomerWebOrdersOptions,
+): Promise<CustomerWebOrder[]> {
   const base = payloadBaseUrl()
   const headers = payloadHeaders()
   if (!base || !headers) return []
 
-  const fromDate = windowFromDate()
-  const params = new URLSearchParams({
-    limit: '200',
-    depth: '0',
-    'where[customerRef][equals]': customerId,
-    'where[createdAt][greater_than_equal]': fromDate,
-  })
+  const params = new URLSearchParams({ customerRef: customerId })
+  if (options?.limit) params.set('limit', String(options.limit))
+  if (options?.includeLineSnapshots) params.set('includeLineSnapshots', '1')
 
-  const res = await fetch(`${base.replace(/\/$/, '')}/api/orders?${params}`, {
+  const res = await fetch(`${base.replace(/\/$/, '')}/api/orders/storefront-mine?${params}`, {
     headers,
     signal: AbortSignal.timeout(8000),
   })
   if (!res.ok) return []
 
-  const data = (await res.json()) as { docs?: PayloadOrderRow[] }
+  const data = (await res.json()) as { docs?: CustomerWebOrder[] }
+  return data.docs ?? []
+}
+
+export async function fetchCustomerWebOrderDetail(
+  customerId: string,
+  orderId: number,
+): Promise<CustomerWebOrderDetail | null> {
+  const base = payloadBaseUrl()
+  const headers = payloadHeaders()
+  if (!base || !headers || !Number.isFinite(orderId)) return null
+
+  const params = new URLSearchParams({
+    customerRef: customerId,
+    orderId: String(orderId),
+  })
+
+  const res = await fetch(`${base.replace(/\/$/, '')}/api/orders/storefront-detail?${params}`, {
+    headers,
+    signal: AbortSignal.timeout(8000),
+  })
+  if (!res.ok) return null
+
+  const data = (await res.json()) as { doc?: CustomerWebOrderDetail }
+  return data.doc ?? null
+}
+
+export async function fetchWebPurchaseHistoryLines(
+  customerId: string,
+): Promise<RawPurchaseHistoryLine[]> {
+  const fromDate = windowFromDate()
+  const orders = await fetchCustomerWebOrders(customerId, {
+    limit: 200,
+    includeLineSnapshots: true,
+  })
+  const data = { docs: orders as PayloadOrderRow[] }
   const out: RawPurchaseHistoryLine[] = []
 
   for (const order of data.docs ?? []) {
