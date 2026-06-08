@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useState } from "react";
+
 import { Button } from "@/components/ui/Button";
 import { FilterIcon } from "@/components/ui/icons";
 import {
@@ -119,20 +121,15 @@ export function FacetSidebar({
         )}
 
         <FacetGroup title="Precio sin IVA">
-          <p className="mb-2 text-xs text-text-secondary">Hasta {formatMoney(maxPrice)}</p>
-          <input
-            type="range"
-            min={0}
-            max={priceCeiling}
-            step={1}
+          <PriceRangeFilter
             value={maxPrice}
-            onChange={(e) =>
+            priceCeiling={priceCeiling}
+            onCommit={(priceMax) =>
               onFiltersChange({
                 ...filters,
-                priceMax: Number(e.target.value),
+                priceMax,
               })
             }
-            className="w-full accent-[var(--primary)]"
           />
         </FacetGroup>
 
@@ -168,6 +165,54 @@ export function FacetSidebar({
         </Button>
       </div>
     </aside>
+  );
+}
+
+function PriceRangeFilter({
+  value,
+  priceCeiling,
+  onCommit,
+}: {
+  value: number;
+  priceCeiling: number;
+  onCommit: (priceMax: number) => void;
+}) {
+  const [localValue, setLocalValue] = useState<number | null>(null);
+  const displayValue = localValue ?? value;
+
+  const commit = useCallback(
+    (next: number) => {
+      setLocalValue(null);
+      onCommit(next);
+    },
+    [onCommit],
+  );
+
+  return (
+    <>
+      <p className="mb-2 text-xs text-text-secondary">Hasta {formatMoney(displayValue)}</p>
+      <input
+        type="range"
+        min={0}
+        max={priceCeiling}
+        step={1}
+        value={displayValue}
+        onChange={(e) => setLocalValue(Number(e.target.value))}
+        onPointerUp={(e) => commit(Number(e.currentTarget.value))}
+        onPointerCancel={() => setLocalValue(null)}
+        onBlur={(e) => {
+          if (localValue != null) {
+            commit(Number(e.currentTarget.value));
+          }
+        }}
+        onKeyUp={(e) => {
+          if (localValue != null) {
+            commit(Number(e.currentTarget.value));
+          }
+        }}
+        className="w-full accent-[var(--primary)]"
+      />
+    </>
   );
 }
 
