@@ -4,7 +4,18 @@ import {
   type ErpDocumentsReader,
 } from '@jeyjo/erp-ports'
 
+import { isWebNativeModeEnabled } from '@/lib/system-config/fetch'
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
+
+import {
+  assertCmsDocumentOwned,
+  fetchCmsDocumentPdf,
+  getForm347WebNative,
+  listDeliveryNotesWebNative,
+  listDuePaymentsWebNative,
+  listErpQuotesWebNative,
+  listInvoicesWebNative,
+} from './documents-service-web-native'
 
 export type InvoiceListFilters = {
   year?: number
@@ -63,6 +74,10 @@ export async function listInvoicesForCustomer(
   filters: InvoiceListFilters = {},
 ) {
   const erpCode = await loadCustomerErpCode(customerId)
+  if (await isWebNativeModeEnabled()) {
+    const rows = await listInvoicesWebNative(customerId, erpCode)
+    return { erpCode, items: filterInvoicesForPortal(rows, filters) }
+  }
   if (!erpCode) {
     return { erpCode: null, items: [] as Awaited<ReturnType<ErpDocumentsReader['listInvoicesByCustomer']>> }
   }
@@ -73,6 +88,9 @@ export async function listInvoicesForCustomer(
 
 export async function listDeliveryNotesForCustomer(customerId: string) {
   const erpCode = await loadCustomerErpCode(customerId)
+  if (await isWebNativeModeEnabled()) {
+    return { erpCode, items: await listDeliveryNotesWebNative(customerId, erpCode) }
+  }
   if (!erpCode) return { erpCode: null, items: [] }
   const reader = getDocumentsReader()
   return { erpCode, items: await reader.listDeliveryNotesByCustomer(erpCode) }
@@ -80,6 +98,11 @@ export async function listDeliveryNotesForCustomer(customerId: string) {
 
 export async function listDuePaymentsForCustomer(customerId: string) {
   const erpCode = await loadCustomerErpCode(customerId)
+  if (await isWebNativeModeEnabled()) {
+    const items = await listDuePaymentsWebNative(customerId, erpCode)
+    const totalOutstandingAmount = items.reduce((sum, row) => sum + row.outstandingAmount, 0)
+    return { erpCode, items, totalOutstandingAmount }
+  }
   if (!erpCode) return { erpCode: null, items: [], totalOutstandingAmount: 0 }
   const reader = getDocumentsReader()
   const items = await reader.listDuePaymentsByCustomer(erpCode)
@@ -89,6 +112,10 @@ export async function listDuePaymentsForCustomer(customerId: string) {
 
 export async function getForm347ForCustomer(customerId: string, fiscalYear: number) {
   const erpCode = await loadCustomerErpCode(customerId)
+  if (await isWebNativeModeEnabled()) {
+    const summary = await getForm347WebNative(customerId, erpCode, fiscalYear)
+    return { erpCode, summary }
+  }
   if (!erpCode) return { erpCode: null, summary: null }
   const reader = getDocumentsReader()
   const summary = await reader.getForm347Summary(erpCode, fiscalYear)
@@ -97,6 +124,9 @@ export async function getForm347ForCustomer(customerId: string, fiscalYear: numb
 
 export async function listErpQuotesForCustomer(customerId: string) {
   const erpCode = await loadCustomerErpCode(customerId)
+  if (await isWebNativeModeEnabled()) {
+    return { erpCode, items: await listErpQuotesWebNative(customerId, erpCode) }
+  }
   if (!erpCode) return { erpCode: null, items: [] }
   const reader = getDocumentsReader()
   return { erpCode, items: await reader.listErpQuotesByCustomer(erpCode) }
@@ -107,6 +137,13 @@ export async function assertDocumentOwnedByCustomer(
   documentType: ErpDocumentType,
   documentId: string,
 ): Promise<{ erpCode: string } | null> {
+  if (await isWebNativeModeEnabled()) {
+    const owned = await assertCmsDocumentOwned(customerId, documentType, documentId)
+    if (!owned) return null
+    const erpCode = await loadCustomerErpCode(customerId)
+    return { erpCode: erpCode ?? customerId }
+  }
+
   const erpCode = await loadCustomerErpCode(customerId)
   if (!erpCode) return null
 
@@ -147,6 +184,10 @@ export async function fetchDocumentPdfForCustomer(
   documentType: ErpDocumentType,
   documentId: string,
 ) {
+  if (await isWebNativeModeEnabled()) {
+    return fetchCmsDocumentPdf(customerId, documentType, documentId)
+  }
+
   const owned = await assertDocumentOwnedByCustomer(customerId, documentType, documentId)
   if (!owned) return null
 

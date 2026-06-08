@@ -23,7 +23,6 @@ export const productTshirtData: (
   return {
     enableVariants: true,
     variantTypes: variantTypes,
-    inventory: 0,
     meta: {
       title: 'Tshirt | Payload Ecommerce Template',
       image: metaImage,
@@ -1178,7 +1177,6 @@ export const productTshirtData: (
 type ProductVariantArgs = {
   product: Product
   variantOptions: VariantOption[]
-  inventory?: number
   priceInUSD?: number
 }
 
@@ -1187,13 +1185,11 @@ export const productTshirtVariant: (
 ) => RequiredDataFromCollectionSlug<'variants'> = ({
   product,
   variantOptions,
-  inventory = 492,
   priceInUSD = 4999,
 }) => {
   return {
     product: product,
     options: variantOptions,
-    inventory,
     priceInUSDEnabled: true,
     priceInUSD,
     _status: 'published',

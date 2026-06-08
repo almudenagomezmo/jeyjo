@@ -8,27 +8,27 @@ Payload CMS collections for Jeyjo catalog domain: products, hierarchical categor
 
 ### Requirement: Products collection models Jeyjo catalog entity
 
-The CMS SHALL expose a Payload `products` collection aligned with architecture entity PRODUCTO, including ERP read-only fields and editable enrichment fields in separate admin tabs. ERP field values on disk SHALL only change through authorized ERP sync operations (via `ErpCatalogSyncService` with `erpSync` request context) or equivalent server-side integration entry points, not through staff admin edits or arbitrary API clients. When ERP sync applies a DTO for a SKU that does not yet exist, the service SHALL create a new product in draft status with ERP fields populated and a generated title/slug, leaving enrichment and publication to staff.
+The CMS SHALL expose a Payload `products` collection aligned with architecture entity PRODUCTO, including commercial fields and editable enrichment fields in separate admin tabs. When `systemSettings.webNativeMode` is true, commercial field values SHALL be editable by authorized staff and SHALL NOT require ERP sync context. When `webNativeMode` is false, ERP field values on disk SHALL only change through authorized ERP sync operations (via `ErpCatalogSyncService` with `erpSync` request context) or equivalent server-side integration entry points. When ERP sync applies a DTO for a SKU that does not yet exist, the service SHALL create a new product in draft status with commercial fields populated and a generated title/slug, leaving enrichment and publication to staff.
 
-#### Scenario: Admin views product with ERP tab
+#### Scenario: Admin views product with commercial tab
 
-- **WHEN** a staff user opens a product in the Payload admin
-- **THEN** fields `skuErp`, `mainWholesaleRef`, `oemRef`, `ean`, `shortDescription`, `p1Price`, `p2Price`, `vatRate`, `packUnit`, `isWildcard`, `allowOrderWithoutStock`, and `syncErpAt` appear grouped under a read-only ERP tab
+- **WHEN** a staff user opens a product in the Payload admin with `webNativeMode` true
+- **THEN** fields `skuErp`, `mainWholesaleRef`, `oemRef`, `ean`, `shortDescription`, `p1Price`, `p2Price`, `vatRate`, `packUnit`, `isWildcard`, `allowOrderWithoutStock`, and `syncErpAt` appear grouped under **Datos comerciales**
 
-#### Scenario: Staff cannot edit ERP fields manually
+#### Scenario: Staff edits commercial fields in web-native mode
 
-- **WHEN** a staff user attempts to save changes to ERP read-only fields via the admin UI
-- **THEN** the save is rejected or the fields remain unchanged until an ERP sync operation updates them
+- **WHEN** a staff user with products update access saves changes to `p1Price` and `skuErp` with `webNativeMode` true
+- **THEN** the saved values persist without ERP sync
 
-#### Scenario: ERP sync updates product and timestamp
+#### Scenario: ERP sync updates product and timestamp when ERP mode active
 
-- **WHEN** `ErpCatalogSyncService` applies an `ErpProductDto` for an existing product with `erpSync` context
-- **THEN** ERP fields update to match the DTO and `syncErpAt` is set to the sync timestamp
+- **WHEN** `webNativeMode` is false and `ErpCatalogSyncService` applies an `ErpProductDto` for an existing product with `erpSync` context
+- **THEN** commercial fields update to match the DTO and `syncErpAt` is set to the sync timestamp
 
-#### Scenario: ERP sync creates draft product for new SKU
+#### Scenario: ERP sync creates draft product for new SKU when ERP mode active
 
-- **WHEN** `ErpCatalogSyncService` applies an `ErpProductDto` for a SKU not present in Payload with `erpSync` context
-- **THEN** a new product is created with `_status` draft, ERP fields from the DTO, generated title/slug, and `syncErpAt` set
+- **WHEN** `webNativeMode` is false and `ErpCatalogSyncService` applies an `ErpProductDto` for a SKU not present in Payload with `erpSync` context
+- **THEN** a new product is created with `_status` draft, commercial fields from the DTO, generated title/slug, and `syncErpAt` set
 
 ### Requirement: Categories collection supports hierarchy
 
@@ -46,40 +46,41 @@ The CMS SHALL expose a `categories` collection with hierarchical parent relation
 
 ### Requirement: Suppliers collection links to products
 
-The CMS SHALL expose a `suppliers` collection with at minimum `name`, `erpCode`, `type`, and `baseImageUrl`, and products SHALL reference one optional supplier. Fields `erpCode`, `name`, `type`, and `baseImageUrl` on suppliers SHALL only be updated via ERP sync or authorized integration paths when sourced from ERP, not by manual overwrite of ERP-sourced values without sync context.
+The CMS SHALL expose a `suppliers` collection with at minimum `name`, `erpCode`, `type`, and `baseImageUrl`, and products SHALL reference one optional supplier. When `webNativeMode` is true, staff SHALL edit supplier fields directly. When `webNativeMode` is false, fields `erpCode`, `name`, `type`, and `baseImageUrl` on suppliers SHALL only be updated via ERP sync or authorized integration paths.
 
 #### Scenario: Product assigned to supplier
 
 - **WHEN** a staff user selects a supplier on a product
 - **THEN** the product stores the supplier relationship and the supplier appears in admin columns or sidebar
 
-#### Scenario: Supplier ERP fields updated via sync
+#### Scenario: Supplier fields updated via sync when ERP mode active
 
-- **WHEN** an ERP sync applies an `ErpSupplierDto` with a matching `erpCode`
+- **WHEN** `webNativeMode` is false and an ERP sync applies an `ErpSupplierDto` with a matching `erpCode`
 - **THEN** the supplier record reflects ERP-provided `name`, `type`, and `baseImageUrl` and remains linkable from products
 
 ### Requirement: Products store multisource wholesale stock fields
 
-The CMS `products` collection SHALL include read-only fields `distrisantiagoStock`, `arnoiaStock`, `stockIndicator` (enum: `available`, `low`, `limited`), `syncDistrisantiagoAt`, and `syncArnoiaAt`, grouped with ERP stock fields. Numeric wholesale stock fields SHALL only change via authorized stock sync operations (`stockSync` request context) or ERP catalog sync recalculation paths, not through staff manual edits.
+When `webNativeMode` is false, the CMS `products` collection SHALL include read-only fields `distrisantiagoStock`, `arnoiaStock`, `stockIndicator`, `syncDistrisantiagoAt`, and `syncArnoiaAt` updated only via authorized stock sync. When `webNativeMode` is true, staff SHALL edit `erpStock` as **Stock disponible** and `stockIndicator` SHALL be recalculated from manual stock; multisource wholesale fields SHALL not be updated by sync.
 
-#### Scenario: Admin views multisource stock fields
+#### Scenario: Admin views manual stock in web-native mode
 
-- **WHEN** a staff user opens a product ERP/stock tab
-- **THEN** fields `erpStock`, `distrisantiagoStock`, `arnoiaStock`, `stockIndicator`, and per-source sync timestamps are visible and read-only
+- **WHEN** a staff user opens a product with `webNativeMode` true
+- **THEN** **Stock disponible** (`erpStock`) is editable
+- **AND** multisource wholesale fields are hidden or read-only
 
-#### Scenario: Staff cannot edit stock sync fields manually
+#### Scenario: Staff cannot edit multisource fields in ERP mode
 
-- **WHEN** a staff user attempts to save changes to `distrisantiagoStock`, `arnoiaStock`, or `stockIndicator` via the admin UI
-- **THEN** the save is rejected or the fields remain unchanged until a stock sync or recalculation updates them
+- **WHEN** `webNativeMode` is false and staff attempts to save `distrisantiagoStock` manually
+- **THEN** the field remains unchanged until stock sync updates it
 
-#### Scenario: Stock sync updates wholesale fields and indicator
+#### Scenario: Manual save recalculates indicator in web-native mode
 
-- **WHEN** the stock sync orchestrator applies snapshots for a product with `stockSync` context
-- **THEN** matching wholesale stock fields and sync timestamps update and `stockIndicator` reflects the semaphore resolver output
+- **WHEN** `webNativeMode` is true and staff sets `erpStock` to 2 with threshold 5
+- **THEN** `stockIndicator` reflects low stock after save
 
-### Requirement: ERP stock field remains ERP-sourced
+### Requirement: ERP stock field sourcing depends on mode
 
-The existing `erpStock` field SHALL continue to update only via `ErpCatalogSyncService` with `erpSync` context; stock sync MUST NOT overwrite `erpStock`.
+When `webNativeMode` is false, the `erpStock` field SHALL update only via `ErpCatalogSyncService` with `erpSync` context; stock sync MUST NOT overwrite `erpStock`. When `webNativeMode` is true, `erpStock` is staff-editable manual stock and stock sync MUST NOT overwrite it.
 
 #### Scenario: Wholesale sync does not mutate erpStock
 

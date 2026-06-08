@@ -3,6 +3,7 @@ import { createLocalReq, type Payload, type PayloadRequest } from 'payload'
 
 import { mapErpProductDtoToPayload } from '@/erp/mappers/product'
 import { mapErpSupplierDtoToPayload } from '@/erp/mappers/supplier'
+import { isWebNativeModeFromReq } from '@/lib/web-native-mode'
 import type { Product } from '@/payload-types'
 
 export type ErpCatalogSyncResult = {
@@ -63,7 +64,10 @@ export class ErpCatalogSyncService {
   async applyProduct(dto: ErpProductDto, req?: PayloadRequest): Promise<boolean> {
     const syncReq = await this.erpSyncReq(req)
     const syncAt = new Date().toISOString()
-    const erpData = mapErpProductDtoToPayload(dto, syncAt)
+    const erpData = mapErpProductDtoToPayload(dto, syncAt) as Record<string, unknown>
+    if (isWebNativeModeFromReq(syncReq)) {
+      delete erpData.syncErpAt
+    }
 
     const existing = await this.payload.find({
       collection: 'products',
@@ -148,11 +152,14 @@ export class ErpCatalogSyncService {
   }
 
   private async erpSyncReq(req?: PayloadRequest): Promise<PayloadRequest> {
-    if (req) {
-      req.context = { ...req.context, erpSync: true }
-      return req
+    const localReq = req ?? (await createLocalReq({}, this.payload))
+    if (localReq.context?.erpSync === true) {
+      return localReq
     }
-    const localReq = await createLocalReq({}, this.payload)
+    if (isWebNativeModeFromReq(localReq) || localReq.context?.webNativeImport === true) {
+      localReq.context = { ...localReq.context, webNativeMode: true }
+      return localReq
+    }
     localReq.context = { ...localReq.context, erpSync: true }
     return localReq
   }

@@ -1,9 +1,18 @@
 import type { PayloadRequest } from 'payload'
 
+import { isWebNativeModeFromReq } from '@/lib/web-native-mode'
 import {
   STOCK_SYNC_FIELD_NAMES,
   type StockSyncFieldName,
 } from '@/stock/stockFieldNames'
+
+const WEB_NATIVE_STOCK_PROTECTED: StockSyncFieldName[] = [
+  'distrisantiagoStock',
+  'arnoiaStock',
+  'stockIndicator',
+  'syncDistrisantiagoAt',
+  'syncArnoiaAt',
+]
 
 function isStockSync(req: PayloadRequest): boolean {
   return req.context?.stockSync === true
@@ -22,8 +31,12 @@ export function guardStockProductFields({
     return data
   }
 
+  const protectedFields = isWebNativeModeFromReq(req)
+    ? WEB_NATIVE_STOCK_PROTECTED
+    : [...STOCK_SYNC_FIELD_NAMES]
+
   if (originalDoc) {
-    for (const field of STOCK_SYNC_FIELD_NAMES) {
+    for (const field of protectedFields) {
       if (field in data) {
         data[field] = originalDoc[field]
       }
@@ -31,7 +44,7 @@ export function guardStockProductFields({
     return data
   }
 
-  for (const field of STOCK_SYNC_FIELD_NAMES) {
+  for (const field of protectedFields) {
     delete data[field]
   }
   return data

@@ -24,5 +24,6 @@ export const DEFAULT_SYSTEM_CONFIG: SystemConfigDto = {
     },
   },
   search: { predictiveEnabled: true, suggestLimit: 8, minQueryLength: 2 },
+  webNativeMode: true,
   updatedAt: new Date(0).toISOString(),
 }

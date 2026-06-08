@@ -25,5 +25,6 @@ export type SystemConfigDto = {
     suggestLimit: number
     minQueryLength: number
   }
+  webNativeMode: boolean
   updatedAt: string
 }

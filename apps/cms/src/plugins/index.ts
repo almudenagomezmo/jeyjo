@@ -60,6 +60,8 @@ export const plugins: Plugin[] = [
       isAdmin,
       isDocumentOwner,
     },
+    /** Jeyjo uses erpStock + stockIndicator (RF-005), not Payload template inventory. */
+    inventory: false,
     customers: {
       slug: 'users',
     },

@@ -13,9 +13,17 @@ function envInt(name: string, fallback: number, min = 0): number {
   return Number.isFinite(raw) && raw >= min ? raw : fallback
 }
 
+function envWebNativeMode(fallback: boolean): boolean {
+  const raw = process.env.WEB_NATIVE_MODE?.trim().toLowerCase()
+  if (raw === 'false' || raw === '0' || raw === 'no') return false
+  if (raw === 'true' || raw === '1' || raw === 'yes') return true
+  return fallback
+}
+
 function applyEnvFallbacks(config: SystemConfigDto): SystemConfigDto {
   return {
     ...config,
+    webNativeMode: envWebNativeMode(config.webNativeMode),
     stock: {
       lowThreshold: envInt('STOCK_LOW_THRESHOLD', config.stock.lowThreshold),
     },

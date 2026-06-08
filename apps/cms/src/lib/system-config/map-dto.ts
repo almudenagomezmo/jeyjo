@@ -77,6 +77,7 @@ export function mapSystemSettingsToDto(
       suggestLimit: positiveInt(doc.suggestLimit, base.search.suggestLimit, 1),
       minQueryLength: positiveInt(doc.minQueryLength, base.search.minQueryLength, 1),
     },
+    webNativeMode: doc.webNativeMode !== false,
     updatedAt: updatedAt ?? doc.updatedAt ?? new Date().toISOString(),
   }
 }

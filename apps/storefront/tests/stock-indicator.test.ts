@@ -12,6 +12,12 @@ vi.mock('@/lib/catalog/fetch-product-by-sku', () => ({
 
 import { fetchProductBySkuFromCms } from '@/lib/catalog/fetch-product-by-sku'
 
+vi.mock('@/lib/system-config/fetch', () => ({
+  getStockLowThreshold: vi.fn().mockResolvedValue(5),
+  getCatalogStalenessMs: vi.fn().mockResolvedValue(86_400_000),
+  isWebNativeModeEnabled: vi.fn().mockResolvedValue(true),
+}))
+
 describe('getStockIndicator', () => {
   beforeEach(() => {
     vi.mocked(fetchProductBySkuFromCms).mockReset()

@@ -80,6 +80,9 @@ export interface Config {
     'rma-incidents': RmaIncident;
     coupons: Coupon;
     'b2b-catalog-downloads': B2BCatalogDownload;
+    'customer-documents': CustomerDocument;
+    'special-prices': SpecialPrice;
+    'group-offers': GroupOffer;
     addresses: Address;
     variants: Variant;
     variantTypes: VariantType;
@@ -115,6 +118,9 @@ export interface Config {
     'rma-incidents': RmaIncidentsSelect<false> | RmaIncidentsSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
     'b2b-catalog-downloads': B2BCatalogDownloadsSelect<false> | B2BCatalogDownloadsSelect<true>;
+    'customer-documents': CustomerDocumentsSelect<false> | CustomerDocumentsSelect<true>;
+    'special-prices': SpecialPricesSelect<false> | SpecialPricesSelect<true>;
+    'group-offers': GroupOffersSelect<false> | GroupOffersSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
     variants: VariantsSelect<false> | VariantsSelect<true>;
     variantTypes: VariantTypesSelect<false> | VariantTypesSelect<true>;
@@ -440,15 +446,17 @@ export interface Product {
   isWildcard?: boolean | null;
   allowOrderWithoutStock?: boolean | null;
   /**
-   * Stock multisource en cambio #8; valor ERP de referencia
+   * Unidades disponibles para venta (gestión manual en modo web-native).
    */
   erpStock?: number | null;
-  syncErpAt?: string | null;
-  distrisantiagoStock?: number | null;
-  arnoiaStock?: number | null;
+  /**
+   * Calculado automáticamente al guardar según stock disponible y umbral configurado.
+   */
   stockIndicator?: ('available' | 'low' | 'limited') | null;
-  syncDistrisantiagoAt?: string | null;
-  syncArnoiaAt?: string | null;
+  /**
+   * Solo actualizado por sync ERP cuando el modo web-native está desactivado.
+   */
+  syncErpAt?: string | null;
   description?: {
     root: {
       type: string;
@@ -472,7 +480,6 @@ export interface Product {
       }[]
     | null;
   layout?: (CallToActionBlock | ContentBlock | MediaBlock)[] | null;
-  inventory?: number | null;
   enableVariants?: boolean | null;
   variantTypes?: (number | VariantType)[] | null;
   variants?: {
@@ -685,7 +692,6 @@ export interface Variant {
   title?: string | null;
   product: number | Product;
   options: (number | VariantOption)[];
-  inventory?: number | null;
   priceInUSDEnabled?: boolean | null;
   priceInUSD?: number | null;
   updatedAt: string;
@@ -703,7 +709,7 @@ export interface Supplier {
   erpCode?: string | null;
   type?: ('wholesaler' | 'manufacturer' | 'distributor' | 'other') | null;
   /**
-   * Prefijo URL para imágenes del proveedor (ej. Distrisantiago, Arnoia)
+   * Prefijo URL para imágenes del proveedor
    */
   baseImageUrl?: string | null;
   updatedAt: string;
@@ -999,6 +1005,64 @@ export interface B2BCatalogDownload {
   createdAt: string;
 }
 /**
+ * Facturas, albaranes y documentos financieros B2B subidos por administración.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customer-documents".
+ */
+export interface CustomerDocument {
+  id: number;
+  customerId: string;
+  documentType: 'invoice' | 'delivery_note' | 'due_payment' | 'form_347' | 'erp_quote';
+  documentNumber: string;
+  issuedAt: string;
+  netAmount?: number | null;
+  grossAmount?: number | null;
+  dueDate?: string | null;
+  outstandingAmount?: number | null;
+  status?: string | null;
+  pdfFile: number | Media;
+  storagePath?: string | null;
+  fiscalYear?: number | null;
+  validUntil?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "special-prices".
+ */
+export interface SpecialPrice {
+  id: number;
+  customerId: string;
+  productSku: string;
+  netPrice: number;
+  discount1Pct?: number | null;
+  discount2Pct?: number | null;
+  minQty?: number | null;
+  validFrom: string;
+  validTo?: string | null;
+  supabaseId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "group-offers".
+ */
+export interface GroupOffer {
+  id: number;
+  productSku: string;
+  offerNetPrice: number;
+  customerGroup?: ('' | '1' | '2' | '3' | '4') | null;
+  validFrom: string;
+  validTo?: string | null;
+  active?: boolean | null;
+  supabaseId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -1053,6 +1117,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'b2b-catalog-downloads';
         value: number | B2BCatalogDownload;
+      } | null)
+    | ({
+        relationTo: 'customer-documents';
+        value: number | CustomerDocument;
+      } | null)
+    | ({
+        relationTo: 'special-prices';
+        value: number | SpecialPrice;
+      } | null)
+    | ({
+        relationTo: 'group-offers';
+        value: number | GroupOffer;
       } | null)
     | ({
         relationTo: 'addresses';
@@ -1284,6 +1360,59 @@ export interface B2BCatalogDownloadsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customer-documents_select".
+ */
+export interface CustomerDocumentsSelect<T extends boolean = true> {
+  customerId?: T;
+  documentType?: T;
+  documentNumber?: T;
+  issuedAt?: T;
+  netAmount?: T;
+  grossAmount?: T;
+  dueDate?: T;
+  outstandingAmount?: T;
+  status?: T;
+  pdfFile?: T;
+  storagePath?: T;
+  fiscalYear?: T;
+  validUntil?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "special-prices_select".
+ */
+export interface SpecialPricesSelect<T extends boolean = true> {
+  customerId?: T;
+  productSku?: T;
+  netPrice?: T;
+  discount1Pct?: T;
+  discount2Pct?: T;
+  minQty?: T;
+  validFrom?: T;
+  validTo?: T;
+  supabaseId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "group-offers_select".
+ */
+export interface GroupOffersSelect<T extends boolean = true> {
+  productSku?: T;
+  offerNetPrice?: T;
+  customerGroup?: T;
+  validFrom?: T;
+  validTo?: T;
+  active?: T;
+  supabaseId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "addresses_select".
  */
 export interface AddressesSelect<T extends boolean = true> {
@@ -1310,7 +1439,6 @@ export interface VariantsSelect<T extends boolean = true> {
   title?: T;
   product?: T;
   options?: T;
-  inventory?: T;
   priceInUSDEnabled?: T;
   priceInUSD?: T;
   updatedAt?: T;
@@ -1386,12 +1514,8 @@ export interface ProductsSelect<T extends boolean = true> {
   isWildcard?: T;
   allowOrderWithoutStock?: T;
   erpStock?: T;
-  syncErpAt?: T;
-  distrisantiagoStock?: T;
-  arnoiaStock?: T;
   stockIndicator?: T;
-  syncDistrisantiagoAt?: T;
-  syncArnoiaAt?: T;
+  syncErpAt?: T;
   description?: T;
   gallery?:
     | T
@@ -1407,7 +1531,6 @@ export interface ProductsSelect<T extends boolean = true> {
         content?: T | ContentBlockSelect<T>;
         mediaBlock?: T | MediaBlockSelect<T>;
       };
-  inventory?: T;
   enableVariants?: T;
   variantTypes?: T;
   variants?: T;
@@ -1701,6 +1824,10 @@ export interface SystemSetting {
   topSalesWindowDays?: number | null;
   dashboardLowStockThreshold?: number | null;
   /**
+   * Cuando está activo, catálogo, stock, documentos y tarifas se gestionan solo desde el CMS. Sync ERP y export Avansuite quedan deshabilitados.
+   */
+  webNativeMode?: boolean | null;
+  /**
    * Tras este tiempo sin sync exitoso, los datos se consideran obsoletos.
    */
   catalogStalenessHours?: number | null;
@@ -1878,6 +2005,7 @@ export interface SystemSettingsSelect<T extends boolean = true> {
   stockLowThreshold?: T;
   topSalesWindowDays?: T;
   dashboardLowStockThreshold?: T;
+  webNativeMode?: T;
   catalogStalenessHours?: T;
   predictiveSearchEnabled?: T;
   suggestLimit?: T;

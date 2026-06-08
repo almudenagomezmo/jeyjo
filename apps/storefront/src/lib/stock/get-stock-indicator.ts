@@ -10,7 +10,11 @@ import {
   isPublicCatalogProduct,
   type CmsProductSnapshot,
 } from '@/lib/catalog/public-product-filter'
-import { getCatalogStalenessMs, getStockLowThreshold } from '@/lib/system-config/fetch'
+import {
+  getCatalogStalenessMs,
+  getStockLowThreshold,
+  isWebNativeModeEnabled,
+} from '@/lib/system-config/fetch'
 
 import type { PublicStockIndicator } from '@/lib/stock/types'
 
@@ -62,12 +66,17 @@ function toPublicIndicator(
 }
 
 async function loadPublicStockIndicator(sku: string): Promise<PublicStockIndicator | null> {
-  const [doc, threshold, staleMs] = await Promise.all([
+  const [doc, threshold, staleMs, webNative] = await Promise.all([
     fetchProductBySkuFromCms(sku) as Promise<StockProductSnapshot | null>,
     getStockLowThreshold(),
     getCatalogStalenessMs(),
+    isWebNativeModeEnabled(),
   ])
   if (!doc || !isPublicCatalogProduct(doc)) return null
+  if (webNative) {
+    const indicator = toPublicIndicator(doc, threshold, Number.MAX_SAFE_INTEGER)
+    return { ...indicator, isStale: false }
+  }
   return toPublicIndicator(doc, threshold, staleMs)
 }
 

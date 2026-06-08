@@ -7,6 +7,7 @@ import { STUB_SAMPLE_PRODUCTS } from '@jeyjo/erp-ports'
 
 describe('ERP field guard (beforeChange)', () => {
   it('reverts p1Price when erpSync is not set', () => {
+    vi.stubEnv('WEB_NATIVE_MODE', 'false')
     const req = { context: {} } as PayloadRequest
     const data = guardErpProductFields({
       data: { p1Price: 9999.99, title: 'Test' },
@@ -29,6 +30,7 @@ describe('ERP field guard (beforeChange)', () => {
 
 describe('ErpCatalogSyncService', () => {
   it('updates product via Payload API with erpSync context on req', async () => {
+    vi.stubEnv('WEB_NATIVE_MODE', 'false')
     const dto = { ...STUB_SAMPLE_PRODUCTS[0]!, p1Price: 88.88, p2Price: 77.77 }
     const syncReq = { context: { erpSync: true } } as PayloadRequest
 

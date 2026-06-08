@@ -58,3 +58,8 @@ export async function getContactConfig() {
   const config = await fetchSystemConfig()
   return config.contact
 }
+
+export async function isWebNativeModeEnabled(): Promise<boolean> {
+  const config = await fetchSystemConfig()
+  return config.webNativeMode !== false
+}

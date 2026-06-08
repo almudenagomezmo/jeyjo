@@ -1,5 +1,7 @@
 import type { Payload, PayloadRequest } from 'payload'
 
+import { recalculateStockIndicatorsForAllProducts } from '@/stock/recalculateIndicators'
+
 import { seedHomeMerchandising } from './home-merchandising'
 import { seedJeyjoCatalog } from './jeyjo-catalog'
 
@@ -51,6 +53,11 @@ export async function seedCatalogDatabase({
   req.context = { ...req.context, erpSync: true }
 
   await seedJeyjoCatalog({ payload, req })
+
+  const indicatorResult = await recalculateStockIndicatorsForAllProducts({ payload, req })
+  payload.logger.info(
+    `— Stock indicators recalculated (${indicatorResult.productsUpdated} products updated)`,
+  )
 
   let bannerMediaId = heroMediaId
   if (bannerMediaId == null) {

@@ -6,6 +6,9 @@ import {
   type ErpProductFieldName,
   type ErpSupplierFieldName,
 } from '@/erp/erpFieldNames'
+import { isWebNativeModeFromReq } from '@/lib/web-native-mode'
+
+const WEB_NATIVE_PROTECTED_PRODUCT_FIELDS = ['syncErpAt'] as const
 
 function isErpSync(req: PayloadRequest): boolean {
   return req.context?.erpSync === true
@@ -21,6 +24,21 @@ export function guardErpProductFields({
   req: PayloadRequest
 }): Record<string, unknown> | undefined {
   if (!data || isErpSync(req)) {
+    return data
+  }
+
+  if (isWebNativeModeFromReq(req)) {
+    if (originalDoc) {
+      for (const field of WEB_NATIVE_PROTECTED_PRODUCT_FIELDS) {
+        if (field in data) {
+          data[field] = originalDoc[field]
+        }
+      }
+    } else {
+      for (const field of WEB_NATIVE_PROTECTED_PRODUCT_FIELDS) {
+        delete data[field]
+      }
+    }
     return data
   }
 
@@ -48,7 +66,7 @@ export function guardErpSupplierFields({
   originalDoc?: Record<string, unknown> | null
   req: PayloadRequest
 }): Record<string, unknown> | undefined {
-  if (!data || isErpSync(req)) {
+  if (!data || isErpSync(req) || isWebNativeModeFromReq(req)) {
     return data
   }
 

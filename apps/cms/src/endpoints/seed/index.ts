@@ -298,7 +298,6 @@ export const seed = async ({
         data: productTshirtVariant({
           product: productTshirt,
           variantOptions: [variantOption, black],
-          ...(variantOption.value === 'medium' ? { inventory: 0 } : {}),
         }),
       }),
     ),

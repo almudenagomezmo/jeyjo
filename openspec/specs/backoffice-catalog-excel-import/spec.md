@@ -36,15 +36,26 @@ Before apply, the system SHALL list row-level and workbook-level errors with hum
 - **WHEN** dry-run reports only non-blocking warnings (e.g. unknown category)
 - **THEN** staff can confirm apply after acknowledging the warning count
 
-### Requirement: Apply updates catalog ERP fields
+### Requirement: Apply updates catalog commercial fields
 
-Confirmed apply SHALL run `ErpCatalogSyncService` over parsed DTOs and update references, descriptions, P1/P2, VAT, pack units, EAN, and resolved categories (US-15 CA3).
+Confirmed apply SHALL update product commercial fields from parsed DTOs. When `webNativeMode` is true, apply SHALL write commercial product fields directly to Payload without requiring `ERP_ADAPTER=excel` preload or `ErpCatalogReader` as intermediary. When `webNativeMode` is false, confirmed apply SHALL run `ErpCatalogSyncService` over parsed DTOs and update references, descriptions, P1/P2, VAT, pack units, EAN, and resolved categories (US-15 CA3).
 
-#### Scenario: Successful apply updates prices
+#### Scenario: Apply updates commercial fields in web-native mode
 
-- **WHEN** staff applies an import where `REF-001` changes `PrecioP1` from 10.00 to 10.50
+- **WHEN** `webNativeMode` is true and staff applies a valid import with updated P2 prices
+- **THEN** matching products reflect new P2 values in Payload
+- **AND** no ERP catalog sync orchestrator runs
+
+#### Scenario: Successful apply updates prices in ERP mode
+
+- **WHEN** `webNativeMode` is false and staff applies an import where `REF-001` changes `PrecioP1` from 10.00 to 10.50
 - **THEN** the Payload product with `skuErp=REF-001` stores `p1Price=10.50` after apply
 - **AND** `syncErpAt` is refreshed
+
+#### Scenario: Apply requires staff authentication
+
+- **WHEN** an unauthenticated request posts to catalog import apply
+- **THEN** the response status is 401
 
 ### Requirement: Import run is audited
 

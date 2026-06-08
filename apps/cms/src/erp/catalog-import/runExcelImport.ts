@@ -5,6 +5,7 @@ import type { Payload, PayloadRequest } from 'payload'
 import { ErpCatalogSyncService } from '@/erp/ErpCatalogSyncService'
 import { enqueueSearchEventsForSkus } from '@/erp/catalog-import/search-events'
 import { loadImportFile } from '@/erp/catalog-import/storage'
+import { isWebNativeMode } from '@/lib/web-native-mode'
 import { recalculateStockIndicatorsForSkus } from '@/stock/recalculateIndicators'
 import { getSupabaseServerClient, writeAuditLog } from '@/lib/supabase-server'
 
@@ -63,7 +64,12 @@ export async function runExcelCatalogImportApply({
     suppliers: parsed.suppliers,
   })
   const service = new ErpCatalogSyncService(payload, reader)
-  const syncResult = await service.syncAllFromReader(req)
+  const importReq = req
+  importReq.context = { ...importReq.context, webNativeImport: true }
+  if (await isWebNativeMode(payload)) {
+    importReq.context = { ...importReq.context, webNativeMode: true }
+  }
+  const syncResult = await service.syncAllFromReader(importReq)
 
   if (syncResult.updatedSkus.length > 0) {
     const indicatorResult = await recalculateStockIndicatorsForSkus({

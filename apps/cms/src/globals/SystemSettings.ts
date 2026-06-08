@@ -156,6 +156,22 @@ export const SystemSettings: GlobalConfig = {
           ],
         },
         {
+          label: 'Modo operativo',
+          fields: [
+            {
+              name: 'webNativeMode',
+              type: 'checkbox',
+              label: 'Modo web-native (sin ERP)',
+              defaultValue: SYSTEM_SETTINGS_SEED.webNativeMode,
+              admin: {
+                description:
+                  'Cuando está activo, catálogo, stock, documentos y tarifas se gestionan solo desde el CMS. Sync ERP y export Avansuite quedan deshabilitados.',
+              },
+              access: { update: technicalUpdate },
+            },
+          ],
+        },
+        {
           label: 'ERP y búsqueda',
           fields: [
             {

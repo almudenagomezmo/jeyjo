@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 
 import { checkRole } from '@/access/utilities'
 import { syncCatalogFromStubAdapter } from '@/erp/syncFromStub'
+import { isWebNativeMode } from '@/lib/web-native-mode'
 
 export const maxDuration = 120
 
@@ -17,6 +18,14 @@ export async function POST(): Promise<Response> {
   }
 
   const payload = await getPayload({ config })
+
+  if (await isWebNativeMode(payload)) {
+    return Response.json(
+      { success: false, error: 'ERP catalog sync disabled in web-native mode' },
+      { status: 410 },
+    )
+  }
+
   const requestHeaders = await headers()
   const { user } = await payload.auth({ headers: requestHeaders })
 

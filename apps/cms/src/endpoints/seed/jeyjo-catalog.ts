@@ -1,3 +1,4 @@
+import { resolveStockIndicator } from '@jeyjo/stock-ports'
 import type { Payload, PayloadRequest } from 'payload'
 
 import {
@@ -42,6 +43,11 @@ function buildProductData(
   const vatRate = product.vatRate ?? 21
   const p1Price = priceWithoutVat(product.priceWithVat, vatRate)
   const p2Price = b2bPrice(p1Price)
+  const stockIndicator = resolveStockIndicator({
+    erpStock: product.erpStock,
+    distrisantiagoStock: null,
+    arnoiaStock: null,
+  }).level
 
   return {
     title: product.title,
@@ -59,6 +65,7 @@ function buildProductData(
     vatRate,
     packUnit: 1,
     erpStock: product.erpStock,
+    stockIndicator,
     syncErpAt: new Date().toISOString(),
     meta: {
       description: `${product.title} — compra online en Jeyjo al mejor precio.`.slice(0, 160),

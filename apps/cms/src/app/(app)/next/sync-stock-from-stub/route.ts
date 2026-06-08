@@ -3,6 +3,7 @@ import config from '@payload-config'
 import { headers } from 'next/headers'
 
 import { checkRole } from '@/access/utilities'
+import { isWebNativeMode } from '@/lib/web-native-mode'
 import { runStockSync } from '@/stock/StockSyncOrchestrator'
 
 export const maxDuration = 120
@@ -17,6 +18,14 @@ export async function POST(): Promise<Response> {
   }
 
   const payload = await getPayload({ config })
+
+  if (await isWebNativeMode(payload)) {
+    return Response.json(
+      { success: false, error: 'Stock sync disabled in web-native mode' },
+      { status: 410 },
+    )
+  }
+
   const requestHeaders = await headers()
   const { user } = await payload.auth({ headers: requestHeaders })
 

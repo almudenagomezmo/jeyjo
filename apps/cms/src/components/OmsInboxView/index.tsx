@@ -45,6 +45,7 @@ export const OmsInboxView: React.FC = () => {
   const [origin, setOrigin] = useState('')
   const [jeyjoStatus, setJeyjoStatus] = useState('')
   const [search, setSearch] = useState('')
+  const [webNativeMode, setWebNativeMode] = useState(true)
 
   const load = useCallback(async () => {
     setError(null)
@@ -66,6 +67,17 @@ export const OmsInboxView: React.FC = () => {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    void fetch('/api/system/config', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json && typeof json.webNativeMode === 'boolean') {
+          setWebNativeMode(json.webNativeMode)
+        }
+      })
+      .catch(() => undefined)
+  }, [])
 
   const patchStatus = async (id: number, status: string) => {
     setBusyId(id)
@@ -130,7 +142,10 @@ export const OmsInboxView: React.FC = () => {
         <a href="/admin/collections/orders">Colección Pedidos</a>
       </nav>
       <h1>Bandeja de pedidos web</h1>
-      <p className={`${baseClass}__hint`}>RF-025 / US-17 — filtros, estados y exportación Avansuite.</p>
+      <p className={`${baseClass}__hint`}>
+        RF-025 / US-17 — filtros y estados
+        {webNativeMode ? ' (modo web-native: export Avansuite deshabilitado).' : ' y exportación Avansuite.'}
+      </p>
       {error && <p className={`${baseClass}__error`}>{error}</p>}
 
       <div className={`${baseClass}__toolbar`}>
@@ -165,7 +180,7 @@ export const OmsInboxView: React.FC = () => {
         <button type="button" onClick={() => void load()}>
           Filtrar
         </button>
-        {selected.size > 0 && (
+        {!webNativeMode && selected.size > 0 && (
           <button type="button" onClick={() => void exportOrders([...selected])}>
             Exportar selección ({selected.size})
           </button>
@@ -219,13 +234,15 @@ export const OmsInboxView: React.FC = () => {
                         → {next}
                       </button>
                     )}
-                    <button
-                      type="button"
-                      disabled={busyId === row.id}
-                      onClick={() => void exportOrders([row.id])}
-                    >
-                      Exportar
-                    </button>
+                    {!webNativeMode && (
+                      <button
+                        type="button"
+                        disabled={busyId === row.id}
+                        onClick={() => void exportOrders([row.id])}
+                      >
+                        Exportar
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

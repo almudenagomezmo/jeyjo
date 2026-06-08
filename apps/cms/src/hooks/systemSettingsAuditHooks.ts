@@ -22,6 +22,7 @@ const AUDIT_FIELDS = [
   'predictiveSearchEnabled',
   'suggestLimit',
   'minQueryLength',
+  'webNativeMode',
 ] as const
 
 function pickSnapshot(doc: Record<string, unknown>): Record<string, unknown> {

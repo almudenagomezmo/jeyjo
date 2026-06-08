@@ -5,6 +5,7 @@ import { ErpCatalogSyncService, type ErpCatalogSyncResult } from '@/erp/ErpCatal
 import { ErpPricingSyncService } from '@/erp/ErpPricingSyncService'
 import { getErpAdapters } from '@/erp/registry'
 import { recalculateStockIndicatorsForSkus } from '@/stock/recalculateIndicators'
+import { isWebNativeMode } from '@/lib/web-native-mode'
 import { getSupabaseServerClient, writeAuditLog } from '@/lib/supabase-server'
 
 export type ErpSyncOrchestratorResult = ErpCatalogSyncResult & {
@@ -22,6 +23,13 @@ export async function runCatalogSyncRead({
   req?: PayloadRequest
   actorName?: string | null
 }): Promise<ErpSyncOrchestratorResult> {
+  if (await isWebNativeMode(payload)) {
+    throw new ErpIntegrationError(
+      'ERP_NOT_IMPLEMENTED',
+      'ERP catalog sync disabled in web-native mode',
+    )
+  }
+
   const adapter = process.env.ERP_ADAPTER ?? 'stub'
   const supabase = getSupabaseServerClient()
   const startedAt = new Date().toISOString()

@@ -6,8 +6,8 @@ import {
   isPublicCatalogProduct,
   type CmsProductSnapshot,
 } from '@/lib/catalog/public-product-filter'
+import { resolvePublicStockLevel } from '@/lib/catalog/resolve-stock-level'
 import { PLP_AGGREGATION_LIMIT, type PlpProductRow } from '@/lib/plp/types'
-import type { StockIndicatorLevel } from '@jeyjo/stock-ports'
 
 export type CmsProductListDoc = CmsProductSnapshot & {
   title?: string | null
@@ -55,7 +55,7 @@ export function mapDocToRow(doc: CmsProductListDoc): PlpProductRow | null {
   const sku = doc.skuErp?.trim()
   if (!sku) return null
 
-  const level = (doc.stockIndicator ?? 'limited') as StockIndicatorLevel
+  const level = resolvePublicStockLevel(doc)
   const catalogRaw = resolveCatalogImage({
     ownImage: doc.ownImage,
     providerImageUrl: doc.providerImageUrl,
@@ -93,7 +93,7 @@ async function fetchPublishedProductsRaw(): Promise<CmsProductListDoc[]> {
 
   const res = await fetch(`${base.replace(/\/$/, '')}/api/products?${params.toString()}`, {
     headers: { Accept: 'application/json' },
-    next: { revalidate: 120 },
+    cache: 'no-store',
   })
 
   if (!res.ok) return []
@@ -104,7 +104,7 @@ async function fetchPublishedProductsRaw(): Promise<CmsProductListDoc[]> {
 
 const cachedFetchAll = unstable_cache(
   async () => fetchPublishedProductsRaw(),
-  ['cms-products-plp-list'],
+  ['cms-products-plp-list', 'stock-level-v3'],
   { revalidate: 120 },
 )
 
@@ -147,7 +147,7 @@ async function fetchProductsByIdsRaw(ids: string[]): Promise<CmsProductListDoc[]
 
   const res = await fetch(`${base.replace(/\/$/, '')}/api/products?${params.toString()}`, {
     headers: { Accept: 'application/json' },
-    next: { revalidate: 120 },
+    cache: 'no-store',
   })
 
   if (!res.ok) return []

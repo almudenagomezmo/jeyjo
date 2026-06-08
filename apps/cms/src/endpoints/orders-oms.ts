@@ -182,6 +182,14 @@ export const ordersExportAvansuiteEndpoint: Endpoint = {
   handler: async (req) => {
     await requireOmsStaff(req)
 
+    const { isWebNativeMode } = await import('@/lib/web-native-mode')
+    if (await isWebNativeMode(req.payload)) {
+      return Response.json(
+        { error: 'Exportación Avansuite deshabilitada en modo web-native' },
+        { status: 410 },
+      )
+    }
+
     let body: { orderIds?: (number | string)[] }
     try {
       body = (await req.json?.()) as { orderIds?: (number | string)[] }

@@ -19,6 +19,9 @@ import { Coupons } from '@/collections/Coupons'
 import { Categories } from '@/collections/Categories'
 import { Quotes } from '@/collections/Quotes'
 import { B2bCatalogDownloads } from '@/collections/B2bCatalogDownloads'
+import { CustomerDocuments } from '@/collections/CustomerDocuments'
+import { GroupOffers } from '@/collections/GroupOffers'
+import { SpecialPrices } from '@/collections/SpecialPrices'
 import { RmaIncidents } from '@/collections/RmaIncidents'
 import { Media } from '@/collections/Media'
 import { Suppliers } from '@/collections/Suppliers'
@@ -37,6 +40,7 @@ import { customersAdminEndpoints } from '@/endpoints/customers-admin'
 import { dashboardSummaryEndpoint } from '@/endpoints/dashboard-summary'
 import { pimHealthEndpoint } from '@/endpoints/pim-health'
 import { catalogImportEndpoints } from '@/endpoints/catalog-import'
+import { customerDocumentsEndpoints } from '@/endpoints/customer-documents'
 import {
   evaContextEndpoint,
   evaOrdersWebhookEndpoint,
@@ -166,6 +170,9 @@ export default buildConfig({
     RmaIncidents,
     Coupons,
     B2bCatalogDownloads,
+    CustomerDocuments,
+    SpecialPrices,
+    GroupOffers,
   ],
   cors: corsOrigins,
   csrf: corsOrigins,
@@ -226,6 +233,7 @@ export default buildConfig({
     dashboardSummaryEndpoint,
     pimHealthEndpoint,
     ...catalogImportEndpoints,
+    ...customerDocumentsEndpoints,
     evaContextEndpoint,
     evaOrdersWebhookEndpoint,
     skaiStatusEndpoint,

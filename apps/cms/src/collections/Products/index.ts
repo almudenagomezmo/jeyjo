@@ -23,8 +23,8 @@ import { DefaultDocumentIDType, Where } from 'payload'
 import { enrichmentFields } from '@/collections/Products/enrichmentFields'
 import { erpFields } from '@/collections/Products/erpFields'
 import { erpProductBeforeChange } from '@/collections/Products/erpHooks'
-import { stockFields } from '@/collections/Products/stockFields'
 import { stockProductBeforeChange } from '@/collections/Products/stockHooks'
+import { manualStockAfterChange } from '@/collections/Products/manualStockHooks'
 import { productSlugHooks } from '@/collections/Products/hooks'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
 import {
@@ -105,6 +105,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     ],
     afterChange: [
       ...(defaultCollection?.hooks?.afterChange ?? []),
+      manualStockAfterChange,
       ...productSearchEventHooks.afterChange,
       ...productAuditHooks.afterChange,
     ],
@@ -129,12 +130,8 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
           fields: enrichmentFields,
         },
         {
-          label: 'Datos ERP',
+          label: 'Datos comerciales',
           fields: erpFields,
-        },
-        {
-          label: 'Stock multisource',
-          fields: stockFields,
         },
         {
           fields: [

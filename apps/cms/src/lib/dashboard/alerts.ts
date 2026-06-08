@@ -6,6 +6,7 @@ import type { Database } from '@jeyjo/database-types'
 
 import { getOperationalThresholds, aggregateTopSalesSkus } from '@/lib/dashboard/top-sales'
 import type { SystemAlert } from '@/lib/dashboard/types'
+import { isWebNativeMode } from '@/lib/web-native-mode'
 import { getSearchQueueStats } from '@/search-indexer/queueStats'
 
 const ERP_ALERT_HOURS = 24
@@ -56,7 +57,7 @@ export async function buildSystemAlerts(input: {
     }
   }
 
-  if (showErp && supabase) {
+  if (showErp && supabase && !(await isWebNativeMode(payload))) {
     const { data: syncRuns } = await supabase
       .from('erp_sync_runs')
       .select('id, status, error_summary, started_at')

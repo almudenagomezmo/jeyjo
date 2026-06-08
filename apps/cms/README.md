@@ -153,6 +153,14 @@ pnpm test:int   # erp-registry, catalog-excel-import
 # ERP_ADAPTER=excel + ERP_EXCEL_CATALOG_PATH para cron sync desde fichero
 ```
 
+## Modo web-native (`web-native-operations`, ROADMAP #51)
+
+- **Flag:** `systemSettings.webNativeMode` (default `true`) o env `WEB_NATIVE_MODE=true`.
+- **Operación:** catálogo comercial, stock, documentos B2B y tarifas gestionados desde Payload; sin sync ERP ni export Avansuite.
+- **Colecciones:** `customer-documents`, `special-prices`, `group-offers`.
+- **Sync deshabilitado:** crons `erp-catalog-sync` y `stock-sync` responden HTTP 410.
+- **Integración API Avansuite (#36):** congelada hasta activar `webNativeMode=false`.
+
 ## Sync lectura ERP (`catalog-sync-read-stub`, ROADMAP #7)
 
 - **Orquestador:** `src/erp/ErpCatalogSyncOrchestrator.ts` — pull stub → Payload + tablas `special_prices` / `group_offers`.

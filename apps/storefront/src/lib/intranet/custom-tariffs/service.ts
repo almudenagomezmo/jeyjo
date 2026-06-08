@@ -1,6 +1,7 @@
 import { createStubPricingReader, type ErpGroupOfferDto, type ErpSpecialPriceDto } from '@jeyjo/erp-ports'
 
 import { fetchPublicProductsBySkus } from '@/lib/catalog/fetch-public-products-by-skus'
+import { isWebNativeModeEnabled } from '@/lib/system-config/fetch'
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
 import { filterNonWildcardLines } from '@/lib/intranet/purchase-history/wildcard'
 
@@ -45,9 +46,61 @@ function isGroupOfferActive(offer: ErpGroupOfferDto, customerGroup: number): boo
   return offer.customerGroup === customerGroup
 }
 
+async function loadSpecialPricesFromSupabase(
+  customerId: string,
+  erpCode: string | null,
+): Promise<ErpSpecialPriceDto[]> {
+  const admin = getSupabaseAdminClient()
+  if (!admin) return []
+
+  const { data } = await admin
+    .from('special_prices')
+    .select('product_sku, net_price, valid_from, valid_to')
+    .eq('customer_id', customerId)
+
+  return (data ?? []).map((row) => ({
+    customerErpCode: erpCode ?? customerId,
+    skuErp: row.product_sku,
+    netPrice: Number(row.net_price),
+    validFrom: row.valid_from,
+    validTo: row.valid_to,
+  }))
+}
+
+async function loadGroupOffersFromSupabase(
+  customerGroup: number,
+): Promise<ErpGroupOfferDto[]> {
+  const admin = getSupabaseAdminClient()
+  if (!admin) return []
+
+  const { data } = await admin
+    .from('group_offers')
+    .select('sku_erp, offer_net_price, customer_group, valid_from, valid_to, active')
+    .eq('active', true)
+
+  return (data ?? [])
+    .filter((row) => {
+      if (row.customer_group == null) return true
+      return row.customer_group === customerGroup
+    })
+    .map((row) => ({
+      skuErp: row.sku_erp,
+      offerNetPrice: Number(row.offer_net_price),
+      customerGroup: row.customer_group ?? undefined,
+      validFrom: row.valid_from,
+      validTo: row.valid_to,
+      active: row.active,
+    }))
+}
+
 export async function loadSpecialPricesForCustomer(
   erpCode: string,
+  customerId?: string,
 ): Promise<ErpSpecialPriceDto[]> {
+  if (await isWebNativeModeEnabled()) {
+    if (!customerId) return []
+    return loadSpecialPricesFromSupabase(customerId, erpCode)
+  }
   const reader = createStubPricingReader()
   const page = await reader.listSpecialPrices(erpCode, { limit: 500 })
   return page.items
@@ -56,6 +109,10 @@ export async function loadSpecialPricesForCustomer(
 export async function loadGroupOffersForCustomer(
   customerGroup: number,
 ): Promise<ErpGroupOfferDto[]> {
+  if (await isWebNativeModeEnabled()) {
+    const offers = await loadGroupOffersFromSupabase(customerGroup)
+    return offers.filter((o) => isGroupOfferActive(o, customerGroup))
+  }
   const reader = createStubPricingReader()
   const page = await reader.listGroupOffers({ limit: 500 })
   return page.items.filter((o) => isGroupOfferActive(o, customerGroup))
@@ -66,7 +123,10 @@ export async function buildCustomTariffsPage(
   filters: CustomTariffsFilters,
 ): Promise<CustomTariffsPageResult> {
   const { erpCode, customerGroup } = await loadCustomerMeta(customerId)
-  const erpRows = erpCode ? await loadSpecialPricesForCustomer(erpCode) : []
+  const erpRows =
+    erpCode || (await isWebNativeModeEnabled())
+      ? await loadSpecialPricesForCustomer(erpCode ?? '', customerId)
+      : []
   const allowedSkus = new Set(
     filterNonWildcardLines(erpRows.map((r) => ({ sku: r.skuErp }))).map((x) => x.sku),
   )
@@ -123,7 +183,7 @@ export async function findExpiredSpecialPrice(
 ): Promise<ErpSpecialPriceDto | null> {
   const { erpCode } = await loadCustomerMeta(customerId)
   if (!erpCode) return null
-  const rows = await loadSpecialPricesForCustomer(erpCode)
+  const rows = await loadSpecialPricesForCustomer(erpCode, customerId)
   const row = rows.find((r) => r.skuErp === sku.trim())
   if (!row) return null
   const { status } = resolveTariffValidity(row.validTo)

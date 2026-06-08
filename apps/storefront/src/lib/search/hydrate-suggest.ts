@@ -1,17 +1,17 @@
 import type { PriceQuote } from '@jeyjo/pricing'
-import type { StockIndicatorLevel } from '@jeyjo/stock-ports'
 
 import {
   fetchPublicProductsBySkus,
   type PublicProductDoc,
 } from '@/lib/catalog/fetch-public-products-by-skus'
+import { resolvePublicStockLevel } from '@/lib/catalog/resolve-stock-level'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
 
 import type { QdrantProductPayload, SuggestCategory, SuggestProduct } from './types'
 import type { VectorSearchHit } from './vector-search'
 
 function canAddSuggestProduct(doc: PublicProductDoc): boolean {
-  const level = (doc.stockIndicator ?? 'limited') as StockIndicatorLevel
+  const level = resolvePublicStockLevel(doc)
   return (
     level === 'available' ||
     level === 'low' ||

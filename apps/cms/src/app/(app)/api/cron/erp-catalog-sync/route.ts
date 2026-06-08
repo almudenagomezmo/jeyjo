@@ -2,6 +2,7 @@ import { createLocalReq, getPayload } from 'payload'
 import config from '@payload-config'
 
 import { runCatalogSyncRead } from '@/erp/ErpCatalogSyncOrchestrator'
+import { isWebNativeMode } from '@/lib/web-native-mode'
 
 export const maxDuration = 120
 
@@ -22,6 +23,13 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const payload = await getPayload({ config })
+
+  if (await isWebNativeMode(payload)) {
+    return Response.json(
+      { success: false, error: 'ERP catalog sync disabled in web-native mode' },
+      { status: 410 },
+    )
+  }
 
   try {
     const payloadReq = await createLocalReq({}, payload)

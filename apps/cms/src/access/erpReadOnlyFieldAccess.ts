@@ -1,7 +1,11 @@
+import type { FieldAccess } from 'payload'
+
+import { isWebNativeModeFromReq } from '@/lib/web-native-mode'
+
 /**
- * Admin UI layer: staff cannot update ERP-sourced fields.
- * Server layer: `beforeChange` hooks revert ERP fields unless `req.context.erpSync === true`.
+ * Admin UI layer: commercial fields editable in web-native mode.
+ * Server layer: `beforeChange` hooks revert ERP fields unless `erpSync` or web-native.
  */
-export const erpReadOnlyFieldAccess = {
-  update: () => false,
+export const erpReadOnlyFieldAccess: { update: FieldAccess } = {
+  update: ({ req }) => isWebNativeModeFromReq(req),
 }

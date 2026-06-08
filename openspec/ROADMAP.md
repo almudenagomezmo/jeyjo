@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **45 / 50** cambios completados (~90 %). Hito reciente: reclasificación post-validación de clientes en CMS — grupo y rol editables por administración (#50 `cms-customer-role-group-reassignment`).
+**Progreso:** **45 / 51** cambios completados (~88 %). Hito reciente: operación 100 % web sin ERP (`web-native-operations`); cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
 
 
 | #   | Cambio                              | Depende de | US / RF principales          | Estado     | Fecha      |
@@ -46,7 +46,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 33  | `blog-payload-frontend`             | 3, 9       | US-24                        | Pendiente  | —          |
 | 34  | `analytics-ga4-merchant-feed`       | 10, 11, 20 | RF-028                       | Completado | 2026-06-05 |
 | 35  | `wishlist-stock-alerts`             | 8, 16, 28  | Alcance wishlist             | Completado | 2026-06-05 |
-| 36  | `erp-api-write-implementation`      | 4, 29      | RF-023, RI-001               | Pendiente  | —          |
+| 36  | `erp-api-write-implementation`      | 4, 29      | RF-023, RI-001               | Congelado  | —          |
 | 37  | `area-documental-financiera`        | 4, 22, 28  | RF-016, RF-017, US-08, US-09 | Completado | 2026-06-05 |
 | 38  | `product-comparison-plp`            | 10         | US-06                        | Pendiente  | —          |
 | 39  | `newsletter-subscription`           | 9, 16, 28  | Alcance §1.14                | Completado | 2026-06-05 |
@@ -61,6 +61,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 48  | `cms-customer-accounts-admin`     | 16, 5, 28      | RF-004, RF-001              | Completado | 2026-06-05 |
 | 49  | `cuenta-b2b-stock-watches-link`   | 16, 35, 22     | Alcance §1.21, US-07        | Completado | 2026-06-05 |
 | 50  | `cms-customer-role-group-reassignment` | 48      | RF-004                       | Completado | 2026-06-05 |
+| 51  | `web-native-operations`                | 42, 29, 37, 25 | RF-005–007, RF-016–017, RF-020, US-15 | En curso | —          |
 
 
 **Siguiente cambio recomendado:** #40 `footer-eva-omnichannel-complete` (depende de #9, #32) o #33 `blog-payload-frontend` (depende de #3, #9).

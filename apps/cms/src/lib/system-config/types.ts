@@ -25,6 +25,7 @@ export type SystemConfigDto = {
     suggestLimit: number
     minQueryLength: number
   }
+  webNativeMode: boolean
   updatedAt: string
 }
 
@@ -47,6 +48,7 @@ export type SystemSettingsDoc = {
   predictiveSearchEnabled?: boolean | null
   suggestLimit?: number | null
   minQueryLength?: number | null
+  webNativeMode?: boolean | null
   updatedAt?: string | null
 }
 

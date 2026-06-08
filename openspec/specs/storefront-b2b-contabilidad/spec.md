@@ -38,7 +38,7 @@ The facturas view SHALL support filtering by year, month, invoice number substri
 
 ### Requirement: Intranet document list APIs
 
-The storefront SHALL expose authenticated B2B APIs:
+When `webNativeMode` is true, the storefront SHALL serve document list and PDF download APIs from Payload `customerDocuments` and Supabase Storage `private-documents`, not from `ErpDocumentsReader`. When `webNativeMode` is false, existing ERP reader behavior MAY remain. Routes remain:
 
 | Route | Purpose |
 |-------|---------|
@@ -54,24 +54,28 @@ The storefront SHALL expose authenticated B2B APIs:
 
 All routes SHALL require B2B validated session and `finance` permission.
 
-#### Scenario: Due payments API returns total
+#### Scenario: Invoice list from CMS documents
 
-- **WHEN** `GET /api/intranet/documents/due-payments` succeeds for empresa@test.com
-- **THEN** the JSON includes `items` and `totalOutstandingAmount`
-- **AND** `totalOutstandingAmount` equals the sum of item outstanding amounts
+- **WHEN** `webNativeMode` is true and staff uploaded invoice F-2026-0001 for customer C1
+- **THEN** `GET /api/intranet/documents/invoices` for C1 includes F-2026-0001 with correct amounts
+
+#### Scenario: Due payments API returns total from CMS data
+
+- **WHEN** `GET /api/intranet/documents/due-payments` succeeds for a customer with two due_payment documents
+- **THEN** the JSON includes `items` and `totalOutstandingAmount` equal to the sum of `outstandingAmount`
 
 #### Scenario: PDF download under five seconds CA-B2B-001
 
-- **WHEN** an authorized user downloads a stub invoice PDF in staging
+- **WHEN** an authorized user downloads an uploaded invoice PDF in staging
 - **THEN** the first byte arrives within five seconds under normal load
 
 ### Requirement: Cross-customer access blocked on APIs
 
-Document APIs SHALL bind list and download operations to the authenticated customer's `erp_customer_code` and Supabase `customer_id`. Path or query manipulation SHALL NOT access another tenant's documents (**CA-B2B-002**).
+Document APIs SHALL bind list and download operations to the authenticated customer's Supabase `customer_id`. Path or query manipulation SHALL NOT access another tenant's documents (**CA-B2B-002**). Binding SHALL NOT rely solely on `erp_customer_code` when `webNativeMode` is true.
 
 #### Scenario: Invoice id from another company returns 404 or 403
 
-- **WHEN** `empresa-a@test.com` requests PDF for an invoice id belonging to `B2B-EMPRESA2`
+- **WHEN** customer C1 requests PDF for a document id belonging to customer C2
 - **THEN** the response status is 404 or 403
 - **AND** no PDF bytes are returned
 
