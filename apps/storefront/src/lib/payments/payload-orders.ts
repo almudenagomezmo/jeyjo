@@ -4,12 +4,18 @@ export type PayloadOrderDoc = {
   jeyjoStatus?: string
   paymentStatus?: string
   paymentMethodCode?: string
+  paymentMethodLabel?: string | null
+  deliveryMethod?: string | null
+  pickupStoreLabel?: string | null
+  couponCode?: string | null
+  customerNotes?: string | null
   amount?: number
   total?: number
   shippingCost?: number
   gateway?: string
   orderLineSnapshots?: unknown
   paidAmount?: number | null
+  createdAt?: string
 }
 
 function payloadBaseUrl(): string | null {
@@ -37,20 +43,15 @@ export async function findPayloadOrderByNumber(
   const headers = payloadHeaders()
   if (!base || !headers) return null
 
-  const params = new URLSearchParams({
-    'where[orderNumber][equals]': orderNumber,
-    limit: '1',
-    depth: '0',
-  })
-
-  const res = await fetch(`${base.replace(/\/$/, '')}/api/orders?${params}`, {
-    headers,
-    signal: AbortSignal.timeout(5000),
-  })
+  const params = new URLSearchParams({ orderNumber })
+  const res = await fetch(
+    `${base.replace(/\/$/, '')}/api/orders/storefront-confirmation?${params}`,
+    { headers, signal: AbortSignal.timeout(5000) },
+  )
   if (!res.ok) return null
 
-  const data = (await res.json()) as { docs?: PayloadOrderDoc[] }
-  return data.docs?.[0] ?? null
+  const data = (await res.json()) as { doc?: PayloadOrderDoc }
+  return data.doc ?? null
 }
 
 export async function findPayloadOrderById(id: number): Promise<PayloadOrderDoc | null> {

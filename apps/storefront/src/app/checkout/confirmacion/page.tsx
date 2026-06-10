@@ -3,6 +3,12 @@ import { Suspense } from "react";
 
 import { PurchaseTracker } from "@/components/analytics/PurchaseTracker";
 import { mapOrderLineSnapshots } from "@/lib/analytics/ga4-purchase";
+import {
+  orderDeliveryLabel,
+  orderStatusLabel,
+} from "@/lib/orders/customer-order-labels";
+import { parseCustomerOrderLines } from "@/lib/orders/parse-order-line-snapshots";
+import { fetchCouponByCode } from "@/lib/coupon/fetch";
 import { findPayloadOrderByNumber } from "@/lib/payments/payload-orders";
 
 import { ConfirmacionClient } from "./ConfirmacionClient";
@@ -16,18 +22,36 @@ export default async function CheckoutConfirmacionPage({ searchParams }: PagePro
   const orderNumber = params.order?.trim();
   const paid = params.paid === "1";
 
-  let snapshot = null;
-  if (orderNumber) {
-    const order = await findPayloadOrderByNumber(orderNumber);
-    if (!order) notFound();
-    snapshot = mapOrderLineSnapshots(
-      order.orderNumber ?? orderNumber,
-      order.amount ?? order.total,
-      order.shippingCost,
-      order.orderLineSnapshots,
-      paid,
-    );
+  if (!orderNumber) notFound();
+
+  const order = await findPayloadOrderByNumber(orderNumber);
+  if (!order) notFound();
+
+  const lines = parseCustomerOrderLines(order.orderLineSnapshots);
+  const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+  const shippingCost = order.shippingCost ?? 0;
+  const total = order.amount ?? order.total ?? subtotal + shippingCost;
+
+  let couponLabel: string | null = null;
+  let couponDiscount = 0;
+  if (order.couponCode) {
+    const coupon = await fetchCouponByCode(order.couponCode);
+    if (coupon) {
+      couponLabel =
+        coupon.discountType === "percent"
+          ? `${coupon.discountValue}% de descuento`
+          : `${coupon.discountValue.toFixed(2)} € de descuento`;
+    }
+    couponDiscount = Math.max(0, Math.round((subtotal + shippingCost - total) * 100) / 100);
   }
+
+  const snapshot = mapOrderLineSnapshots(
+    order.orderNumber ?? orderNumber,
+    order.amount ?? order.total,
+    order.shippingCost,
+    order.orderLineSnapshots,
+    paid,
+  );
 
   return (
     <>
@@ -35,10 +59,19 @@ export default async function CheckoutConfirmacionPage({ searchParams }: PagePro
         <PurchaseTracker snapshot={snapshot} paid={paid} />
       </Suspense>
       <ConfirmacionClient
-        orderNumber={orderNumber ?? null}
+        orderNumber={order.orderNumber ?? orderNumber}
         paid={paid}
-        lineItems={snapshot?.items ?? []}
-        total={snapshot?.total}
+        statusLabel={orderStatusLabel(order.jeyjoStatus)}
+        deliveryLabel={orderDeliveryLabel(order)}
+        paymentMethodLabel={order.paymentMethodLabel ?? null}
+        couponCode={order.couponCode ?? null}
+        couponLabel={couponLabel}
+        couponDiscount={couponDiscount}
+        lines={lines}
+        subtotal={subtotal}
+        shippingCost={shippingCost}
+        total={total}
+        customerNotes={order.customerNotes ?? null}
       />
     </>
   );

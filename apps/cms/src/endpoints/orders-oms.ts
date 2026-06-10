@@ -467,6 +467,33 @@ export const ordersStorefrontDetailEndpoint: Endpoint = {
   },
 }
 
+export const ordersStorefrontConfirmationEndpoint: Endpoint = {
+  path: '/storefront-confirmation',
+  method: 'get',
+  handler: async (req) => {
+    if (!isStorefrontOrderApiKey(req)) {
+      throw new APIError('Unauthorized', 401)
+    }
+
+    const url = new URL(req.url ?? 'http://local', 'http://local')
+    const orderNumber = url.searchParams.get('orderNumber')?.trim()
+    if (!orderNumber) throw new APIError('orderNumber required', 400)
+
+    const found = await req.payload.find({
+      collection: 'orders',
+      where: { orderNumber: { equals: orderNumber } },
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    })
+
+    const order = found.docs[0]
+    if (!order) throw new APIError('Order not found', 404)
+
+    return Response.json({ doc: mapStorefrontOrderDetail(order) })
+  },
+}
+
 export const ordersOmsEndpoints: Endpoint[] = [
   ordersInboxSummaryEndpoint,
   ordersExportAvansuiteEndpoint,
@@ -476,4 +503,5 @@ export const ordersOmsEndpoints: Endpoint[] = [
   ordersStatusPatchEndpoint,
   ordersStorefrontMineEndpoint,
   ordersStorefrontDetailEndpoint,
+  ordersStorefrontConfirmationEndpoint,
 ]

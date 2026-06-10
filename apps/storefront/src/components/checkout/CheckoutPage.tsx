@@ -89,6 +89,7 @@ export function CheckoutPage({
   const [placeError, setPlaceError] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<{ code: string; label: string }[]>([]);
   const beginCheckoutTracked = useRef(false);
+  const orderPlacedRef = useRef(false);
 
   useEffect(() => {
     if (segment !== "b2c") return;
@@ -109,7 +110,7 @@ export function CheckoutPage({
 
   useEffect(() => {
     if (!hydrated) return;
-    if (lines.length === 0) {
+    if (lines.length === 0 && !orderPlacedRef.current) {
       router.replace("/cart");
     }
   }, [hydrated, lines.length, router]);
@@ -268,27 +269,38 @@ export function CheckoutPage({
         };
       };
       if (!res.ok) throw new Error(body.error ?? "Error al confirmar");
-      clearCart();
-      clearUncataloguedRequests();
-      sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
-      sessionStorage.removeItem("jeyjo-checkout-draft");
+
+      orderPlacedRef.current = true;
 
       const orderNumber = body.orderNumber ?? "";
       const next = body.nextStep;
 
       if (next?.type === "redirect" && next.form) {
+        clearCart();
+        clearUncataloguedRequests();
+        sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
+        sessionStorage.removeItem("jeyjo-checkout-draft");
         submitRedirectForm(next.form.action, next.form.fields);
         return;
       }
       if (next?.type === "redirect" && next.url) {
+        clearCart();
+        clearUncataloguedRequests();
+        sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
+        sessionStorage.removeItem("jeyjo-checkout-draft");
         window.location.href = next.url;
         return;
       }
       if (next?.type === "instructions" && next.path) {
+        clearCart();
+        clearUncataloguedRequests();
+        sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
+        sessionStorage.removeItem("jeyjo-checkout-draft");
         router.push(next.path);
         return;
       }
       if (next?.type === "wallet") {
+        orderPlacedRef.current = false;
         setPlaceError(
           "Apple Pay y Google Pay requieren configuración InSite en Redsys. Usa tarjeta o Bizum.",
         );
@@ -296,6 +308,10 @@ export function CheckoutPage({
       }
 
       router.push(`/checkout/confirmacion?order=${encodeURIComponent(orderNumber)}`);
+      clearCart();
+      clearUncataloguedRequests();
+      sessionStorage.removeItem(CHECKOUT_COUPON_STORAGE_KEY);
+      sessionStorage.removeItem("jeyjo-checkout-draft");
     } catch (err) {
       setPlaceError(err instanceof Error ? err.message : "Error al confirmar");
     } finally {
@@ -303,10 +319,18 @@ export function CheckoutPage({
     }
   };
 
-  if (!hydrated || lines.length === 0) {
+  if (!hydrated || (lines.length === 0 && !orderPlacedRef.current)) {
     return (
       <Container className="py-16">
         <div className="h-32 animate-pulse rounded-lg bg-surface-muted" aria-hidden />
+      </Container>
+    );
+  }
+
+  if (orderPlacedRef.current) {
+    return (
+      <Container className="py-16">
+        <p className="text-center text-text-secondary">Redirigiendo al resumen del pedido…</p>
       </Container>
     );
   }
