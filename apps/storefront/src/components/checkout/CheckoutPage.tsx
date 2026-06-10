@@ -337,103 +337,147 @@ export function CheckoutPage({
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
           {step === "delivery" && (
-            <Card className="space-y-4 p-6">
-              <h2 className="text-lg font-extrabold">Entrega</h2>
-              {!isLoggedIn && (
-                <div>
-                  <label className="text-sm font-medium text-text-secondary">Email *</label>
-                  <Input
-                    type="email"
-                    className="mt-1"
-                    value={guestEmail}
-                    onChange={(e) => {
-                      setGuestEmail(e.target.value);
-                      persistDraft({ guestEmail: e.target.value });
-                    }}
-                    required
-                  />
-                </div>
-              )}
-              <fieldset className="space-y-2">
-                <legend className="text-sm font-medium text-text-secondary">Método de entrega</legend>
-                {DELIVERY_OPTIONS.filter(
-                  (opt) => isLoggedIn || opt.value !== "alternate_address",
-                ).map((opt) => (
-                  <label
-                    key={opt.value}
-                    className="flex cursor-pointer items-center gap-2 rounded-md border border-border-subtle p-3 text-sm has-[:checked]:border-text-brand has-[:checked]:bg-primary-soft"
-                  >
-                    <input
-                      type="radio"
-                      name="delivery"
-                      checked={deliveryMethod === opt.value}
-                      onChange={() => {
-                        setDeliveryMethod(opt.value);
-                        persistDraft({ deliveryMethod: opt.value });
+            <div className="space-y-6">
+              <Card className="space-y-4 p-6">
+                <h2 className="text-lg font-extrabold">Entrega</h2>
+                {!isLoggedIn && (
+                  <div>
+                    <label className="text-sm font-medium text-text-secondary">Email *</label>
+                    <Input
+                      type="email"
+                      className="mt-1"
+                      value={guestEmail}
+                      onChange={(e) => {
+                        setGuestEmail(e.target.value);
+                        persistDraft({ guestEmail: e.target.value });
+                      }}
+                      required
+                    />
+                  </div>
+                )}
+                <fieldset className="space-y-2">
+                  <legend className="text-sm font-medium text-text-secondary">
+                    Método de entrega
+                  </legend>
+                  {DELIVERY_OPTIONS.filter(
+                    (opt) => isLoggedIn || opt.value !== "alternate_address",
+                  ).map((opt) => (
+                    <label
+                      key={opt.value}
+                      className="flex cursor-pointer items-center gap-2 rounded-md border border-border-subtle p-3 text-sm has-[:checked]:border-text-brand has-[:checked]:bg-primary-soft"
+                    >
+                      <input
+                        type="radio"
+                        name="delivery"
+                        checked={deliveryMethod === opt.value}
+                        onChange={() => {
+                          setDeliveryMethod(opt.value);
+                          persistDraft({ deliveryMethod: opt.value });
+                        }}
+                      />
+                      {opt.label}
+                    </label>
+                  ))}
+                </fieldset>
+                {deliveryMethod !== "home" && deliveryMethod !== "alternate_address" && (
+                  <>
+                    <div>
+                      <label className="text-sm font-medium text-text-secondary">
+                        Observaciones (opcional)
+                      </label>
+                      <textarea
+                        className="mt-1 w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-sm"
+                        maxLength={500}
+                        rows={3}
+                        value={customerNotes}
+                        onChange={(e) => {
+                          setCustomerNotes(e.target.value);
+                          persistDraft({ customerNotes: e.target.value });
+                        }}
+                      />
+                    </div>
+                    {prepareError && <p className="text-sm text-danger-text">{prepareError}</p>}
+                    <Button size="lg" onClick={() => void goToReview()}>
+                      Continuar a revisión
+                    </Button>
+                  </>
+                )}
+              </Card>
+
+              {(deliveryMethod === "home" || deliveryMethod === "alternate_address") && (
+                <Card className="space-y-4 p-6">
+                  <h2 className="text-lg font-extrabold">Dirección de envío</h2>
+                  {deliveryMethod === "home" && (
+                    <>
+                      {billingLabel ? (
+                        <div className="rounded-md border border-border-subtle p-3 text-sm">
+                          <p className="font-medium">{billingLabel}</p>
+                          <p className="mt-1 text-text-secondary">
+                            Se enviará a tu dirección de facturación.
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-text-secondary">
+                          No hay dirección de facturación registrada en tu cuenta.
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {deliveryMethod === "alternate_address" && isLoggedIn && (
+                    <div className="space-y-2">
+                      {addresses.length === 0 ? (
+                        <p className="text-sm text-text-secondary">
+                          <Link href="/cuenta/direcciones" className="text-text-brand font-semibold">
+                            Añade una dirección
+                          </Link>{" "}
+                          en tu cuenta.
+                        </p>
+                      ) : (
+                        addresses.map((addr) => (
+                          <label
+                            key={addr.id}
+                            className="flex cursor-pointer items-start gap-2 rounded-md border border-border-subtle p-3 text-sm has-[:checked]:border-text-brand has-[:checked]:bg-primary-soft"
+                          >
+                            <input
+                              type="radio"
+                              name="altAddress"
+                              checked={alternateAddressId === addr.id}
+                              onChange={() => {
+                                setAlternateAddressId(addr.id);
+                                persistDraft({ alternateAddressId: addr.id });
+                              }}
+                            />
+                            <span>
+                              {addr.label || "Dirección"} — {addr.address_line1}, {addr.postal_code}{" "}
+                              {addr.city}
+                            </span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-sm font-medium text-text-secondary">
+                      Observaciones (opcional)
+                    </label>
+                    <textarea
+                      className="mt-1 w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-sm"
+                      maxLength={500}
+                      rows={3}
+                      value={customerNotes}
+                      onChange={(e) => {
+                        setCustomerNotes(e.target.value);
+                        persistDraft({ customerNotes: e.target.value });
                       }}
                     />
-                    {opt.label}
-                  </label>
-                ))}
-              </fieldset>
-              {deliveryMethod === "alternate_address" && isLoggedIn && (
-                <div className="space-y-2">
-                  {addresses.length === 0 ? (
-                    <p className="text-sm text-text-secondary">
-                      <Link href="/cuenta/direcciones" className="text-text-brand font-semibold">
-                        Añade una dirección
-                      </Link>{" "}
-                      en tu cuenta.
-                    </p>
-                  ) : (
-                    addresses.map((addr) => (
-                      <label
-                        key={addr.id}
-                        className="flex cursor-pointer items-start gap-2 rounded-md border border-border-subtle p-3 text-sm"
-                      >
-                        <input
-                          type="radio"
-                          name="altAddress"
-                          checked={alternateAddressId === addr.id}
-                          onChange={() => {
-                            setAlternateAddressId(addr.id);
-                            persistDraft({ alternateAddressId: addr.id });
-                          }}
-                        />
-                        <span>
-                          {addr.label || "Dirección"} — {addr.address_line1}, {addr.postal_code}{" "}
-                          {addr.city}
-                        </span>
-                      </label>
-                    ))
-                  )}
-                </div>
+                  </div>
+                  {prepareError && <p className="text-sm text-danger-text">{prepareError}</p>}
+                  <Button size="lg" onClick={() => void goToReview()}>
+                    Continuar a revisión
+                  </Button>
+                </Card>
               )}
-              {deliveryMethod === "home" && billingLabel && (
-                <p className="text-sm text-text-secondary">
-                  Facturación / envío: <strong>{billingLabel}</strong>
-                </p>
-              )}
-              <div>
-                <label className="text-sm font-medium text-text-secondary">
-                  Observaciones (opcional)
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-sm"
-                  maxLength={500}
-                  rows={3}
-                  value={customerNotes}
-                  onChange={(e) => {
-                    setCustomerNotes(e.target.value);
-                    persistDraft({ customerNotes: e.target.value });
-                  }}
-                />
-              </div>
-              {prepareError && <p className="text-sm text-danger-text">{prepareError}</p>}
-              <Button size="lg" onClick={() => void goToReview()}>
-                Continuar a revisión
-              </Button>
-            </Card>
+            </div>
           )}
 
           {step === "review" && (
