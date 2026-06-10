@@ -152,7 +152,7 @@ export function PurchaseHistoryPanel() {
         <p className="mt-1 text-sm text-text-secondary">Datos histórico — precios mostrados al día de hoy</p>
       </div>
 
-      <Card className="border-info/40 bg-info/5 p-4 text-sm text-text-primary">
+      <Card className="border border-info-text/25 bg-info-soft p-4 text-sm text-text-primary">
         <p className="font-semibold">Pedidos incluidos en este histórico</p>
         <p className="mt-1 text-text-secondary">{purchaseHistoryInclusionNotice()}</p>
       </Card>

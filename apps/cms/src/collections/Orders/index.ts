@@ -10,6 +10,7 @@ import {
 import {
   assertAllowedStatusTransition,
   isJeyjoOrderStatus,
+  preserveJeyjoStatusIfStaleDefault,
   type JeyjoOrderStatus,
 } from '@/collections/Orders/status-transitions'
 import { createAuditHooks } from '@/hooks/auditLogHooks'
@@ -78,9 +79,12 @@ const jeyjoOrderFields: Field[] = [
     name: 'jeyjoStatus',
     type: 'select',
     label: 'Estado Jeyjo',
-    defaultValue: 'pending',
     options: JEYJO_ORDER_STATUSES,
-    admin: { position: 'sidebar' },
+    admin: {
+      position: 'sidebar',
+      description:
+        'B2B: pendiente de confirmación → confirmado. B2C: pendiente de pago → confirmado.',
+    },
   },
   {
     name: 'customerRef',
@@ -349,8 +353,15 @@ export const OrdersCollectionOverride: CollectionOverride = ({ defaultCollection
       ...(defaultCollection?.hooks?.beforeChange ?? []),
       async ({ data, originalDoc, req, operation }) => {
         if (!data) return data
-        const nextStatus = (data.jeyjoStatus as string | undefined) ?? originalDoc?.jeyjoStatus
         const prevStatus = originalDoc?.jeyjoStatus as JeyjoOrderStatus | undefined
+        const preserved = preserveJeyjoStatusIfStaleDefault(
+          data.jeyjoStatus as string | undefined,
+          prevStatus,
+        )
+        if (preserved && preserved !== data.jeyjoStatus) {
+          data.jeyjoStatus = preserved
+        }
+        const nextStatus = (data.jeyjoStatus as string | undefined) ?? prevStatus
         const items = data.items as OrderLineForIva[] | undefined
 
         if (operation === 'update' && nextStatus && nextStatus !== prevStatus) {

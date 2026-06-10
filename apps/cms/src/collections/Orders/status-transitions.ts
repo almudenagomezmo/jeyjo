@@ -55,6 +55,19 @@ export function isStorefrontStatusTransition(
   return Boolean(allowed?.includes(to))
 }
 
+/**
+ * Payload admin can submit the select default (`pending`) when staff saves other
+ * fields without touching estado. Keep the workflow status instead of downgrading.
+ */
+export function preserveJeyjoStatusIfStaleDefault(
+  next: string | null | undefined,
+  prev: JeyjoOrderStatus | null | undefined,
+): JeyjoOrderStatus | null | undefined {
+  if (!next || !prev || next === prev) return (next as JeyjoOrderStatus | undefined) ?? null
+  if (next === 'pending' && prev !== 'pending') return prev
+  return next as JeyjoOrderStatus
+}
+
 export function assertAllowedStatusTransition(
   from: JeyjoOrderStatus | null | undefined,
   to: JeyjoOrderStatus | null | undefined,

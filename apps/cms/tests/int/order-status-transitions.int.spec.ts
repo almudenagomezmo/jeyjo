@@ -4,6 +4,7 @@ import {
   assertAllowedStatusTransition,
   isStaffStatusTransition,
   isStorefrontStatusTransition,
+  preserveJeyjoStatusIfStaleDefault,
 } from '@/collections/Orders/status-transitions'
 import { isOrderExportable } from '@/lib/orders/oms-access'
 
@@ -43,6 +44,16 @@ describe('order status transitions', () => {
 
   it('rejects skip from company approval to confirmed', () => {
     expect(isStorefrontStatusTransition('pending_company_approval', 'confirmed')).toBe(false)
+  })
+
+  it('preserves workflow status when admin form sends stale pending default', () => {
+    expect(
+      preserveJeyjoStatusIfStaleDefault('pending', 'pending_confirmation'),
+    ).toBe('pending_confirmation')
+    expect(preserveJeyjoStatusIfStaleDefault('confirmed', 'pending_confirmation')).toBe(
+      'confirmed',
+    )
+    expect(preserveJeyjoStatusIfStaleDefault('pending', 'pending')).toBe('pending')
   })
 })
 

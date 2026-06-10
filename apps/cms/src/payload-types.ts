@@ -260,6 +260,9 @@ export interface Order {
   id: number;
   orderNumber?: string | null;
   origin?: ('b2c' | 'b2b' | 'eva') | null;
+  /**
+   * B2B: pendiente de confirmación → confirmado. B2C: pendiente de pago → confirmado.
+   */
   jeyjoStatus?:
     | (
         | 'pending'
