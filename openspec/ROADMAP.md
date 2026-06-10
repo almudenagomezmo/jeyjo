@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **54 / 56** cambios completados (~96 %). Hito reciente: Mis pedidos personal con histórico y repetición al carrito (#56 `cuenta-pedidos-purchase-history`). Cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
+**Progreso:** **55 / 57** cambios completados (~96 %). Hito reciente: checkout UX — confirmación enriquecida, direcciones y descuento con cupón (#57 `checkout-confirmation-address-discount`, ad-hoc). Cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
 
 
 | #   | Cambio                              | Depende de | US / RF principales          | Estado     | Fecha      |
@@ -67,6 +67,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 54  | `product-brands-supplier-filters`      | 10, 21         | RF-010, alcance §1.7         | Completado | 2026-06-08 |
 | 55  | `purchase-history-order-groups`        | 23, 52         | RF-018, US-10                | Completado | 2026-06-10 |
 | 56  | `cuenta-pedidos-purchase-history`      | 20, 23, 55     | RF-018, US-10                | Completado | 2026-06-10 |
+| 57  | `checkout-confirmation-address-discount` | 17, 31       | RF-013, RF-027, US-04        | Completado | 2026-06-10 |
 
 
 **Siguiente cambio recomendado:** #43 `seo-technical-auditor` (depende de #21, #34). Es el único cambio OpenSpec pendiente del roadmap original; el resto está completado o congelado (#36).
@@ -77,8 +78,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 - **Mis pedidos (#20, #23, #55, #56):** `/cuenta/pedidos` reutiliza `PurchaseHistoryPanel` (filtros, pedidos colapsables, selección, repetir al carrito). APIs `GET/POST /api/account/purchase-history` con sesión de cliente activa (B2C y B2B). Detalle en `/cuenta/pedidos/[id]`.
 - **Avisos de stock (#49):** sidebar **Avisos de stock**, card en dashboard y página `/cuenta/avisos-stock` para cualquier cliente autenticado (B2C y B2B).
 
-**Trabajo ad-hoc reciente (sin cambio OpenSpec archivado):**
-- **Checkout:** mejoras de confirmación, direcciones y visualización de descuento (commits recientes; fuera de roadmap OpenSpec).
+**Checkout (#17, #31, #57):** paso entrega con tarjeta **Dirección de envío** separada; revisión con línea de descuento identificando cupón; `/checkout/confirmacion` con resumen completo (estado, entrega, pago, líneas, totales, observaciones); limpieza de carrito diferida para evitar flash a `/cart`.
 
 Gaps conscientes antes de continuar:
 - **#43 pendiente:** auditor SEO técnico (único hueco del roadmap).
