@@ -64,7 +64,17 @@ function repeatableLines(order: HistoryOrder): HistoryLine[] {
   return order.lines.filter((line) => line.canRepeat);
 }
 
-export function PurchaseHistoryPanel() {
+type PurchaseHistoryPanelProps = {
+  title?: string;
+  subtitle?: string;
+  apiBase?: string;
+};
+
+export function PurchaseHistoryPanel({
+  title = "Histórico de pedidos",
+  subtitle = "Datos histórico — precios mostrados al día de hoy",
+  apiBase = "/api/intranet/purchase-history",
+}: PurchaseHistoryPanelProps = {}) {
   const addItems = useCartStore((s) => s.addItems);
   const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
 
@@ -89,7 +99,7 @@ export function PurchaseHistoryPanel() {
     if (f.department) params.set("department", f.department);
     if (f.status) params.set("status", f.status);
     try {
-      const res = await fetch(`/api/intranet/purchase-history?${params}`);
+      const res = await fetch(`${apiBase}?${params}`);
       if (!res.ok) {
         setError(res.status === 401 ? "Sesión expirada" : "No se pudo cargar el histórico");
         setData(null);
@@ -105,7 +115,7 @@ export function PurchaseHistoryPanel() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiBase]);
 
   useEffect(() => {
     void load(applied, page);
@@ -157,7 +167,7 @@ export function PurchaseHistoryPanel() {
     setRepeating(true);
     setToast(null);
     try {
-      const res = await fetch("/api/intranet/purchase-history/repeat", {
+      const res = await fetch(`${apiBase}/repeat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items }),
@@ -206,8 +216,8 @@ export function PurchaseHistoryPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Histórico de pedidos</h1>
-        <p className="mt-1 text-sm text-text-secondary">Datos histórico — precios mostrados al día de hoy</p>
+        <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
+        <p className="mt-1 text-sm text-text-secondary">{subtitle}</p>
       </div>
 
       <Card className="border border-info-text/25 bg-info-soft p-4 text-sm text-text-primary">

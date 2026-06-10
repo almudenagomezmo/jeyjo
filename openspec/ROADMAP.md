@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **53 / 55** cambios completados (~96 %). Hito reciente: histórico agrupado por pedido (#55 `purchase-history-order-groups`). Cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
+**Progreso:** **54 / 56** cambios completados (~96 %). Hito reciente: Mis pedidos personal con histórico y repetición al carrito (#56 `cuenta-pedidos-purchase-history`). Cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
 
 
 | #   | Cambio                              | Depende de | US / RF principales          | Estado     | Fecha      |
@@ -66,13 +66,16 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 53  | `product-reviews`                      | 11, 23         | RF-012, US-03                | Completado | 2026-06-08 |
 | 54  | `product-brands-supplier-filters`      | 10, 21         | RF-010, alcance §1.7         | Completado | 2026-06-08 |
 | 55  | `purchase-history-order-groups`        | 23, 52         | RF-018, US-10                | Completado | 2026-06-10 |
+| 56  | `cuenta-pedidos-purchase-history`      | 20, 23, 55     | RF-018, US-10                | Completado | 2026-06-10 |
 
 
 **Siguiente cambio recomendado:** #43 `seo-technical-auditor` (depende de #21, #34). Es el único cambio OpenSpec pendiente del roadmap original; el resto está completado o congelado (#36).
 
-**Portal B2B — estado actual:** área unificada en `/cuenta/empresa/*` (#52; redirects 308 desde `/intranet/*`). Operativo: histórico (#23 en `/cuenta/empresa/pedidos`), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27), notificaciones (#28), avisos stock (#35 vía `/cuenta/avisos-stock`), descargas catálogos (#41) y contabilidad documental (#37). Modo web-native (#51): catálogo, stock, documentos y tarifas editables en CMS sin sync ERP.
+**Portal B2B — estado actual:** área unificada en `/cuenta/empresa/*` (#52; redirects 308 desde `/intranet/*`). Operativo: histórico (#23, #55 en `/cuenta/empresa/pedidos`), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27), notificaciones (#28), avisos stock (#35 vía `/cuenta/avisos-stock`), descargas catálogos (#41) y contabilidad documental (#37). Modo web-native (#51): catálogo, stock, documentos y tarifas editables en CMS sin sync ERP.
 
-**Área `/cuenta` — avisos de stock (#49):** sidebar **Avisos de stock**, card en dashboard y página `/cuenta/avisos-stock` para cualquier cliente autenticado (B2C y B2B).
+**Área `/cuenta` — personal:**
+- **Mis pedidos (#20, #23, #55, #56):** `/cuenta/pedidos` reutiliza `PurchaseHistoryPanel` (filtros, pedidos colapsables, selección, repetir al carrito). APIs `GET/POST /api/account/purchase-history` con sesión de cliente activa (B2C y B2B). Detalle en `/cuenta/pedidos/[id]`.
+- **Avisos de stock (#49):** sidebar **Avisos de stock**, card en dashboard y página `/cuenta/avisos-stock` para cualquier cliente autenticado (B2C y B2B).
 
 **Trabajo ad-hoc reciente (sin cambio OpenSpec archivado):**
 - **Checkout:** mejoras de confirmación, direcciones y visualización de descuento (commits recientes; fuera de roadmap OpenSpec).
@@ -80,7 +83,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 Gaps conscientes antes de continuar:
 - **#43 pendiente:** auditor SEO técnico (único hueco del roadmap).
 - **#36 congelado:** escritura ERP Avansuite; no bloquea operación con modo web-native.
-- **Histórico B2B (#23, #55):** filtro por categoría CMS aún no expuesto en UI (API soporta `categoryId`; fuera de #45); cabeceras de albarán/PDF siguen en #37.
+- **Histórico B2B (#23, #55) y personal (#56):** filtro por categoría CMS aún no expuesto en UI (API soporta `categoryId`; fuera de #45); cabeceras de albarán/PDF siguen en #37. `/cuenta/pedidos` comparte panel y lógica de repetición vía `/api/account/purchase-history` (sin guard B2B ni permisos de subusuario).
 - **MANUAL-VERIFY #51:** checklist archivada aún cita rutas `/intranet/*`; verificar con `/cuenta/empresa/contabilidad/*` y `/cuenta/empresa/precios`.
 - Búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live; caducidad automática grupos 3–4 (fuera de #48).
 - Tras #44–#45, taxonomía y slugs de catálogo en storefront provienen solo de Payload (+ snapshot) y el PLP `/c/*` incluye productos de categorías descendientes; ejecutar `pnpm sync:categories` tras cambios en CMS.
