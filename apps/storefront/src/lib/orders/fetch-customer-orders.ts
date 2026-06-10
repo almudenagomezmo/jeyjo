@@ -148,14 +148,14 @@ async function fetchWebOrderHistoryLines(
     const status = order.jeyjoStatus ?? ''
     if (!eligibleStatuses.has(status)) continue
 
-    const purchasedAt = order.createdAt?.slice(0, 10) ?? ''
-    if (!purchasedAt || purchasedAt < fromDate) continue
+    const purchasedDate = order.createdAt?.slice(0, 10) ?? ''
+    if (!purchasedDate || purchasedDate < fromDate) continue
 
     for (const line of parseSnapshots(order.orderLineSnapshots)) {
       out.push({
         sku: line.skuErp,
         quantity: line.qty,
-        purchasedAt,
+        purchasedAt: order.createdAt ?? purchasedDate,
         historicalUnitPrice: line.unitPrice,
         orderStatus: order.jeyjoStatus ?? null,
         orderNumber: order.orderNumber ?? null,

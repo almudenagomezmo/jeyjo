@@ -7,11 +7,13 @@ import { fetchPublicProductsBySkus } from '@/lib/catalog/fetch-public-products-b
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
 import { fetchWebPurchaseHistoryLines } from '@/lib/orders/fetch-customer-orders'
+import { filterOrderGroups, groupRawLinesIntoOrders } from './group-orders'
 import { filterNonWildcardLines } from './wildcard'
-import { mergePurchaseHistoryLines } from './merge'
 import type {
   PurchaseHistoryFilters,
-  PurchaseHistoryLineView,
+  PurchaseHistoryOrderGroup,
+  PurchaseHistoryOrderLineView,
+  PurchaseHistoryOrderView,
   RawPurchaseHistoryLine,
 } from './types'
 
@@ -49,23 +51,6 @@ async function loadErpLines(
   }))
 }
 
-function filterMergedLines(
-  lines: ReturnType<typeof mergePurchaseHistoryLines>,
-  filters: PurchaseHistoryFilters,
-) {
-  const skuNeedle = filters.sku?.trim().toLowerCase()
-  const dept = filters.department?.trim()
-  const status = filters.status?.trim()
-  return lines.filter((line) => {
-    if (filters.from && line.lastPurchasedAt < filters.from) return false
-    if (filters.to && line.lastPurchasedAt > filters.to) return false
-    if (skuNeedle && !line.sku.toLowerCase().includes(skuNeedle)) return false
-    if (dept && (line.department ?? '').toLowerCase() !== dept.toLowerCase()) return false
-    if (status && line.lastOrderStatus !== status) return false
-    return true
-  })
-}
-
 function categoryIdsFromProduct(
   product: Awaited<ReturnType<typeof fetchPublicProductsBySkus>>[number] | undefined,
 ): string[] {
@@ -79,11 +64,47 @@ function categoryIdsFromProduct(
     .filter((id): id is string => Boolean(id))
 }
 
+function enrichOrderLine(
+  line: PurchaseHistoryOrderGroup['lines'][number],
+  productBySku: Map<string, Awaited<ReturnType<typeof fetchPublicProductsBySkus>>[number]>,
+  quotes: Awaited<ReturnType<typeof resolvePriceQuotesBatch>>,
+): PurchaseHistoryOrderLineView {
+  const product = productBySku.get(line.sku)
+  const slug = product?.slug?.trim() ?? null
+  return {
+    sku: line.sku,
+    qty: line.qty,
+    historicalUnitPrice: line.historicalUnitPrice,
+    productSlug: slug,
+    name: product?.title ?? line.sku,
+    imageUrl: product?.thumbnailUrl ?? null,
+    categoryIds: categoryIdsFromProduct(product),
+    canRepeat: Boolean(slug),
+    currentQuote: quotes[line.sku] ?? null,
+  }
+}
+
+function filterOrdersByCategory(
+  groups: PurchaseHistoryOrderGroup[],
+  categoryId: string,
+  productBySku: Map<string, Awaited<ReturnType<typeof fetchPublicProductsBySkus>>[number]>,
+): PurchaseHistoryOrderGroup[] {
+  return groups
+    .map((group) => ({
+      ...group,
+      lines: group.lines.filter((line) => {
+        const product = productBySku.get(line.sku)
+        return categoryIdsFromProduct(product).includes(categoryId)
+      }),
+    }))
+    .filter((group) => group.lines.length > 0)
+}
+
 export async function buildPurchaseHistoryPage(
   customerId: string,
   filters: PurchaseHistoryFilters,
 ): Promise<{
-  lines: PurchaseHistoryLineView[]
+  orders: PurchaseHistoryOrderView[]
   total: number
   page: number
   pageSize: number
@@ -92,52 +113,43 @@ export async function buildPurchaseHistoryPage(
   const erpCode = await loadErpCode(customerId)
   const erpLines = erpCode ? await loadErpLines(erpCode, filters) : []
   const webLines = await fetchWebPurchaseHistoryLines(customerId)
-  const merged = filterMergedLines(
-    mergePurchaseHistoryLines(filterNonWildcardLines([...erpLines, ...webLines])),
+  const grouped = filterOrderGroups(
+    groupRawLinesIntoOrders(filterNonWildcardLines([...erpLines, ...webLines])),
     filters,
   )
 
-  const allSkus = merged.map((l) => l.sku)
+  const allSkus = [...new Set(grouped.flatMap((order) => order.lines.map((line) => line.sku)))]
   const products = await fetchPublicProductsBySkus(allSkus)
   const productBySku = new Map(products.map((p) => [p.skuErp?.trim() ?? '', p]))
 
-  let working = merged
+  let working = grouped
   if (filters.categoryId?.trim()) {
-    const catId = filters.categoryId.trim()
-    working = merged.filter((line) => {
-      const product = productBySku.get(line.sku)
-      const ids = categoryIdsFromProduct(product)
-      return ids.includes(catId)
-    })
+    working = filterOrdersByCategory(grouped, filters.categoryId.trim(), productBySku)
   }
 
   const page = Math.max(1, filters.page ?? 1)
   const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? DEFAULT_PAGE_SIZE))
   const total = working.length
   const slice = working.slice((page - 1) * pageSize, page * pageSize)
-  const skus = slice.map((l) => l.sku)
+  const skus = [...new Set(slice.flatMap((order) => order.lines.map((line) => line.sku)))]
   const quotes = await resolvePriceQuotesBatch(skus, customerId)
 
-  const lines: PurchaseHistoryLineView[] = slice.map((line) => {
-    const product = productBySku.get(line.sku)
-    const slug = product?.slug?.trim() ?? null
-    return {
-      ...line,
-      productSlug: slug,
-      name: product?.title ?? line.sku,
-      imageUrl: product?.thumbnailUrl ?? null,
-      categoryIds: categoryIdsFromProduct(product),
-      canRepeat: Boolean(slug),
-      currentQuote: quotes[line.sku] ?? null,
-    }
-  })
+  const orders: PurchaseHistoryOrderView[] = slice.map((order) => ({
+    orderKey: order.orderKey,
+    orderId: order.orderId,
+    orderNumber: order.orderNumber,
+    orderStatus: order.orderStatus,
+    purchasedAt: order.purchasedAt,
+    department: order.department,
+    lines: order.lines.map((line) => enrichOrderLine(line, productBySku, quotes)),
+  }))
 
   const departments = [
-    ...new Set(merged.map((l) => l.department).filter((d): d is string => Boolean(d?.trim()))),
+    ...new Set(grouped.map((order) => order.department).filter((d): d is string => Boolean(d?.trim()))),
   ].sort()
 
   return {
-    lines,
+    orders,
     total,
     page,
     pageSize,

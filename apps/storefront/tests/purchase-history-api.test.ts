@@ -58,14 +58,23 @@ describe('purchase history API', () => {
       customerId: 'a0000001-0001-4001-8001-000000000001',
     })
     buildPurchaseHistoryPage.mockResolvedValue({
-      lines: [
+      orders: [
         {
-          sku: 'REF-010',
-          usualQty: 12,
-          lastPurchasedAt: '2026-01-15',
-          historicalUnitPrice: 5,
-          currentQuote: { netUnit: 5.5, grossUnit: 6.66, appliedRule: 'b2b_discount' },
-          canRepeat: true,
+          orderKey: 'erp-2026-01-15-Sede central',
+          orderId: null,
+          orderNumber: null,
+          orderStatus: null,
+          purchasedAt: '2026-01-15',
+          department: 'Sede central',
+          lines: [
+            {
+              sku: 'REF-010',
+              qty: 12,
+              historicalUnitPrice: 5,
+              currentQuote: { netUnit: 5.5, grossUnit: 6.66, appliedRule: 'b2b_discount' },
+              canRepeat: true,
+            },
+          ],
         },
       ],
       total: 1,
@@ -76,10 +85,15 @@ describe('purchase history API', () => {
 
     const res = await GET(new Request('http://localhost/api/intranet/purchase-history'))
     expect(res?.status).toBe(200)
-    const body = (await res!.json()) as { lines: Array<{ historicalUnitPrice: number; currentQuote: { netUnit: number } }> }
-    expect(body.lines[0]?.currentQuote.netUnit).toBe(5.5)
-    expect(body.lines[0]?.historicalUnitPrice).toBe(5)
-    expect(body.lines[0]?.currentQuote.netUnit).not.toBe(body.lines[0]?.historicalUnitPrice)
+    const body = (await res!.json()) as {
+      orders: Array<{
+        lines: Array<{ historicalUnitPrice: number; currentQuote: { netUnit: number } }>
+      }>
+    }
+    const line = body.orders[0]?.lines[0]
+    expect(line?.currentQuote.netUnit).toBe(5.5)
+    expect(line?.historicalUnitPrice).toBe(5)
+    expect(line?.currentQuote.netUnit).not.toBe(line?.historicalUnitPrice)
   })
 
   it('POST repeat rejects wildcard SKU', async () => {

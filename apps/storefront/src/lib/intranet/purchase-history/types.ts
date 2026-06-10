@@ -31,6 +31,44 @@ export type PurchaseHistoryLineView = MergedPurchaseHistoryLine & {
   currentQuote: PriceQuote | null
 }
 
+export type PurchaseHistoryOrderLineRaw = {
+  sku: string
+  qty: number
+  historicalUnitPrice: number
+}
+
+export type PurchaseHistoryOrderGroup = {
+  orderKey: string
+  orderId: number | null
+  orderNumber: string | null
+  orderStatus: string | null
+  purchasedAt: string
+  department: string | null
+  lines: PurchaseHistoryOrderLineRaw[]
+}
+
+export type PurchaseHistoryOrderLineView = {
+  sku: string
+  qty: number
+  historicalUnitPrice: number | null
+  productSlug: string | null
+  name: string
+  imageUrl: string | null
+  categoryIds: string[]
+  canRepeat: boolean
+  currentQuote: PriceQuote | null
+}
+
+export type PurchaseHistoryOrderView = {
+  orderKey: string
+  orderId: number | null
+  orderNumber: string | null
+  orderStatus: string | null
+  purchasedAt: string
+  department: string | null
+  lines: PurchaseHistoryOrderLineView[]
+}
+
 export type PurchaseHistoryFilters = {
   from?: string
   to?: string

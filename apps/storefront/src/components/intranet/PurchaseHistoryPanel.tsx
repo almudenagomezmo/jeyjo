@@ -6,24 +6,21 @@ import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ChevronDownIcon, ChevronRightIcon } from "@/components/ui/icons";
 import { orderStatusLabel } from "@/lib/orders/customer-order-labels";
 import {
   PURCHASE_HISTORY_STATUS_OPTIONS,
   orderStatusTone,
   purchaseHistoryInclusionNotice,
 } from "@/lib/orders/purchase-history-status";
-import { formatMoney } from "@/lib/utils/format";
+import { formatMoney, formatOrderDateTime } from "@/lib/utils/format";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
 
 type HistoryLine = {
   sku: string;
-  usualQty: number;
-  lastPurchasedAt: string;
+  qty: number;
   historicalUnitPrice: number | null;
-  lastOrderStatus: string | null;
-  lastOrderNumber: string | null;
-  lastOrderId: number | null;
   productSlug: string | null;
   name: string;
   imageUrl: string | null;
@@ -31,8 +28,18 @@ type HistoryLine = {
   currentQuote: { netUnit: number; grossUnit: number; appliedRule: string; label?: string } | null;
 };
 
-type HistoryResponse = {
+type HistoryOrder = {
+  orderKey: string;
+  orderId: number | null;
+  orderNumber: string | null;
+  orderStatus: string | null;
+  purchasedAt: string;
+  department: string | null;
   lines: HistoryLine[];
+};
+
+type HistoryResponse = {
+  orders: HistoryOrder[];
   total: number;
   page: number;
   pageSize: number;
@@ -49,6 +56,14 @@ type Filters = {
 
 const emptyFilters: Filters = { from: "", to: "", sku: "", department: "", status: "" };
 
+function lineKey(orderKey: string, sku: string): string {
+  return `${orderKey}::${sku}`;
+}
+
+function repeatableLines(order: HistoryOrder): HistoryLine[] {
+  return order.lines.filter((line) => line.canRepeat);
+}
+
 export function PurchaseHistoryPanel() {
   const addItems = useCartStore((s) => s.addItems);
   const setMiniCartOpen = useUiStore((s) => s.setMiniCartOpen);
@@ -60,6 +75,7 @@ export function PurchaseHistoryPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
   const [repeating, setRepeating] = useState(false);
 
@@ -82,6 +98,7 @@ export function PurchaseHistoryPanel() {
       const json = (await res.json()) as HistoryResponse;
       setData(json);
       setSelected(new Set());
+      setExpanded(new Set());
     } catch {
       setError("Error de red");
       setData(null);
@@ -99,23 +116,46 @@ export function PurchaseHistoryPanel() {
     setPage(1);
   };
 
-  const toggleSku = (sku: string, enabled: boolean) => {
-    if (!enabled) return;
-    setSelected((prev) => {
+  const toggleExpanded = (orderKey: string) => {
+    setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(sku)) next.delete(sku);
-      else next.add(sku);
+      if (next.has(orderKey)) next.delete(orderKey);
+      else next.add(orderKey);
       return next;
     });
   };
 
-  const repeatSelected = async () => {
-    if (!data || selected.size === 0) return;
+  const toggleLine = (order: HistoryOrder, line: HistoryLine) => {
+    if (!line.canRepeat) return;
+    const key = lineKey(order.orderKey, line.sku);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleOrderSelection = (order: HistoryOrder) => {
+    const repeatable = repeatableLines(order);
+    if (repeatable.length === 0) return;
+    const keys = repeatable.map((line) => lineKey(order.orderKey, line.sku));
+    const allSelected = keys.every((key) => selected.has(key));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allSelected) {
+        for (const key of keys) next.delete(key);
+      } else {
+        for (const key of keys) next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const repeatItems = async (items: Array<{ sku: string; qty: number }>) => {
+    if (items.length === 0) return;
     setRepeating(true);
     setToast(null);
-    const items = data.lines
-      .filter((l) => selected.has(l.sku) && l.canRepeat)
-      .map((l) => ({ sku: l.sku, qty: l.usualQty }));
     try {
       const res = await fetch("/api/intranet/purchase-history/repeat", {
         method: "POST",
@@ -141,6 +181,24 @@ export function PurchaseHistoryPanel() {
     } finally {
       setRepeating(false);
     }
+  };
+
+  const repeatSelected = async () => {
+    if (!data || selected.size === 0) return;
+    const items: Array<{ sku: string; qty: number }> = [];
+    for (const order of data.orders) {
+      for (const line of order.lines) {
+        if (selected.has(lineKey(order.orderKey, line.sku)) && line.canRepeat) {
+          items.push({ sku: line.sku, qty: line.qty });
+        }
+      }
+    }
+    await repeatItems(items);
+  };
+
+  const repeatOrder = async (order: HistoryOrder) => {
+    const items = repeatableLines(order).map((line) => ({ sku: line.sku, qty: line.qty }));
+    await repeatItems(items);
   };
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
@@ -246,53 +304,32 @@ export function PurchaseHistoryPanel() {
         <Card className="p-8 text-center text-text-secondary">{error}</Card>
       ) : loading ? (
         <Card className="p-8 text-center text-text-secondary">Cargando histórico…</Card>
-      ) : !data?.lines.length ? (
+      ) : !data?.orders.length ? (
         <Card className="p-8 text-center text-text-secondary">
           No hay compras en el periodo seleccionado.
         </Card>
       ) : (
-        <>
-          <div className="hidden overflow-x-auto rounded-lg border border-border md:block">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-border bg-surface-muted text-text-secondary">
-                <tr>
-                  <th className="w-10 p-3" />
-                  <th className="p-3">Artículo</th>
-                  <th className="p-3">Cant. habitual</th>
-                  <th className="p-3">Última compra</th>
-                  <th className="p-3">Estado pedido</th>
-                  <th className="p-3">Precio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.lines.map((line) => (
-                  <HistoryRow
-                    key={line.sku}
-                    line={line}
-                    checked={selected.has(line.sku)}
-                    onToggle={() => toggleSku(line.sku, line.canRepeat)}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex flex-col gap-3 md:hidden">
-            {data.lines.map((line) => (
-              <HistoryCard
-                key={line.sku}
-                line={line}
-                checked={selected.has(line.sku)}
-                onToggle={() => toggleSku(line.sku, line.canRepeat)}
-              />
-            ))}
-          </div>
-        </>
+        <div className="flex flex-col gap-3">
+          {data.orders.map((order) => (
+            <OrderCard
+              key={order.orderKey}
+              order={order}
+              expanded={expanded.has(order.orderKey)}
+              selected={selected}
+              repeating={repeating}
+              onToggleExpand={() => toggleExpanded(order.orderKey)}
+              onToggleLine={(line) => toggleLine(order, line)}
+              onToggleOrderSelection={() => toggleOrderSelection(order)}
+              onRepeatOrder={() => void repeatOrder(order)}
+            />
+          ))}
+        </div>
       )}
 
       {data && data.total > data.pageSize ? (
         <div className="flex items-center justify-between text-sm">
           <span className="text-text-secondary">
-            Página {data.page} de {totalPages} ({data.total} líneas)
+            Página {data.page} de {totalPages} ({data.total} pedidos)
           </span>
           <div className="flex gap-2">
             <Button
@@ -343,22 +380,6 @@ function OrderStatusBadge({ status }: { status: string | null }) {
   );
 }
 
-function LastOrderStatusCell({ line }: { line: HistoryLine }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <OrderStatusBadge status={line.lastOrderStatus} />
-      {line.lastOrderNumber && line.lastOrderId ? (
-        <Link
-          href={`/cuenta/pedidos/${line.lastOrderId}`}
-          className="text-xs text-text-brand hover:underline"
-        >
-          {line.lastOrderNumber}
-        </Link>
-      ) : null}
-    </div>
-  );
-}
-
 function PriceCell({ line }: { line: HistoryLine }) {
   const current = line.currentQuote?.netUnit;
   const historical = line.historicalUnitPrice;
@@ -379,6 +400,137 @@ function PriceCell({ line }: { line: HistoryLine }) {
         <span className="text-xs text-text-secondary line-through">{formatMoney(historical)}</span>
       ) : null}
     </div>
+  );
+}
+
+function OrderCard({
+  order,
+  expanded,
+  selected,
+  repeating,
+  onToggleExpand,
+  onToggleLine,
+  onToggleOrderSelection,
+  onRepeatOrder,
+}: {
+  order: HistoryOrder;
+  expanded: boolean;
+  selected: Set<string>;
+  repeating: boolean;
+  onToggleExpand: () => void;
+  onToggleLine: (line: HistoryLine) => void;
+  onToggleOrderSelection: () => void;
+  onRepeatOrder: () => void;
+}) {
+  const repeatable = repeatableLines(order);
+  const repeatableKeys = repeatable.map((line) => lineKey(order.orderKey, line.sku));
+  const allRepeatableSelected =
+    repeatableKeys.length > 0 && repeatableKeys.every((key) => selected.has(key));
+  const someRepeatableSelected = repeatableKeys.some((key) => selected.has(key));
+  const formattedDate = formatOrderDateTime(order.purchasedAt);
+  const orderLabel =
+    order.orderNumber ??
+    (order.orderId ? String(order.orderId) : `Compra ${formattedDate || order.purchasedAt}`);
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
+        <button
+          type="button"
+          onClick={onToggleExpand}
+          className="flex shrink-0 items-center justify-center rounded-md p-1 text-text-secondary hover:bg-surface-muted hover:text-text-primary"
+          aria-expanded={expanded}
+          aria-label={expanded ? "Ocultar artículos" : "Mostrar artículos"}
+        >
+          {expanded ? <ChevronDownIcon size={20} /> : <ChevronRightIcon size={20} />}
+        </button>
+
+        {repeatable.length > 0 ? (
+          <input
+            type="checkbox"
+            checked={allRepeatableSelected}
+            ref={(el) => {
+              if (el) el.indeterminate = someRepeatableSelected && !allRepeatableSelected;
+            }}
+            onChange={onToggleOrderSelection}
+            aria-label={`Seleccionar todos los artículos de ${orderLabel}`}
+            className="shrink-0"
+          />
+        ) : (
+          <span className="w-4 shrink-0" />
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {order.orderId ? (
+              <Link
+                href={`/cuenta/pedidos/${order.orderId}`}
+                className="font-semibold text-text-brand hover:underline"
+              >
+                {orderLabel}
+              </Link>
+            ) : (
+              <span className="font-semibold text-text-primary">{orderLabel}</span>
+            )}
+            <OrderStatusBadge status={order.orderStatus} />
+          </div>
+          <p className="mt-1 text-sm text-text-secondary">
+            {formattedDate || order.purchasedAt}
+            {order.department ? ` · ${order.department}` : ""}
+            {` · ${order.lines.length} artículo${order.lines.length === 1 ? "" : "s"}`}
+          </p>
+        </div>
+
+        {repeatable.length > 0 ? (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={repeating}
+            onClick={onRepeatOrder}
+          >
+            Añadir pedido al carrito
+          </Button>
+        ) : null}
+      </div>
+
+      {expanded ? (
+        <>
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border bg-surface-muted text-text-secondary">
+                <tr>
+                  <th className="w-10 p-3" />
+                  <th className="p-3">Artículo</th>
+                  <th className="p-3">Cantidad</th>
+                  <th className="p-3">Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.lines.map((line) => (
+                  <HistoryRow
+                    key={line.sku}
+                    line={line}
+                    checked={selected.has(lineKey(order.orderKey, line.sku))}
+                    onToggle={() => onToggleLine(line)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex flex-col gap-3 p-4 md:hidden">
+            {order.lines.map((line) => (
+              <HistoryLineCard
+                key={line.sku}
+                line={line}
+                checked={selected.has(lineKey(order.orderKey, line.sku))}
+                onToggle={() => onToggleLine(line)}
+              />
+            ))}
+          </div>
+        </>
+      ) : null}
+    </Card>
   );
 }
 
@@ -416,11 +568,7 @@ function HistoryRow({
           </div>
         </div>
       </td>
-      <td className="p-3">{line.usualQty}</td>
-      <td className="p-3 text-text-secondary">{line.lastPurchasedAt}</td>
-      <td className="p-3">
-        <LastOrderStatusCell line={line} />
-      </td>
+      <td className="p-3">{line.qty}</td>
       <td className="p-3">
         <PriceCell line={line} />
       </td>
@@ -428,7 +576,7 @@ function HistoryRow({
   );
 }
 
-function HistoryCard({
+function HistoryLineCard({
   line,
   checked,
   onToggle,
@@ -438,35 +586,28 @@ function HistoryCard({
   onToggle: () => void;
 }) {
   return (
-    <Card className="p-4">
-      <div className="flex gap-3">
-        <input
-          type="checkbox"
-          checked={checked}
-          disabled={!line.canRepeat}
-          onChange={onToggle}
-          className="mt-1"
-          aria-label={`Seleccionar ${line.sku}`}
-        />
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-surface-muted">
-          {line.imageUrl ? (
-            <Image src={line.imageUrl} alt="" fill className="object-contain p-1" sizes="80px" />
-          ) : null}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-medium">{line.name}</p>
-          <p className="text-xs text-text-secondary">{line.sku}</p>
-          <p className="mt-2 text-sm text-text-secondary">
-            Cant. habitual: {line.usualQty} · {line.lastPurchasedAt}
-          </p>
-          <div className="mt-2">
-            <LastOrderStatusCell line={line} />
-          </div>
-          <div className="mt-2">
-            <PriceCell line={line} />
-          </div>
+    <div className="flex gap-3 rounded-md border border-border p-3">
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={!line.canRepeat}
+        onChange={onToggle}
+        className="mt-1"
+        aria-label={`Seleccionar ${line.sku}`}
+      />
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-surface-muted">
+        {line.imageUrl ? (
+          <Image src={line.imageUrl} alt="" fill className="object-contain p-1" sizes="80px" />
+        ) : null}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="font-medium">{line.name}</p>
+        <p className="text-xs text-text-secondary">{line.sku}</p>
+        <p className="mt-2 text-sm text-text-secondary">Cantidad: {line.qty}</p>
+        <div className="mt-2">
+          <PriceCell line={line} />
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
