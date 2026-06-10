@@ -1,10 +1,4 @@
-# Storefront B2B purchase history
-
-## Purpose
-
-B2B purchase history at `/cuenta/empresa/pedidos` with orders grouped by purchase, current pricing, filters, and repeat-to-cart (RF-018, US-10, changes #23, #52, `purchase-history-order-groups`).
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: B2B purchase history page replaces pedidos scaffold
 
@@ -21,29 +15,7 @@ The storefront SHALL render a production purchase history view at `/cuenta/empre
 - **WHEN** a request hits `/api/intranet/purchase-history` without a validated B2B session
 - **THEN** the response status is 401 or 403
 
-### Requirement: Purchase history is grouped by order with collapsible headers
-
-The purchase history view SHALL list orders (not SKU-aggregated lines) each with a visible header showing order identity, status, purchase date, optional department, and line count. Line items SHALL be hidden by default and toggled per order.
-
-#### Scenario: Order header shows web order metadata
-
-- **WHEN** a web order JW-0042 with status confirmed and two lines is loaded
-- **THEN** a card header shows order number JW-0042 linked to `/cuenta/pedidos/42`, status badge, formatted purchase date with time, and "2 artículos"
-- **AND** line rows are not visible until the user expands the order
-
-#### Scenario: ERP pseudo-order header without web status
-
-- **WHEN** ERP history lines share date 2026-01-15 and department Sede central
-- **THEN** one grouped order header shows purchase date without web status badge (label Histórico ERP)
-- **AND** expanding shows all lines from that ERP grouping
-
-#### Scenario: User expands order to see lines
-
-- **WHEN** the user clicks the expand control on an order header
-- **THEN** that order's line table or cards become visible
-- **AND** other orders remain in their prior expanded or collapsed state
-
-### Requirement: History lines show product identity and purchase quantity
+### Requirement: History lines show product identity and usual quantity
 
 Each order line within a purchase history order SHALL display a large product image, SKU reference, description, quantity from that purchase, and current recommended sale price for the authenticated company (US-10 CA1).
 
@@ -56,28 +28,6 @@ Each order line within a purchase history order SHALL display a large product im
 
 - **WHEN** the customer bought SKU REF-010 with quantity 12 on order JW-0042
 - **THEN** the line within order JW-0042 shows quantity 12
-
-### Requirement: Current price is labeled and authoritative
-
-The list SHALL show the current net unit price from the pricing engine (RF-007) with a visible **Precio actual** label. The historical unit price paid on past delivery notes or orders MUST NOT be presented as the active line price (CA-B2B-004, US-10 CA5).
-
-#### Scenario: Current price label on list
-
-- **WHEN** a line is rendered with current net price 5.50 EUR
-- **THEN** the price is shown with label **Precio actual**
-- **AND** the displayed active price is 5.50 EUR
-
-#### Scenario: Historical price differs from current
-
-- **WHEN** historical unit price was 5.00 EUR and current net price is 5.50 EUR
-- **THEN** the active price shown is 5.50 EUR with **Precio actual**
-- **AND** 5.00 EUR is not shown as the price used for add-to-cart
-
-#### Scenario: Special price applies in history list
-
-- **WHEN** the customer has a valid special price for the SKU lower than P2
-- **THEN** the current price reflects `appliedRule` special_price
-- **AND** the label **Precio actual** remains visible
 
 ### Requirement: Filters for date reference category and department
 
@@ -137,6 +87,30 @@ The user SHALL select one or more order lines and activate **Añadir al carrito*
 - **THEN** the server rejects wildcard or unpublished SKUs with 400
 - **AND** returns product slugs and quantities only for valid items
 
+## ADDED Requirements
+
+### Requirement: Purchase history is grouped by order with collapsible headers
+
+The purchase history view SHALL list orders (not SKU-aggregated lines) each with a visible header showing order identity, status, purchase date, optional department, and line count. Line items SHALL be hidden by default and toggled per order.
+
+#### Scenario: Order header shows web order metadata
+
+- **WHEN** a web order JW-0042 with status confirmed and two lines is loaded
+- **THEN** a card header shows order number JW-0042 linked to `/cuenta/pedidos/42`, status badge, formatted purchase date with time, and "2 artículos"
+- **AND** line rows are not visible until the user expands the order
+
+#### Scenario: ERP pseudo-order header without web status
+
+- **WHEN** ERP history lines share date 2026-01-15 and department Sede central
+- **THEN** one grouped order header shows purchase date without web status badge (label Histórico ERP)
+- **AND** expanding shows all lines from that ERP grouping
+
+#### Scenario: User expands order to see lines
+
+- **WHEN** the user clicks the expand control on an order header
+- **THEN** that order's line table or cards become visible
+- **AND** other orders remain in their prior expanded or collapsed state
+
 ### Requirement: Repeat entire order adds all repeatable lines
 
 Each order header with at least one repeatable catalog line SHALL offer **Añadir pedido al carrito** to add all repeatable lines from that order at their purchase quantities using current pricing.
@@ -151,24 +125,6 @@ Each order header with at least one repeatable catalog line SHALL offer **Añadi
 
 - **WHEN** the user checks the order header checkbox
 - **THEN** all repeatable lines in that order are selected for the sticky **Añadir al carrito** action
-
-### Requirement: Wildcard SKUs are excluded from purchase history
-
-Lines for wildcard or comodín catalog references (RF-006) SHALL NOT appear in purchase history results.
-
-#### Scenario: Wildcard SKU omitted
-
-- **WHEN** ERP or web order data includes SKU 9000000001 marked wildcard
-- **THEN** that SKU does not appear in the purchase history list
-
-### Requirement: Post-repeat guidance for checkout observations
-
-After a successful repeat action, the UI SHALL show a non-blocking message that order observations can be completed at checkout (US-10 CA3 partial; full free-text non-catalog items deferred to quick order change).
-
-#### Scenario: Toast mentions checkout observations
-
-- **WHEN** repeat add-to-cart succeeds
-- **THEN** a confirmation message mentions adding observations during checkout
 
 ### Requirement: Purchase history supports pagination
 
