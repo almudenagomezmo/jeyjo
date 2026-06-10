@@ -14,6 +14,7 @@ import { loadCheckoutDraft, saveCheckoutDraft, type CheckoutDraft } from "@/lib/
 import type { CheckoutSegment } from "@/lib/checkout/segment";
 import type { DeliveryMethod } from "@/lib/checkout/totals";
 import type { CheckoutTotals } from "@/lib/checkout/totals";
+import { formatCheckoutDiscountLine } from "@/lib/coupon/validate";
 import { useCartSummary } from "@/lib/hooks/useCartSummary";
 import { trackBeginCheckout } from "@/lib/analytics/ga4";
 import { useCartStore } from "@/lib/store/cart-store";
@@ -542,7 +543,9 @@ export function CheckoutPage({
                 </div>
                 {totals.discount > 0 && (
                   <div className="flex justify-between text-success-text">
-                    <span>Descuento</span>
+                    <span>
+                      {formatCheckoutDiscountLine(totals.couponCode, totals.couponLabel)}
+                    </span>
                     <span className="font-semibold tabular">-{formatMoney(totals.discount)}</span>
                   </div>
                 )}

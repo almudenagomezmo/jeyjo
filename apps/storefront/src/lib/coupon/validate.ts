@@ -28,6 +28,16 @@ function couponLabel(_code: string, type: 'percent' | 'fixed', value: number): s
   return `${value.toFixed(2)} € de descuento`
 }
 
+export function formatCheckoutDiscountLine(
+  couponCode: string | null,
+  couponLabel: string | null,
+): string {
+  if (!couponCode) return 'Descuento'
+  if (!couponLabel) return `Descuento (${couponCode})`
+  const shortLabel = couponLabel.replace(/ de descuento$/i, '')
+  return `Descuento (${couponCode} · ${shortLabel})`
+}
+
 export async function validateCoupon(args: {
   code: string | null | undefined
   lines: CartLine[]

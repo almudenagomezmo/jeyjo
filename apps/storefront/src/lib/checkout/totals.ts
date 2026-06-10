@@ -19,6 +19,7 @@ export type CheckoutTotals = {
   total: number
   segment: CheckoutSegment
   couponCode: string | null
+  couponLabel: string | null
   showOfferExclusionWarning?: boolean
 }
 
@@ -58,6 +59,7 @@ export function buildCheckoutTotals(
     total,
     segment,
     couponCode: coupon?.valid ? coupon.couponCode : null,
+    couponLabel: coupon?.valid ? coupon.label : null,
     showOfferExclusionWarning: coupon?.showOfferExclusionWarning ?? false,
   }
 }
