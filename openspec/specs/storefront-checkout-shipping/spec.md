@@ -22,7 +22,7 @@ The storefront SHALL expose `/checkout` for non-empty carts, completing delivery
 
 ### Requirement: Delivery methods US-04 CA2
 
-The checkout delivery step SHALL let the user choose exactly one of: ship to default billing address, ship to a saved alternate address, or pickup at store Alfaro or Rincón de Soto.
+The checkout delivery step SHALL let the user choose exactly one of: ship to default billing address, ship to another address (saved or newly created inline in checkout), or pickup at store Alfaro or Rincón de Soto.
 
 #### Scenario: Home delivery uses billing address
 
@@ -323,9 +323,9 @@ For home delivery and alternate saved address methods, the checkout delivery ste
 
 #### Scenario: Alternate address selection in shipping card
 
-- **WHEN** the user selects ship to a saved alternate address
+- **WHEN** the user selects ship to another address
 - **THEN** the **Dirección de envío** card lists saved addresses as radio options
-- **AND** an empty address book links to `/cuenta/direcciones`
+- **AND** shows **Añadir nueva dirección** to open an inline form without leaving checkout
 
 #### Scenario: Store pickup keeps compact delivery card
 
@@ -403,3 +403,32 @@ The checkout review confirm button SHALL display method-specific copy for B2C wh
 
 - **WHEN** a B2C user selects bank transfer
 - **THEN** the primary button label is **Confirmar pedido**
+
+### Requirement: Checkout inline address creation US-04
+
+When alternate delivery is selected, authenticated checkout SHALL let the user create a new shipping address inline via `POST /api/account/addresses`, persist it in `customer_addresses`, auto-select it for the current order, and remain on the delivery step without navigating to `/cuenta/direcciones`.
+
+#### Scenario: Inline form from add button
+
+- **WHEN** a logged-in user selects **Envío a otra dirección**
+- **AND** clicks **Añadir nueva dirección**
+- **THEN** an inline address form appears inside the **Dirección de envío** card
+- **AND** the user can cancel to return to the address list
+
+#### Scenario: Created address selected and saved
+
+- **WHEN** the user submits valid address fields from the inline form
+- **THEN** a new `customer_addresses` row is created for the customer
+- **AND** that address is selected as `alternateAddressId`
+- **AND** the inline form closes
+- **AND** the new address appears in the radio list
+
+#### Scenario: Empty address book opens form
+
+- **WHEN** a logged-in user selects **Envío a otra dirección** with zero saved addresses
+- **THEN** the inline new-address form is shown automatically
+
+#### Scenario: Continue requires address selection
+
+- **WHEN** alternate delivery is selected without a chosen or newly created address
+- **THEN** continue is blocked with validation **Selecciona o añade una dirección de envío**

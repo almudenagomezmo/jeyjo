@@ -22,6 +22,7 @@ import { useHydrated } from "@/lib/hooks/useHydrated";
 import { submitRedirectForm } from "@/lib/payments/submit-redirect-form";
 import type { PaymentSettings } from "@/lib/payments/settings";
 import { formatMoney } from "@/lib/utils/format";
+import { AddressForm } from "@/components/account/AddressForm";
 import { PaymentMethodSelector } from "@/components/checkout/PaymentMethodSelector";
 import { isQuotesEnabledClient } from "@/lib/quotes/enabled";
 import {
@@ -41,7 +42,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 const DELIVERY_OPTIONS: { value: DeliveryMethod; label: string }[] = [
   { value: "home", label: "Envío a dirección de facturación" },
-  { value: "alternate_address", label: "Envío a otra dirección guardada" },
+  { value: "alternate_address", label: "Envío a otra dirección" },
   { value: "pickup_alfaro", label: "Recogida en tienda — Alfaro" },
   { value: "pickup_rincon", label: "Recogida en tienda — Rincón de Soto" },
 ];
@@ -81,6 +82,7 @@ export function CheckoutPage({
     initialDraft?.paymentMethodCode ?? "card",
   );
   const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [prepareToken, setPrepareToken] = useState<string | null>(null);
   const [totals, setTotals] = useState<CheckoutTotals | null>(null);
   const [shippingLine, setShippingLine] = useState<string>("");
@@ -131,13 +133,24 @@ export function CheckoutPage({
     );
   }, [hydrated, summary]);
 
-  useEffect(() => {
+  const loadAddresses = useCallback(async () => {
     if (!isLoggedIn) return;
-    void fetch("/api/account/addresses")
-      .then((r) => r.json())
-      .then((body: { addresses?: CustomerAddress[] }) => setAddresses(body.addresses ?? []))
-      .catch(() => setAddresses([]));
+    try {
+      const res = await fetch("/api/account/addresses");
+      if (!res.ok) {
+        setAddresses([]);
+        return;
+      }
+      const body = (await res.json()) as { addresses?: CustomerAddress[] };
+      setAddresses(body.addresses ?? []);
+    } catch {
+      setAddresses([]);
+    }
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    void loadAddresses();
+  }, [loadAddresses]);
 
   const persistDraft = useCallback(
     (patch: Partial<CheckoutDraft>) => {
@@ -153,6 +166,30 @@ export function CheckoutPage({
       });
     },
     [step, deliveryMethod, alternateAddressId, guestEmail, customerNotes, paymentMethodCode],
+  );
+
+  const selectAlternateAddress = useCallback(
+    (id: string) => {
+      setAlternateAddressId(id);
+      persistDraft({ alternateAddressId: id });
+    },
+    [persistDraft],
+  );
+
+  const handleAddressCreated = useCallback(
+    (address?: CustomerAddress) => {
+      setShowNewAddressForm(false);
+      if (address) {
+        setAddresses((prev) => {
+          const exists = prev.some((a) => a.id === address.id);
+          return exists ? prev : [address, ...prev];
+        });
+        selectAlternateAddress(address.id);
+        return;
+      }
+      void loadAddresses();
+    },
+    [loadAddresses, selectAlternateAddress],
   );
 
   const runPrepare = useCallback(async () => {
@@ -193,7 +230,7 @@ export function CheckoutPage({
       return;
     }
     if (deliveryMethod === "alternate_address" && !alternateAddressId) {
-      setPrepareError("Selecciona una dirección guardada");
+      setPrepareError("Selecciona o añade una dirección de envío");
       return;
     }
     const ok = await runPrepare();
@@ -418,6 +455,11 @@ export function CheckoutPage({
                         onChange={() => {
                           setDeliveryMethod(opt.value);
                           persistDraft({ deliveryMethod: opt.value });
+                          if (opt.value !== "alternate_address") {
+                            setShowNewAddressForm(false);
+                          } else if (addresses.length === 0) {
+                            setShowNewAddressForm(true);
+                          }
                         }}
                       />
                       {opt.label}
@@ -469,13 +511,10 @@ export function CheckoutPage({
                     </>
                   )}
                   {deliveryMethod === "alternate_address" && isLoggedIn && (
-                    <div className="space-y-2">
-                      {addresses.length === 0 ? (
+                    <div className="space-y-3">
+                      {addresses.length === 0 && !showNewAddressForm ? (
                         <p className="text-sm text-text-secondary">
-                          <Link href="/cuenta/direcciones" className="text-text-brand font-semibold">
-                            Añade una dirección
-                          </Link>{" "}
-                          en tu cuenta.
+                          No tienes direcciones guardadas. Añade una nueva para continuar.
                         </p>
                       ) : (
                         addresses.map((addr) => (
@@ -487,10 +526,7 @@ export function CheckoutPage({
                               type="radio"
                               name="altAddress"
                               checked={alternateAddressId === addr.id}
-                              onChange={() => {
-                                setAlternateAddressId(addr.id);
-                                persistDraft({ alternateAddressId: addr.id });
-                              }}
+                              onChange={() => selectAlternateAddress(addr.id)}
                             />
                             <span>
                               {addr.label || "Dirección"} — {addr.address_line1}, {addr.postal_code}{" "}
@@ -498,6 +534,34 @@ export function CheckoutPage({
                             </span>
                           </label>
                         ))
+                      )}
+                      {showNewAddressForm ? (
+                        <div className="rounded-md border border-border-subtle p-4">
+                          <AddressForm
+                            title="Nueva dirección de envío"
+                            showDefaultOption={false}
+                            submitLabel="Usar esta dirección"
+                            onCreated={handleAddressCreated}
+                          />
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            type="button"
+                            className="mt-3"
+                            onClick={() => setShowNewAddressForm(false)}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          type="button"
+                          onClick={() => setShowNewAddressForm(true)}
+                        >
+                          Añadir nueva dirección
+                        </Button>
                       )}
                     </div>
                   )}

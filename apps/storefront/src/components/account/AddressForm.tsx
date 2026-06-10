@@ -1,14 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import type { CustomerAddress } from "@jeyjo/database-types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 type AddressFormProps = {
-  onCreated: () => void;
+  onCreated: (address?: CustomerAddress) => void;
+  title?: string;
+  showDefaultOption?: boolean;
+  submitLabel?: string;
 };
 
-export function AddressForm({ onCreated }: AddressFormProps) {
+export function AddressForm({
+  onCreated,
+  title = "Nueva dirección",
+  showDefaultOption = true,
+  submitLabel = "Guardar dirección",
+}: AddressFormProps) {
   const [label, setLabel] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [addressLine1, setAddressLine1] = useState("");
@@ -39,8 +48,8 @@ export function AddressForm({ onCreated }: AddressFormProps) {
           is_default: isDefault,
         }),
       });
+      const body = (await res.json()) as { error?: string; address?: CustomerAddress };
       if (!res.ok) {
-        const body = (await res.json()) as { error?: string };
         throw new Error(body.error ?? "No se pudo guardar");
       }
       setLabel("");
@@ -51,7 +60,7 @@ export function AddressForm({ onCreated }: AddressFormProps) {
       setPostalCode("");
       setPhone("");
       setIsDefault(false);
-      onCreated();
+      onCreated(body.address);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al guardar");
     } finally {
@@ -61,7 +70,7 @@ export function AddressForm({ onCreated }: AddressFormProps) {
 
   return (
     <form onSubmit={submit} className="space-y-3">
-      <h2 className="text-lg font-bold">Nueva dirección</h2>
+      {title && <h2 className="text-lg font-bold">{title}</h2>}
       {error && <p className="text-sm text-danger-text">{error}</p>}
       <Input placeholder="Etiqueta (ej. Almacén)" value={label} onChange={(e) => setLabel(e.target.value)} />
       <Input
@@ -90,17 +99,19 @@ export function AddressForm({ onCreated }: AddressFormProps) {
         />
       </div>
       <Input placeholder="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} />
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={isDefault}
-          onChange={(e) => setIsDefault(e.target.checked)}
-          className="rounded border-border-subtle"
-        />
-        Marcar como predeterminada
-      </label>
+      {showDefaultOption && (
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={isDefault}
+            onChange={(e) => setIsDefault(e.target.checked)}
+            className="rounded border-border-subtle"
+          />
+          Marcar como predeterminada
+        </label>
+      )}
       <Button type="submit" disabled={saving}>
-        {saving ? "Guardando…" : "Guardar dirección"}
+        {saving ? "Guardando…" : submitLabel}
       </Button>
     </form>
   );
