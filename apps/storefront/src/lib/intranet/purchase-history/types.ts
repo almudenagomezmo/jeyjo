@@ -6,6 +6,9 @@ export type RawPurchaseHistoryLine = {
   purchasedAt: string
   historicalUnitPrice: number
   department?: string | null
+  orderStatus?: string | null
+  orderNumber?: string | null
+  orderId?: number | null
 }
 
 export type MergedPurchaseHistoryLine = {
@@ -14,6 +17,9 @@ export type MergedPurchaseHistoryLine = {
   lastPurchasedAt: string
   historicalUnitPrice: number | null
   department: string | null
+  lastOrderStatus: string | null
+  lastOrderNumber: string | null
+  lastOrderId: number | null
 }
 
 export type PurchaseHistoryLineView = MergedPurchaseHistoryLine & {
@@ -31,6 +37,7 @@ export type PurchaseHistoryFilters = {
   sku?: string
   categoryId?: string
   department?: string
+  status?: string
   page?: number
   pageSize?: number
 }

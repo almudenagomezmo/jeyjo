@@ -11,6 +11,9 @@ function pickLatest(
       lastPurchasedAt: incoming.purchasedAt,
       historicalUnitPrice: incoming.historicalUnitPrice,
       department: incoming.department ?? existing.department,
+      lastOrderStatus: incoming.orderStatus ?? null,
+      lastOrderNumber: incoming.orderNumber ?? null,
+      lastOrderId: incoming.orderId ?? null,
     }
   }
   return existing
@@ -33,6 +36,9 @@ export function mergePurchaseHistoryLines(
         lastPurchasedAt: line.purchasedAt,
         historicalUnitPrice: line.historicalUnitPrice,
         department: line.department ?? null,
+        lastOrderStatus: line.orderStatus ?? null,
+        lastOrderNumber: line.orderNumber ?? null,
+        lastOrderId: line.orderId ?? null,
       })
       continue
     }

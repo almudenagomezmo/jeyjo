@@ -3,8 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { orderStatusLabel } from "@/lib/orders/customer-order-labels";
+import {
+  PURCHASE_HISTORY_STATUS_OPTIONS,
+  orderStatusTone,
+  purchaseHistoryInclusionNotice,
+} from "@/lib/orders/purchase-history-status";
 import { formatMoney } from "@/lib/utils/format";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useUiStore } from "@/lib/store/ui-store";
@@ -14,6 +21,9 @@ type HistoryLine = {
   usualQty: number;
   lastPurchasedAt: string;
   historicalUnitPrice: number | null;
+  lastOrderStatus: string | null;
+  lastOrderNumber: string | null;
+  lastOrderId: number | null;
   productSlug: string | null;
   name: string;
   imageUrl: string | null;
@@ -34,9 +44,10 @@ type Filters = {
   to: string;
   sku: string;
   department: string;
+  status: string;
 };
 
-const emptyFilters: Filters = { from: "", to: "", sku: "", department: "" };
+const emptyFilters: Filters = { from: "", to: "", sku: "", department: "", status: "" };
 
 export function PurchaseHistoryPanel() {
   const addItems = useCartStore((s) => s.addItems);
@@ -60,6 +71,7 @@ export function PurchaseHistoryPanel() {
     if (f.to) params.set("to", f.to);
     if (f.sku) params.set("sku", f.sku);
     if (f.department) params.set("department", f.department);
+    if (f.status) params.set("status", f.status);
     try {
       const res = await fetch(`/api/intranet/purchase-history?${params}`);
       if (!res.ok) {
@@ -140,8 +152,13 @@ export function PurchaseHistoryPanel() {
         <p className="mt-1 text-sm text-text-secondary">Datos histórico — precios mostrados al día de hoy</p>
       </div>
 
+      <Card className="border-info/40 bg-info/5 p-4 text-sm text-text-primary">
+        <p className="font-semibold">Pedidos incluidos en este histórico</p>
+        <p className="mt-1 text-text-secondary">{purchaseHistoryInclusionNotice()}</p>
+      </Card>
+
       <Card className="p-4">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-text-secondary">Desde</span>
             <input
@@ -169,6 +186,21 @@ export function PurchaseHistoryPanel() {
               value={filters.sku}
               onChange={(e) => setFilters((f) => ({ ...f, sku: e.target.value }))}
             />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-text-secondary">Estado del pedido</span>
+            <select
+              className="rounded-md border border-border bg-surface px-3 py-2"
+              value={filters.status}
+              onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
+            >
+              <option value="">Todos</option>
+              {PURCHASE_HISTORY_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
           {data && data.departments.length > 0 ? (
             <label className="flex flex-col gap-1 text-sm">
@@ -228,6 +260,7 @@ export function PurchaseHistoryPanel() {
                   <th className="p-3">Artículo</th>
                   <th className="p-3">Cant. habitual</th>
                   <th className="p-3">Última compra</th>
+                  <th className="p-3">Estado pedido</th>
                   <th className="p-3">Precio</th>
                 </tr>
               </thead>
@@ -299,6 +332,33 @@ export function PurchaseHistoryPanel() {
   );
 }
 
+function OrderStatusBadge({ status }: { status: string | null }) {
+  if (!status) {
+    return <span className="text-text-secondary">Histórico ERP</span>;
+  }
+  return (
+    <Badge tone={orderStatusTone(status)} size="xs">
+      {orderStatusLabel(status)}
+    </Badge>
+  );
+}
+
+function LastOrderStatusCell({ line }: { line: HistoryLine }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <OrderStatusBadge status={line.lastOrderStatus} />
+      {line.lastOrderNumber && line.lastOrderId ? (
+        <Link
+          href={`/cuenta/pedidos/${line.lastOrderId}`}
+          className="text-xs text-text-brand hover:underline"
+        >
+          {line.lastOrderNumber}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
 function PriceCell({ line }: { line: HistoryLine }) {
   const current = line.currentQuote?.netUnit;
   const historical = line.historicalUnitPrice;
@@ -359,6 +419,9 @@ function HistoryRow({
       <td className="p-3">{line.usualQty}</td>
       <td className="p-3 text-text-secondary">{line.lastPurchasedAt}</td>
       <td className="p-3">
+        <LastOrderStatusCell line={line} />
+      </td>
+      <td className="p-3">
         <PriceCell line={line} />
       </td>
     </tr>
@@ -396,6 +459,9 @@ function HistoryCard({
           <p className="mt-2 text-sm text-text-secondary">
             Cant. habitual: {line.usualQty} · {line.lastPurchasedAt}
           </p>
+          <div className="mt-2">
+            <LastOrderStatusCell line={line} />
+          </div>
           <div className="mt-2">
             <PriceCell line={line} />
           </div>

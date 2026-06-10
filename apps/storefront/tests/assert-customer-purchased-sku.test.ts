@@ -13,7 +13,7 @@ describe('assertCustomerPurchasedSku', () => {
   })
 
   it('returns true when web order contains SKU (case-insensitive)', async () => {
-    vi.spyOn(ordersModule, 'fetchWebPurchaseHistoryLines').mockResolvedValue([
+    vi.spyOn(ordersModule, 'fetchWebConfirmedPurchaseHistoryLines').mockResolvedValue([
       {
         sku: 'ref-001',
         quantity: 2,
@@ -29,7 +29,7 @@ describe('assertCustomerPurchasedSku', () => {
   })
 
   it('returns false when no matching SKU in history', async () => {
-    vi.spyOn(ordersModule, 'fetchWebPurchaseHistoryLines').mockResolvedValue([
+    vi.spyOn(ordersModule, 'fetchWebConfirmedPurchaseHistoryLines').mockResolvedValue([
       {
         sku: 'OTHER-SKU',
         quantity: 1,

@@ -3,7 +3,7 @@ import {
   type ErpPurchaseHistoryLineDto,
 } from '@jeyjo/erp-ports'
 
-import { fetchWebPurchaseHistoryLines } from '@/lib/orders/fetch-customer-orders'
+import { fetchWebConfirmedPurchaseHistoryLines } from '@/lib/orders/fetch-customer-orders'
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
 import { filterNonWildcardLines } from '@/lib/intranet/purchase-history/wildcard'
 import { mergePurchaseHistoryLines } from '@/lib/intranet/purchase-history/merge'
@@ -57,7 +57,7 @@ export async function assertCustomerPurchasedSku(
   const needle = normalizeSku(sku)
   if (!needle) return false
 
-  const webLines = await fetchWebPurchaseHistoryLines(customerId)
+  const webLines = await fetchWebConfirmedPurchaseHistoryLines(customerId)
   const erpCode = await loadErpCode(customerId)
   const erpLines = erpCode ? await loadErpLines(erpCode) : []
   const merged = mergePurchaseHistoryLines(filterNonWildcardLines([...erpLines, ...webLines]))

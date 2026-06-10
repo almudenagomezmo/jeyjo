@@ -17,6 +17,7 @@ export async function GET(request: Request) {
     sku: url.searchParams.get('sku') ?? undefined,
     categoryId: url.searchParams.get('categoryId') ?? undefined,
     department: url.searchParams.get('department') ?? undefined,
+    status: url.searchParams.get('status') ?? undefined,
     page: Number.isFinite(page) ? page : 1,
     pageSize: Number.isFinite(pageSize) ? pageSize : 25,
   })

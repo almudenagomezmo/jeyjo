@@ -8,7 +8,7 @@ import {
   orderStatusLabel,
 } from "@/lib/orders/customer-order-labels";
 import { parseCustomerOrderLines } from "@/lib/orders/parse-order-line-snapshots";
-import { fetchCouponByCode } from "@/lib/coupon/fetch";
+import { resolveOrderCouponSummary } from "@/lib/orders/order-coupon-summary";
 import { findPayloadOrderByNumber } from "@/lib/payments/payload-orders";
 
 import { ConfirmacionClient } from "./ConfirmacionClient";
@@ -32,18 +32,12 @@ export default async function CheckoutConfirmacionPage({ searchParams }: PagePro
   const shippingCost = order.shippingCost ?? 0;
   const total = order.amount ?? order.total ?? subtotal + shippingCost;
 
-  let couponLabel: string | null = null;
-  let couponDiscount = 0;
-  if (order.couponCode) {
-    const coupon = await fetchCouponByCode(order.couponCode);
-    if (coupon) {
-      couponLabel =
-        coupon.discountType === "percent"
-          ? `${coupon.discountValue}% de descuento`
-          : `${coupon.discountValue.toFixed(2)} € de descuento`;
-    }
-    couponDiscount = Math.max(0, Math.round((subtotal + shippingCost - total) * 100) / 100);
-  }
+  const { couponCode, couponLabel, couponDiscount } = await resolveOrderCouponSummary({
+    couponCode: order.couponCode,
+    linesSubtotal: subtotal,
+    shippingCost,
+    orderTotal: total,
+  });
 
   const snapshot = mapOrderLineSnapshots(
     order.orderNumber ?? orderNumber,
@@ -64,7 +58,7 @@ export default async function CheckoutConfirmacionPage({ searchParams }: PagePro
         statusLabel={orderStatusLabel(order.jeyjoStatus)}
         deliveryLabel={orderDeliveryLabel(order)}
         paymentMethodLabel={order.paymentMethodLabel ?? null}
-        couponCode={order.couponCode ?? null}
+        couponCode={couponCode}
         couponLabel={couponLabel}
         couponDiscount={couponDiscount}
         lines={lines}

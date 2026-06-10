@@ -55,11 +55,13 @@ function filterMergedLines(
 ) {
   const skuNeedle = filters.sku?.trim().toLowerCase()
   const dept = filters.department?.trim()
+  const status = filters.status?.trim()
   return lines.filter((line) => {
     if (filters.from && line.lastPurchasedAt < filters.from) return false
     if (filters.to && line.lastPurchasedAt > filters.to) return false
     if (skuNeedle && !line.sku.toLowerCase().includes(skuNeedle)) return false
     if (dept && (line.department ?? '').toLowerCase() !== dept.toLowerCase()) return false
+    if (status && line.lastOrderStatus !== status) return false
     return true
   })
 }
@@ -134,5 +136,11 @@ export async function buildPurchaseHistoryPage(
     ...new Set(merged.map((l) => l.department).filter((d): d is string => Boolean(d?.trim()))),
   ].sort()
 
-  return { lines, total, page, pageSize, departments }
+  return {
+    lines,
+    total,
+    page,
+    pageSize,
+    departments,
+  }
 }

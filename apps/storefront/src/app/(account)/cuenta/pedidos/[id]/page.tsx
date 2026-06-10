@@ -7,7 +7,9 @@ import {
   orderDeliveryLabel,
   orderStatusLabel,
 } from "@/lib/orders/customer-order-labels";
+import { formatCheckoutDiscountLine } from "@/lib/coupon/validate";
 import { fetchCustomerWebOrderDetail } from "@/lib/orders/fetch-customer-orders";
+import { resolveOrderCouponSummary } from "@/lib/orders/order-coupon-summary";
 import { parseCustomerOrderLines } from "@/lib/orders/parse-order-line-snapshots";
 import { formatMoney } from "@/lib/utils/format";
 
@@ -44,6 +46,12 @@ export default async function AccountOrderDetailPage({ params }: PageProps) {
   const merchandiseSubtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
   const shippingCost = order.shippingCost ?? 0;
   const total = order.amount ?? merchandiseSubtotal + shippingCost;
+  const { couponCode, couponLabel, couponDiscount } = await resolveOrderCouponSummary({
+    couponCode: order.couponCode,
+    linesSubtotal: merchandiseSubtotal,
+    shippingCost,
+    orderTotal: total,
+  });
 
   return (
     <div className="space-y-6">
@@ -90,12 +98,20 @@ export default async function AccountOrderDetailPage({ params }: PageProps) {
             <p className="mt-1 font-semibold">{order.paymentMethodLabel}</p>
           </Card>
         )}
-        {order.couponCode && (
+        {couponCode && (
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">
               Cupón
             </p>
-            <p className="mt-1 font-semibold">{order.couponCode}</p>
+            <p className="mt-1 font-semibold">{couponCode}</p>
+            {couponLabel ? (
+              <p className="mt-1 text-sm text-text-secondary">{couponLabel}</p>
+            ) : null}
+            {couponDiscount > 0 ? (
+              <p className="mt-1 text-sm font-semibold text-success-text">
+                -{formatMoney(couponDiscount)} aplicado
+              </p>
+            ) : null}
           </Card>
         )}
       </div>
@@ -142,6 +158,12 @@ export default async function AccountOrderDetailPage({ params }: PageProps) {
             <dt className="text-text-secondary">Subtotal</dt>
             <dd className="font-semibold tabular">{formatMoney(merchandiseSubtotal)}</dd>
           </div>
+          {couponCode && couponDiscount > 0 ? (
+            <div className="flex justify-between text-success-text">
+              <dt>{formatCheckoutDiscountLine(couponCode, couponLabel)}</dt>
+              <dd className="font-semibold tabular">-{formatMoney(couponDiscount)}</dd>
+            </div>
+          ) : null}
           <div className="flex justify-between">
             <dt className="text-text-secondary">Envío</dt>
             <dd className="font-semibold tabular">

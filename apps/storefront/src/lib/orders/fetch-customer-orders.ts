@@ -1,4 +1,8 @@
 import type { RawPurchaseHistoryLine } from '@/lib/intranet/purchase-history/types'
+import {
+  CONFIRMED_PURCHASE_STATUSES,
+  PURCHASE_HISTORY_WEB_STATUSES,
+} from '@/lib/orders/purchase-history-status'
 
 function parseSnapshots(raw: unknown): Array<{ skuErp: string; qty: number; unitPrice: number }> {
   if (!Array.isArray(raw)) return []
@@ -19,9 +23,9 @@ function parseSnapshots(raw: unknown): Array<{ skuErp: string; qty: number; unit
   return lines
 }
 
-const CONFIRMED_STATUSES = new Set(['confirmed', 'preparing', 'shipped', 'delivered'])
-
 type PayloadOrderRow = {
+  id?: number
+  orderNumber?: string | null
   createdAt?: string
   jeyjoStatus?: string | null
   customerRef?: string | null
@@ -129,20 +133,20 @@ export async function fetchCustomerWebOrderDetail(
   return data.doc ?? null
 }
 
-export async function fetchWebPurchaseHistoryLines(
+async function fetchWebOrderHistoryLines(
   customerId: string,
+  eligibleStatuses: Set<string>,
 ): Promise<RawPurchaseHistoryLine[]> {
   const fromDate = windowFromDate()
   const orders = await fetchCustomerWebOrders(customerId, {
     limit: 200,
     includeLineSnapshots: true,
   })
-  const data = { docs: orders as PayloadOrderRow[] }
   const out: RawPurchaseHistoryLine[] = []
 
-  for (const order of data.docs ?? []) {
+  for (const order of orders as PayloadOrderRow[]) {
     const status = order.jeyjoStatus ?? ''
-    if (!CONFIRMED_STATUSES.has(status)) continue
+    if (!eligibleStatuses.has(status)) continue
 
     const purchasedAt = order.createdAt?.slice(0, 10) ?? ''
     if (!purchasedAt || purchasedAt < fromDate) continue
@@ -153,9 +157,41 @@ export async function fetchWebPurchaseHistoryLines(
         quantity: line.qty,
         purchasedAt,
         historicalUnitPrice: line.unitPrice,
+        orderStatus: order.jeyjoStatus ?? null,
+        orderNumber: order.orderNumber ?? null,
+        orderId: order.id ?? null,
       })
     }
   }
 
   return out
+}
+
+function filterOrdersInHistoryWindow(orders: CustomerWebOrder[]): CustomerWebOrder[] {
+  const fromDate = windowFromDate()
+  return orders.filter((order) => {
+    const status = order.jeyjoStatus ?? ''
+    if (!PURCHASE_HISTORY_WEB_STATUSES.has(status)) return false
+    const purchasedAt = order.createdAt?.slice(0, 10) ?? ''
+    return Boolean(purchasedAt && purchasedAt >= fromDate)
+  })
+}
+
+export async function fetchPurchaseHistoryWebOrders(
+  customerId: string,
+): Promise<CustomerWebOrder[]> {
+  const orders = await fetchCustomerWebOrders(customerId, { limit: 200 })
+  return filterOrdersInHistoryWindow(orders)
+}
+
+export async function fetchWebPurchaseHistoryLines(
+  customerId: string,
+): Promise<RawPurchaseHistoryLine[]> {
+  return fetchWebOrderHistoryLines(customerId, PURCHASE_HISTORY_WEB_STATUSES)
+}
+
+export async function fetchWebConfirmedPurchaseHistoryLines(
+  customerId: string,
+): Promise<RawPurchaseHistoryLine[]> {
+  return fetchWebOrderHistoryLines(customerId, CONFIRMED_PURCHASE_STATUSES)
 }
