@@ -1,4 +1,12 @@
+import type { AppliedPriceRule } from '@jeyjo/pricing'
+
 export type TariffValidityStatus = 'active' | 'expired'
+
+export type AppliedTariffView = {
+  appliedRule: AppliedPriceRule
+  appliedRuleLabel: string
+  appliedNetPrice: number
+}
 
 export type CustomTariffLineView = {
   sku: string
@@ -15,6 +23,9 @@ export type CustomTariffLineView = {
   status: TariffValidityStatus
   statusLabel: 'Vigente' | 'Caducado'
   canRequestReview: boolean
+  appliedTariff: AppliedTariffView
+  /** True when the pactado price is the rule used in catalog/checkout. */
+  pactPriceAppliesInShop: boolean
 }
 
 export type GroupOfferView = {
@@ -24,6 +35,9 @@ export type GroupOfferView = {
   imageUrl: string | null
   offerNetPrice: number
   validTo: string | null
+  appliedTariff: AppliedTariffView
+  /** True when this group offer is the active pricing rule in the shop. */
+  appliesInShop: boolean
 }
 
 export type CustomTariffsFilters = {

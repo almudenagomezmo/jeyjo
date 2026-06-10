@@ -13,7 +13,9 @@ export function deriveDiscount1Pct(
   if (erpDiscount != null && Number.isFinite(erpDiscount)) {
     return { discount1Pct: erpDiscount, derived: false }
   }
-  if (recommended <= 0) return { discount1Pct: null, derived: false }
+  if (recommended <= 0 || netPrice >= recommended) {
+    return { discount1Pct: null, derived: false }
+  }
   const pct = Math.round((1 - netPrice / recommended) * 10000) / 100
   return { discount1Pct: pct, derived: true }
 }

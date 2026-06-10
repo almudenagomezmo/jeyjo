@@ -110,7 +110,7 @@ The PDP buy box header SHALL display the product brand when present (`{brand} ·
 
 ### Requirement: PDP buy box uses dynamic pricing per RF-011
 
-The PDP buy box SHALL display prices from `PriceQuote` resolved server-side via the pricing engine, using dual-price presentation helpers and the header price-mode toggle (anonymous/B2C vs B2B simulated).
+The PDP buy box SHALL display prices from `PriceQuote` resolved server-side via the pricing engine, using dual-price presentation helpers and the header price-mode toggle (anonymous/B2C vs B2B simulated). Validated B2B sessions SHALL receive quotes with `pricingCustomerId` so special prices prevail over group offers per RF-007.
 
 #### Scenario: Anonymous dual price on PDP
 
@@ -121,6 +121,12 @@ The PDP buy box SHALL display prices from `PriceQuote` resolved server-side via 
 
 - **WHEN** an unauthenticated user loads the PDP
 - **THEN** the pricing response and UI do not expose P2 or B2B-only price fields
+
+#### Scenario: Offer styling without limited-offer text badge
+
+- **WHEN** the buy box quote has `listUnit` greater than `netUnit`
+- **THEN** strikethrough and offer background styling MAY appear
+- **AND** no «Oferta limitada» text badge is shown
 
 ### Requirement: PDP shows stock semaphore without quantities
 

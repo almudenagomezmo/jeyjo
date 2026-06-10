@@ -38,6 +38,15 @@ Special price and group offer saves SHALL validate that `productSku` matches an 
 - **WHEN** staff saves a special price for SKU NONEXISTENT
 - **THEN** validation fails with a message referencing missing catalog SKU
 
+### Requirement: Special price net must not exceed catalog P2
+
+When staff saves a `specialPrices` record, validation SHALL reject `netPrice` greater than the linked product `p2Price` with a clear error message.
+
+#### Scenario: Net above P2 rejected
+
+- **WHEN** staff saves special price net 100.00 for SKU 10102007 whose catalog P2 is 0.30
+- **THEN** validation fails with a message that net cannot exceed P2
+
 ### Requirement: Pricing admin respects staff roles RF-030
 
 Roles `administracion` and `superadmin` SHALL create and update pricing collections; role `catalogo` SHALL have read-only or no access per existing staff matrix.

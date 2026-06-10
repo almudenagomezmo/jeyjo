@@ -43,19 +43,32 @@ export const SpecialPrices: CollectionConfig = {
         if (!sku) throw new Error('productSku es obligatorio')
 
         const user = req.user
+        const found = await req.payload.find({
+          collection: 'products',
+          where: { skuErp: { equals: sku } },
+          limit: 1,
+          depth: 0,
+          overrideAccess: true,
+          req,
+        })
+        const product = found.docs[0]
         const isSuperadmin = hasStaffRole(user, ['superadmin'])
-        if (!isSuperadmin) {
-          const found = await req.payload.find({
-            collection: 'products',
-            where: { skuErp: { equals: sku } },
-            limit: 1,
-            depth: 0,
-            overrideAccess: true,
-            req,
-          })
-          if (!found.docs[0]) {
-            throw new Error(`No existe producto con referencia ${sku}`)
-          }
+        if (!product && !isSuperadmin) {
+          throw new Error(`No existe producto con referencia ${sku}`)
+        }
+
+        const netPrice = Number(data.netPrice)
+        const p2Price = product?.p2Price != null ? Number(product.p2Price) : null
+        if (
+          product &&
+          Number.isFinite(netPrice) &&
+          p2Price != null &&
+          Number.isFinite(p2Price) &&
+          netPrice > p2Price
+        ) {
+          throw new Error(
+            `El precio neto pactado (${netPrice} €) no puede superar el P2 del catálogo (${p2Price} €) para ${sku}`,
+          )
         }
         return data
       },

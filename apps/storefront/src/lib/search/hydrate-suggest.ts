@@ -6,6 +6,7 @@ import {
 } from '@/lib/catalog/fetch-public-products-by-skus'
 import { resolvePublicStockLevel } from '@/lib/catalog/resolve-stock-level'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
+import { getSessionPricingCustomerId } from '@/lib/pricing/session-customer-id'
 
 import type { QdrantProductPayload, SuggestCategory, SuggestProduct } from './types'
 import type { VectorSearchHit } from './vector-search'
@@ -62,7 +63,8 @@ export async function hydrateSuggestProducts(
     if (docBySku.has(hit.sku)) orderedSkus.push(hit.sku)
   }
 
-  const quotesBySku = await resolvePriceQuotesBatch(orderedSkus)
+  const pricingCustomerId = await getSessionPricingCustomerId()
+  const quotesBySku = await resolvePriceQuotesBatch(orderedSkus, pricingCustomerId)
 
   const products: SuggestProduct[] = []
   for (const hit of hits) {

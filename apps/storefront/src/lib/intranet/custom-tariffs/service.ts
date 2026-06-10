@@ -1,12 +1,16 @@
+import type { AppliedPriceRule, PriceQuote } from '@jeyjo/pricing'
 import { createStubPricingReader, type ErpGroupOfferDto, type ErpSpecialPriceDto } from '@jeyjo/erp-ports'
 
 import { fetchPublicProductsBySkus } from '@/lib/catalog/fetch-public-products-by-skus'
 import { isWebNativeModeEnabled } from '@/lib/system-config/fetch'
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
 import { filterNonWildcardLines } from '@/lib/intranet/purchase-history/wildcard'
+import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
 
+import { appliedRuleLabel } from './applied-rule'
 import { mapSpecialPriceRow } from './map-line'
 import { resolveTariffValidity } from './validity'
+import type { AppliedTariffView } from './types'
 import type {
   CustomTariffsFilters,
   CustomTariffsPageResult,
@@ -118,6 +122,23 @@ export async function loadGroupOffersForCustomer(
   return page.items.filter((o) => isGroupOfferActive(o, customerGroup))
 }
 
+function toAppliedTariff(quote: PriceQuote | undefined): AppliedTariffView | null {
+  if (!quote) return null
+  return {
+    appliedRule: quote.appliedRule,
+    appliedRuleLabel: appliedRuleLabel(quote.appliedRule),
+    appliedNetPrice: quote.netUnit,
+  }
+}
+
+function fallbackAppliedTariff(rule: AppliedPriceRule, netPrice: number): AppliedTariffView {
+  return {
+    appliedRule: rule,
+    appliedRuleLabel: appliedRuleLabel(rule),
+    appliedNetPrice: netPrice,
+  }
+}
+
 export async function buildCustomTariffsPage(
   customerId: string,
   filters: CustomTariffsFilters,
@@ -141,23 +162,42 @@ export async function buildCustomTariffsPage(
   const total = skuFiltered.length
   const slice = skuFiltered.slice((page - 1) * pageSize, page * pageSize)
 
-  const allSkus = [
+  const activeGroupOffers = await loadGroupOffersForCustomer(customerGroup)
+  const catalogSkus = [
     ...new Set([
       ...slice.map((r) => r.skuErp),
-      ...(await loadGroupOffersForCustomer(customerGroup)).map((o) => o.skuErp),
+      ...activeGroupOffers.map((o) => o.skuErp),
     ]),
   ]
-  const products = await fetchPublicProductsBySkus(allSkus)
+  const products = await fetchPublicProductsBySkus(catalogSkus)
   const productBySku = new Map(products.map((p) => [p.skuErp?.trim() ?? '', p]))
 
-  const specialPrices = slice.map((row) =>
-    mapSpecialPriceRow(row, productBySku.get(row.skuErp)),
-  )
+  const quoteSkus = catalogSkus
+  const quotesBySku = await resolvePriceQuotesBatch(quoteSkus, customerId)
 
-  const groupOffers: GroupOfferView[] = (
-    await loadGroupOffersForCustomer(customerGroup)
-  ).map((offer) => {
+  const specialPrices = slice.map((row) => {
+    const line = mapSpecialPriceRow(row, productBySku.get(row.skuErp))
+    const quote = quotesBySku[row.skuErp]
+    const appliedTariff =
+      toAppliedTariff(quote) ??
+      fallbackAppliedTariff(
+        line.status === 'active' ? 'special_price' : 'b2b_discount',
+        line.netPrice,
+      )
+    return {
+      ...line,
+      appliedTariff,
+      pactPriceAppliesInShop:
+        line.status === 'active' && appliedTariff.appliedRule === 'special_price',
+    }
+  })
+
+  const groupOffers: GroupOfferView[] = activeGroupOffers.map((offer) => {
     const product = productBySku.get(offer.skuErp)
+    const quote = quotesBySku[offer.skuErp]
+    const appliedTariff =
+      toAppliedTariff(quote) ??
+      fallbackAppliedTariff('group_offer', offer.offerNetPrice)
     return {
       sku: offer.skuErp,
       productSlug: product?.slug?.trim() ?? null,
@@ -165,6 +205,8 @@ export async function buildCustomTariffsPage(
       imageUrl: product?.thumbnailUrl ?? null,
       offerNetPrice: offer.offerNetPrice,
       validTo: offer.validTo?.trim() ?? null,
+      appliedTariff,
+      appliesInShop: appliedTariff.appliedRule === 'group_offer',
     }
   })
 

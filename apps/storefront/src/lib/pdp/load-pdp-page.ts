@@ -8,9 +8,7 @@ import {
 } from '@/lib/catalog/fetch-product-pdp'
 import type { PdpPagePayload } from '@/lib/pdp/types'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
-import { getProductPriceBase } from '@/lib/pricing/product-catalog'
-import { getStorefrontPricingRepository } from '@/lib/pricing/repository'
-import { resolvePrice } from '@jeyjo/pricing'
+import { getSessionPricingCustomerId } from '@/lib/pricing/session-customer-id'
 import { assertCustomerPurchasedSku } from '@/lib/reviews/assert-customer-purchased-sku'
 import {
   fetchCustomerProductReview,
@@ -18,17 +16,6 @@ import {
 } from '@/lib/reviews/payload-product-reviews'
 import { getStockIndicator } from '@/lib/stock/get-stock-indicator'
 import { stockIndicatorsFromRows } from '@/lib/stock/get-stock-indicators-batch'
-
-async function resolvePrimaryQuote(sku: string): Promise<PriceQuote | null> {
-  const productBase = await getProductPriceBase(sku)
-  if (!productBase) return null
-  try {
-    const repo = getStorefrontPricingRepository()
-    return await resolvePrice({ sku, customerId: null }, repo)
-  } catch {
-    return null
-  }
-}
 
 export async function loadPdpPage(slugOrSku: string): Promise<PdpPagePayload | null> {
   const key = slugOrSku.trim()
@@ -45,12 +32,16 @@ export async function loadPdpPage(slugOrSku: string): Promise<PdpPagePayload | n
   })
   const relatedSkus = relatedRows.map((r) => r.sku)
 
-  const [quote, stock, quotesBySku] = await Promise.all([
-    resolvePrimaryQuote(product.sku),
+  const pricingCustomerId = await getSessionPricingCustomerId()
+  const allSkus = [product.sku, ...relatedSkus]
+
+  const [quotesBySku, stock, ctx] = await Promise.all([
+    resolvePriceQuotesBatch(allSkus, pricingCustomerId),
     getStockIndicator(product.sku),
-    resolvePriceQuotesBatch([product.sku, ...relatedSkus]),
+    getCustomerContext(),
   ])
 
+  const quote: PriceQuote | undefined = quotesBySku[product.sku]
   if (!quote || !stock) return null
 
   const stockBySku = stockIndicatorsFromRows(relatedRows)
@@ -66,7 +57,6 @@ export async function loadPdpPage(slugOrSku: string): Promise<PdpPagePayload | n
         ? Number.parseInt(String(rawId), 10)
         : null
 
-  const ctx = await getCustomerContext()
   const [approvedReviews, customerReview, canReview] = await Promise.all([
     productId != null && Number.isFinite(productId)
       ? listApprovedProductReviews(productId, 1, 10)

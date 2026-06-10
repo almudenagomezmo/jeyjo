@@ -158,7 +158,7 @@ Dado que el artículo REF-003 tiene precio P2 = 10,00 € y hay una oferta de gr
 Cuando el cliente B2B autenticado visita la ficha del producto REF-003
 Entonces ve el precio neto "8,00 € (sin IVA)" sin aplicar adicionalmente el 10% de descuento
   Y NO ve un precio de 7,20 € (que sería la acumulación incorrecta)
-  Y el sistema muestra la etiqueta "Precio especial" o "En oferta"
+  Y el sistema muestra la etiqueta "Oferta de grupo" (o "Precio especial" cuando aplica pactado)
 
 Datos de prueba: Artículo REF-003, P2=10.000000, oferta activa precio=8.000000; cliente dto=10%
 Entorno: Staging

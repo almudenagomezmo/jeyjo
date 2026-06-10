@@ -17,6 +17,7 @@ import {
 import { carouselIdsForMode } from "@/lib/home/types";
 import { getServerPriceMode } from "@/lib/price-mode-server";
 import { resolvePriceQuotesBatch } from "@/lib/pricing/resolve-batch";
+import { getSessionPricingCustomerId } from "@/lib/pricing/session-customer-id";
 import { stockIndicatorsFromRows } from "@/lib/stock/get-stock-indicators-batch";
 
 export default async function HomePage() {
@@ -32,7 +33,11 @@ export default async function HomePage() {
   ]);
 
   const allRows = [...topSalesRows, ...ecoRows];
-  const quotesBySku = await resolvePriceQuotesBatch(allRows.map((r) => r.sku));
+  const pricingCustomerId = await getSessionPricingCustomerId();
+  const quotesBySku = await resolvePriceQuotesBatch(
+    allRows.map((r) => r.sku),
+    pricingCustomerId,
+  );
   const stockBySku = stockIndicatorsFromRows(allRows);
 
   const featured =

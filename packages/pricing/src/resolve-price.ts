@@ -37,7 +37,7 @@ export async function resolvePrice(
       vatRate,
       appliedRule: 'group_offer',
       listUnit: isB2BCustomerGroup(customerGroup) ? product.p2Price : product.p1Price,
-      label: 'En oferta',
+      label: 'Oferta de grupo',
     })
   }
 

@@ -6,7 +6,7 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 
 **Estado:** `Completado` = archivado en `openspec/changes/archive/YYYY-MM-DD-<nombre>/`. **Fecha** = día de archivo (implementación aplicada y specs sincronizadas).
 
-**Progreso:** **57 / 59** cambios completados (~97 %). Hito reciente: checkout — creación inline de direcciones de envío sin salir del flujo (#59 `checkout-inline-address-creation`, ad-hoc). Cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
+**Progreso:** **58 / 60** cambios completados (~97 %). Hito reciente: tarifas y precios B2B — columna Tarifa en tienda, SSR con sesión y validación CMS (#60 `custom-tariffs-pricing-session`, ad-hoc). Cambio **#36** (`erp-api-write-implementation`) congelado hasta fase integración Avansuite.
 
 
 | #   | Cambio                              | Depende de | US / RF principales          | Estado     | Fecha      |
@@ -70,11 +70,14 @@ Orden de cambios acordado en sesión explore (2026-06-04). Cada fila = un cambio
 | 57  | `checkout-confirmation-address-discount` | 17, 31       | RF-013, RF-027, US-04        | Completado | 2026-06-10 |
 | 58  | `checkout-payment-method-ui`             | 17, 18       | RF-014, US-04                | Completado | 2026-06-10 |
 | 59  | `checkout-inline-address-creation`       | 17, 16       | US-04                        | Completado | 2026-06-10 |
+| 60  | `custom-tariffs-pricing-session`         | 6, 25, 11    | RF-007, RF-020, US-14        | Completado | 2026-06-10 |
 
 
 **Siguiente cambio recomendado:** #43 `seo-technical-auditor` (depende de #21, #34). Es el único cambio OpenSpec pendiente del roadmap original; el resto está completado o congelado (#36).
 
-**Portal B2B — estado actual:** área unificada en `/cuenta/empresa/*` (#52; redirects 308 desde `/intranet/*`). Operativo: histórico (#23, #55 en `/cuenta/empresa/pedidos`), pedido rápido (#24), precios (#25), subusuarios (#26), RMA (#27), notificaciones (#28), avisos stock (#35 vía `/cuenta/avisos-stock`), descargas catálogos (#41) y contabilidad documental (#37). Modo web-native (#51): catálogo, stock, documentos y tarifas editables en CMS sin sync ERP.
+**Portal B2B — estado actual:** área unificada en `/cuenta/empresa/*` (#52; redirects 308 desde `/intranet/*`). Operativo: histórico (#23, #55 en `/cuenta/empresa/pedidos`), pedido rápido (#24), precios (#25, #60 en `/cuenta/empresa/precios` con columna **Tarifa en tienda**, badge Vigente rojo y tooltip cuando el pactado no aplica), subusuarios (#26), RMA (#27), notificaciones (#28), avisos stock (#35 vía `/cuenta/avisos-stock`), descargas catálogos (#41) y contabilidad documental (#37). Modo web-native (#51): catálogo, stock, documentos y tarifas editables en CMS sin sync ERP; validación CMS impide neto pactado > P2.
+
+**Precios B2B (#6, #25, #60):** SSR de catálogo (PDP/PLP/home) usa `pricingCustomerId` de sesión validada — precio especial prevalece sobre oferta de grupo (RF-007). PDP sin badge «Oferta limitada»; oferta solo por precio tachado/fondo.
 
 **Área `/cuenta` — personal:**
 - **Mis pedidos (#20, #23, #55, #56):** `/cuenta/pedidos` reutiliza `PurchaseHistoryPanel` (filtros, pedidos colapsables, selección, repetir al carrito). APIs `GET/POST /api/account/purchase-history` con sesión de cliente activa (B2C y B2B). Detalle en `/cuenta/pedidos/[id]`.
@@ -87,6 +90,7 @@ Gaps conscientes antes de continuar:
 - **#36 congelado:** escritura ERP Avansuite; no bloquea operación con modo web-native.
 - **Histórico B2B (#23, #55) y personal (#56):** filtro por categoría CMS aún no expuesto en UI (API soporta `categoryId`; fuera de #45); cabeceras de albarán/PDF siguen en #37. `/cuenta/pedidos` comparte panel y lógica de repetición vía `/api/account/purchase-history` (sin guard B2B ni permisos de subusuario).
 - **MANUAL-VERIFY #51:** checklist archivada aún cita rutas `/intranet/*`; verificar con `/cuenta/empresa/contabilidad/*` y `/cuenta/empresa/precios`.
+- **Ofertas de grupo (#60 gap):** `getGroupOffer` en storefront no filtra por `customer_group` en Supabase; oferta puede aplicarse a todos los grupos si hay fila activa por SKU.
 - Búsqueda por voz (RF-009, post-EVA); MFA B2B opcional en cambio 16; pentest operativo pre-go-live; caducidad automática grupos 3–4 (fuera de #48).
 - Tras #44–#45, taxonomía y slugs de catálogo en storefront provienen solo de Payload (+ snapshot) y el PLP `/c/*` incluye productos de categorías descendientes; ejecutar `pnpm sync:categories` tras cambios en CMS.
 

@@ -6,6 +6,7 @@ import {
 } from '@/lib/catalog/fetch-navigation-tree'
 import { listPublicProducts } from '@/lib/catalog/fetch-product-list'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
+import { getSessionPricingCustomerId } from '@/lib/pricing/session-customer-id'
 
 export async function GET(request: Request) {
   const slug = new URL(request.url).searchParams.get('slug')?.trim()
@@ -31,7 +32,11 @@ export async function GET(request: Request) {
   }
 
   const featuredRows = rows.slice(0, 4)
-  const quotes = await resolvePriceQuotesBatch(featuredRows.map((r) => r.sku))
+  const pricingCustomerId = await getSessionPricingCustomerId()
+  const quotes = await resolvePriceQuotesBatch(
+    featuredRows.map((r) => r.sku),
+    pricingCustomerId,
+  )
   const featured = featuredRows.map((row) => ({
     slug: row.slug,
     title: row.title,

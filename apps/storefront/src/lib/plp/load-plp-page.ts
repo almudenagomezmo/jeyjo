@@ -8,6 +8,7 @@ import { parsePlpSearchParams } from '@/lib/plp/plp-search-params'
 import type { PlpPagePayload, PlpProductRow, PlpSortKey } from '@/lib/plp/types'
 import { PLP_PAGE_SIZE } from '@/lib/plp/types'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
+import { getSessionPricingCustomerId } from '@/lib/pricing/session-customer-id'
 import { stockIndicatorsFromRows } from '@/lib/stock/get-stock-indicators-batch'
 
 function sortRows(
@@ -46,8 +47,14 @@ export async function loadPlpPageFromCategory(
   searchParams: Record<string, string | string[] | undefined>,
 ): Promise<PlpPagePayload> {
   const { filters, sort, page } = parsePlpSearchParams(searchParams)
-  const candidates = await listPublicProducts({ categorySlugs })
-  const quotesBySku = await resolvePriceQuotesBatch(candidates.map((r) => r.sku))
+  const [candidates, pricingCustomerId] = await Promise.all([
+    listPublicProducts({ categorySlugs }),
+    getSessionPricingCustomerId(),
+  ])
+  const quotesBySku = await resolvePriceQuotesBatch(
+    candidates.map((r) => r.sku),
+    pricingCustomerId,
+  )
   const facets = buildFacetAggregates(candidates, filters, quotesBySku)
   const filtered = sortRows(filterProducts(candidates, filters, quotesBySku), sort, quotesBySku)
   const totalFiltered = filtered.length
@@ -74,8 +81,14 @@ export async function loadPlpPageFromSearch(
   const { filters, sort, page, q } = parsePlpSearchParams(searchParams)
   if (!q) return null
 
-  const candidates = await searchPublicProducts(q)
-  const quotesBySku = await resolvePriceQuotesBatch(candidates.map((r) => r.sku))
+  const [candidates, pricingCustomerId] = await Promise.all([
+    searchPublicProducts(q),
+    getSessionPricingCustomerId(),
+  ])
+  const quotesBySku = await resolvePriceQuotesBatch(
+    candidates.map((r) => r.sku),
+    pricingCustomerId,
+  )
   const facets = buildFacetAggregates(candidates, filters, quotesBySku)
   const filtered = sortRows(filterProducts(candidates, filters, quotesBySku), sort, quotesBySku)
   const totalFiltered = filtered.length

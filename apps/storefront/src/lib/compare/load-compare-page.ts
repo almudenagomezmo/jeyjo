@@ -2,6 +2,7 @@ import { fetchPublicProductsBySkus } from '@/lib/catalog/fetch-public-products-b
 import { mapDocToCompareColumn } from '@/lib/compare/map-compare-column'
 import type { ComparePageResult } from '@/lib/compare/types'
 import { resolvePriceQuotesBatch } from '@/lib/pricing/resolve-batch'
+import { getSessionPricingCustomerId } from '@/lib/pricing/session-customer-id'
 
 export async function loadComparePage(requestedSkus: string[]): Promise<ComparePageResult> {
   const normalized = requestedSkus.map((s) => s.trim()).filter(Boolean).slice(0, 3)
@@ -14,7 +15,8 @@ export async function loadComparePage(requestedSkus: string[]): Promise<CompareP
   const validSkus = normalized.filter((sku) => docBySku.has(sku))
   const invalidSkus = normalized.filter((sku) => !docBySku.has(sku))
 
-  const quotesBySku = await resolvePriceQuotesBatch(validSkus)
+  const pricingCustomerId = await getSessionPricingCustomerId()
+  const quotesBySku = await resolvePriceQuotesBatch(validSkus, pricingCustomerId)
 
   const columns = validSkus
     .map((sku) => {

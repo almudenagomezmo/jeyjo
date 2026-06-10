@@ -5,7 +5,6 @@ import { useState } from "react";
 import type { PriceQuote } from "@jeyjo/pricing";
 
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { PriceTag } from "@/components/ui/PriceTag";
 import { StockIndicatorBadge } from "@/components/ui/StockBadge";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
@@ -83,11 +82,6 @@ export function ProductBuyBox({
         className="border-0 p-5"
         style={{ background: onOffer ? "var(--primary-soft)" : "var(--surface-subtle)" }}
       >
-        {onOffer && (
-          <Badge tone="danger" size="sm" className="mb-2">
-            Oferta limitada
-          </Badge>
-        )}
         <PriceTag view={view} mode={mode} vat={vatRate} size="xl" />
         {packUnit > 1 && (
           <p className="mt-2.5 inline-flex items-center gap-1.5 rounded bg-surface px-2.5 py-1.5 text-xs text-text-secondary">

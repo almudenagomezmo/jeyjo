@@ -33,6 +33,12 @@ describe('custom tariffs map line', () => {
     expect(discount1Pct).toBe(37.5)
   })
 
+  it('omits derived discount when net price exceeds recommended P2', () => {
+    const { discount1Pct, derived } = deriveDiscount1Pct(0.3, 100, null)
+    expect(derived).toBe(false)
+    expect(discount1Pct).toBeNull()
+  })
+
   it('sets canRequestReview only for expired rows', () => {
     const active = mapSpecialPriceRow(
       {

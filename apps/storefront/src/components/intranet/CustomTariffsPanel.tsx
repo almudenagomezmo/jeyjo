@@ -4,7 +4,14 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { InfoIcon } from "@/components/ui/icons";
 import { formatMoney } from "@/lib/utils/format";
+
+type AppliedTariff = {
+  appliedRule: string;
+  appliedRuleLabel: string;
+  appliedNetPrice: number;
+};
 
 type TariffLine = {
   sku: string;
@@ -19,6 +26,8 @@ type TariffLine = {
   validTo: string | null;
   statusLabel: "Vigente" | "Caducado";
   canRequestReview: boolean;
+  appliedTariff: AppliedTariff;
+  pactPriceAppliesInShop: boolean;
 };
 
 type GroupOfferLine = {
@@ -27,6 +36,8 @@ type GroupOfferLine = {
   imageUrl: string | null;
   offerNetPrice: number;
   validTo: string | null;
+  appliedTariff: AppliedTariff;
+  appliesInShop: boolean;
 };
 
 type TariffsResponse = {
@@ -113,7 +124,9 @@ export function CustomTariffsPanel() {
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight">Precios especiales</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Consulta tus tarifas pactadas, descuentos y ofertas de grupo vigentes
+          Consulta tus tarifas pactadas, descuentos y ofertas de grupo vigentes. La columna{" "}
+          <strong className="font-semibold text-text-primary">Tarifa en tienda</strong> muestra la
+          regla de precio que se aplica hoy en catálogo y carrito.
         </p>
       </div>
 
@@ -178,6 +191,7 @@ export function CustomTariffsPanel() {
                   <th className="p-3">Dto. 1</th>
                   <th className="p-3">Dto. 2</th>
                   <th className="p-3">Importe neto</th>
+                  <th className="p-3">Tarifa en tienda</th>
                   <th className="p-3">Vigencia</th>
                   <th className="p-3">Estado</th>
                   <th className="p-3" />
@@ -246,6 +260,7 @@ export function CustomTariffsPanel() {
                 <tr>
                   <th className="p-3">Artículo</th>
                   <th className="p-3">Precio oferta</th>
+                  <th className="p-3">Tarifa en tienda</th>
                   <th className="p-3">Vigencia</th>
                 </tr>
               </thead>
@@ -256,6 +271,16 @@ export function CustomTariffsPanel() {
                       <ProductCell name={offer.name} sku={offer.sku} imageUrl={offer.imageUrl} />
                     </td>
                     <td className="p-3 font-semibold">{formatMoney(offer.offerNetPrice)}</td>
+                    <td className="p-3">
+                      <AppliedTariffCell
+                        tariff={offer.appliedTariff}
+                        hint={
+                          offer.appliesInShop
+                            ? undefined
+                            : "Otra tarifa tiene prioridad (p. ej. precio especial vigente)"
+                        }
+                      />
+                    </td>
                     <td className="p-3 text-text-secondary">{formatDate(offer.validTo)}</td>
                   </tr>
                 ))}
@@ -294,13 +319,50 @@ function ProductCell({
   );
 }
 
+function TariffInfoHint({ hint }: { hint: string }) {
+  return (
+    <span className="group/info relative inline-flex">
+      <button
+        type="button"
+        className="inline-flex text-text-tertiary transition-colors hover:text-text-secondary"
+        aria-label={hint}
+      >
+        <InfoIcon size={14} />
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-1.5 w-52 -translate-x-1/2 rounded-md border border-border bg-surface px-2.5 py-2 text-left text-[11px] font-normal leading-snug text-text-secondary shadow-md group-hover/info:visible group-focus-within/info:visible"
+      >
+        {hint}
+      </span>
+    </span>
+  );
+}
+
+function AppliedTariffCell({
+  tariff,
+  hint,
+}: {
+  tariff: AppliedTariff;
+  hint?: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="font-semibold tabular text-text-primary">
+        {formatMoney(tariff.appliedNetPrice)}
+      </span>
+      {hint ? <TariffInfoHint hint={hint} /> : null}
+    </div>
+  );
+}
+
 function StatusBadge({ label }: { label: "Vigente" | "Caducado" }) {
   const isActive = label === "Vigente";
   return (
     <span
       className={
         isActive
-          ? "inline-flex rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent"
+          ? "inline-flex rounded-full bg-danger-soft px-2 py-0.5 text-xs font-semibold text-danger-text"
           : "inline-flex rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-text-secondary"
       }
     >
@@ -335,6 +397,18 @@ function TariffTableRow({
       </td>
       <td className="p-3">{formatPct(line.discount2Pct)}</td>
       <td className="p-3 font-semibold">{formatMoney(line.netPrice)}</td>
+      <td className="p-3">
+        <AppliedTariffCell
+          tariff={line.appliedTariff}
+          hint={
+            line.pactPriceAppliesInShop
+              ? undefined
+              : line.statusLabel === "Caducado"
+                ? "El precio pactado ha caducado; en catálogo y carrito aplica otra tarifa"
+                : "En catálogo y carrito aplica otra tarifa con mayor prioridad"
+          }
+        />
+      </td>
       <td className="p-3 text-text-secondary">{formatDate(line.validTo)}</td>
       <td className="p-3">
         <StatusBadge label={line.statusLabel} />
@@ -367,6 +441,19 @@ function TariffCard({
         <dd>{formatMoney(line.recommendedNetPrice)}</dd>
         <dt className="text-text-secondary">Importe neto</dt>
         <dd className="font-semibold">{formatMoney(line.netPrice)}</dd>
+        <dt className="text-text-secondary">Tarifa en tienda</dt>
+        <dd>
+          <AppliedTariffCell
+            tariff={line.appliedTariff}
+            hint={
+              line.pactPriceAppliesInShop
+                ? undefined
+                : line.statusLabel === "Caducado"
+                  ? "Pactado caducado"
+                  : "Otra tarifa aplica"
+            }
+          />
+        </dd>
         <dt className="text-text-secondary">Dto. 1 / 2</dt>
         <dd>
           {formatPct(line.discount1Pct)} / {formatPct(line.discount2Pct)}
