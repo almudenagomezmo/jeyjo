@@ -12,6 +12,52 @@ function cmsBaseUrl(): string | null {
   )
 }
 
+function normalizeSystemConfig(raw: Partial<SystemConfigDto> | null | undefined): SystemConfigDto {
+  if (!raw || typeof raw !== 'object') return DEFAULT_SYSTEM_CONFIG
+
+  const footer = raw.footer ?? DEFAULT_SYSTEM_CONFIG.footer
+
+  return {
+    ...DEFAULT_SYSTEM_CONFIG,
+    ...raw,
+    shipping: {
+      b2c: { ...DEFAULT_SYSTEM_CONFIG.shipping.b2c, ...raw.shipping?.b2c },
+      b2b: { ...DEFAULT_SYSTEM_CONFIG.shipping.b2b, ...raw.shipping?.b2b },
+    },
+    stock: { ...DEFAULT_SYSTEM_CONFIG.stock, ...raw.stock },
+    dashboard: { ...DEFAULT_SYSTEM_CONFIG.dashboard, ...raw.dashboard },
+    erp: { ...DEFAULT_SYSTEM_CONFIG.erp, ...raw.erp },
+    contact: {
+      ...DEFAULT_SYSTEM_CONFIG.contact,
+      ...raw.contact,
+      stores: {
+        alfaro: {
+          ...DEFAULT_SYSTEM_CONFIG.contact.stores.alfaro,
+          ...raw.contact?.stores?.alfaro,
+        },
+        rincon: {
+          ...DEFAULT_SYSTEM_CONFIG.contact.stores.rincon,
+          ...raw.contact?.stores?.rincon,
+        },
+      },
+    },
+    search: { ...DEFAULT_SYSTEM_CONFIG.search, ...raw.search },
+    footer: {
+      ...DEFAULT_SYSTEM_CONFIG.footer,
+      ...footer,
+      resolvedContact: {
+        ...DEFAULT_SYSTEM_CONFIG.footer.resolvedContact,
+        ...footer.resolvedContact,
+      },
+      social: { ...DEFAULT_SYSTEM_CONFIG.footer.social, ...footer.social },
+      blog: { ...DEFAULT_SYSTEM_CONFIG.footer.blog, ...footer.blog },
+      euFunding: { ...DEFAULT_SYSTEM_CONFIG.footer.euFunding, ...footer.euFunding },
+    },
+    webNativeMode: raw.webNativeMode !== false,
+    updatedAt: raw.updatedAt ?? DEFAULT_SYSTEM_CONFIG.updatedAt,
+  }
+}
+
 export async function fetchSystemConfigUncached(): Promise<SystemConfigDto> {
   const base = cmsBaseUrl()
   if (!base) return DEFAULT_SYSTEM_CONFIG
@@ -22,7 +68,7 @@ export async function fetchSystemConfigUncached(): Promise<SystemConfigDto> {
       signal: AbortSignal.timeout(4000),
     })
     if (!res.ok) return DEFAULT_SYSTEM_CONFIG
-    return (await res.json()) as SystemConfigDto
+    return normalizeSystemConfig((await res.json()) as Partial<SystemConfigDto>)
   } catch {
     return DEFAULT_SYSTEM_CONFIG
   }
@@ -30,7 +76,7 @@ export async function fetchSystemConfigUncached(): Promise<SystemConfigDto> {
 
 export const fetchSystemConfig = unstable_cache(
   fetchSystemConfigUncached,
-  ['system-config'],
+  ['system-config', 'v2'],
   { revalidate: 60 },
 )
 

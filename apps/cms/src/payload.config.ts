@@ -66,7 +66,7 @@ import { qdrantCollections } from '@/lib/qdrant-collections'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 
 import { getEmailTransportOptions } from '@/lib/email/mailpit'
-import { disableDocumentLocksInDev, devDisableDocumentLocksPlugin, withoutDocumentLocks } from '@/lib/payload-dev'
+import { disableDocumentLocksInDev, withoutDocumentLocks } from '@/lib/payload-dev'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -315,7 +315,7 @@ export default buildConfig({
     SkaiSettings,
     AnalyticsSettings,
   ].map(withoutDocumentLocks),
-  plugins: [...plugins, devDisableDocumentLocksPlugin],
+  plugins,
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL,
   sharp,

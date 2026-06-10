@@ -1,4 +1,4 @@
-import type { CollectionConfig, GlobalConfig, Payload, Plugin } from 'payload'
+import type { CollectionConfig, GlobalConfig, Payload } from 'payload'
 
 /**
  * Payload admin save runs form-state + document lock find/delete + update in parallel.
@@ -25,11 +25,4 @@ export function disableDocumentLocksInDev(payload: Payload): void {
   for (const global of payload.config.globals) {
     global.lockDocuments = false
   }
-}
-
-export const devDisableDocumentLocksPlugin: Plugin = {
-  name: 'jeyjo-dev-disable-document-locks',
-  onInit: async (payload) => {
-    disableDocumentLocksInDev(payload)
-  },
 }
