@@ -8,6 +8,8 @@ import * as migration_20260608_140000_product_brands from './20260608_140000_pro
 import * as migration_20260608_143118_blog_payload_frontend from './20260608_143118_blog_payload_frontend';
 import * as migration_20260608_150000_product_reviews from './20260608_150000_product_reviews';
 import * as migration_20260608_160000_site_pages_locked_docs_rels from './20260608_160000_site_pages_locked_docs_rels';
+import * as migration_20260610_100000_eur_currency from './20260610_100000_eur_currency';
+import * as migration_20260610_100001_eur_currency_default from './20260610_100001_eur_currency_default';
 
 export const migrations = [
   {
@@ -59,5 +61,15 @@ export const migrations = [
     up: migration_20260608_160000_site_pages_locked_docs_rels.up,
     down: migration_20260608_160000_site_pages_locked_docs_rels.down,
     name: '20260608_160000_site_pages_locked_docs_rels',
+  },
+  {
+    up: migration_20260610_100000_eur_currency.up,
+    down: migration_20260610_100000_eur_currency.down,
+    name: '20260610_100000_eur_currency',
+  },
+  {
+    up: migration_20260610_100001_eur_currency_default.up,
+    down: migration_20260610_100001_eur_currency_default.down,
+    name: '20260610_100001_eur_currency_default',
   },
 ];

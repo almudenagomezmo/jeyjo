@@ -2,7 +2,7 @@ import { seoPlugin } from '@payloadcms/plugin-seo'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { Plugin } from 'payload'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
-import { ecommercePlugin } from '@payloadcms/plugin-ecommerce'
+import { EUR, USD, ecommercePlugin } from '@payloadcms/plugin-ecommerce'
 
 import { stripeAdapter } from '@payloadcms/plugin-ecommerce/payments/stripe'
 
@@ -62,6 +62,10 @@ export const plugins: Plugin[] = [
     },
     /** Jeyjo uses erpStock + stockIndicator (RF-005), not Payload template inventory. */
     inventory: false,
+    currencies: {
+      defaultCurrency: 'EUR',
+      supportedCurrencies: [EUR, USD],
+    },
     customers: {
       slug: 'users',
     },

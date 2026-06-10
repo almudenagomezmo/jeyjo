@@ -362,7 +362,7 @@ export interface Order {
   transactions?: (number | Transaction)[] | null;
   status?: OrderStatus;
   amount?: number | null;
-  currency?: 'USD' | null;
+  currency?: ('EUR' | 'USD') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -746,7 +746,7 @@ export interface Transaction {
   order?: (number | null) | Order;
   cart?: (number | null) | Cart;
   amount?: number | null;
-  currency?: 'USD' | null;
+  currency?: ('EUR' | 'USD') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -768,7 +768,7 @@ export interface Cart {
   purchasedAt?: string | null;
   status?: ('active' | 'purchased' | 'abandoned') | null;
   subtotal?: number | null;
-  currency?: 'USD' | null;
+  currency?: ('EUR' | 'USD') | null;
   updatedAt: string;
   createdAt: string;
 }

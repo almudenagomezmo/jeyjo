@@ -11,6 +11,8 @@ import {
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 import path from 'path'
+import { en } from '@payloadcms/translations/languages/en'
+import { es } from '@payloadcms/translations/languages/es'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
@@ -305,6 +307,10 @@ export default buildConfig({
     analyticsStatusUpdateEndpoint,
     ...newsletterEndpoints,
   ],
+  i18n: {
+    fallbackLanguage: 'es',
+    supportedLanguages: { en, es },
+  },
   globals: [
     Home,
     SystemSettings,
