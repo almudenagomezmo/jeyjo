@@ -22,7 +22,7 @@ import { useHydrated } from "@/lib/hooks/useHydrated";
 import { submitRedirectForm } from "@/lib/payments/submit-redirect-form";
 import type { PaymentSettings } from "@/lib/payments/settings";
 import { formatMoney } from "@/lib/utils/format";
-import { WalletPayButtons } from "@/components/checkout/WalletPayButtons";
+import { PaymentMethodSelector } from "@/components/checkout/PaymentMethodSelector";
 import { isQuotesEnabledClient } from "@/lib/quotes/enabled";
 import {
   clearUncataloguedRequests,
@@ -337,6 +337,27 @@ export function CheckoutPage({
 
   const vatNote = segment === "b2c" ? "(IVA inc.)" : "(sin IVA)";
 
+  const confirmButtonLabel = (() => {
+    if (placing) return "Confirmando…";
+    if (segment !== "b2c") return "Confirmar pedido";
+    switch (paymentMethodCode) {
+      case "card":
+        return "Pagar con tarjeta";
+      case "bizum":
+        return "Pagar con Bizum";
+      case "paypal":
+        return "Continuar con PayPal";
+      case "apple_pay":
+        return "Pagar con Apple Pay";
+      case "google_pay":
+        return "Pagar con Google Pay";
+      case "transfer":
+        return "Confirmar pedido";
+      default:
+        return "Confirmar pedido";
+    }
+  })();
+
   return (
     <Container className="pt-6 pb-12">
       <Breadcrumb
@@ -505,94 +526,78 @@ export function CheckoutPage({
           )}
 
           {step === "review" && (
-            <Card className="space-y-4 p-6">
-              <h2 className="text-lg font-extrabold">Revisión</h2>
-              <Button variant="secondary" size="sm" type="button" onClick={() => setStep("delivery")}>
-                Volver a entrega
-              </Button>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border-subtle text-left text-text-tertiary">
-                    <th className="pb-2">Producto</th>
-                    <th className="pb-2 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {summary.lines
-                    .filter((l) => !l.unavailable && l.snapshot)
-                    .map((l) => (
-                      <tr key={l.lineId} className="border-b border-border-subtle">
-                        <td className="py-2">
-                          {l.snapshot?.name} × {l.qty}
-                        </td>
-                        <td className="py-2 text-right tabular">{formatMoney(l.lineTotal)}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-              {segment === "b2c" ? (
-                <fieldset className="space-y-2">
-                  <legend className="text-sm font-medium text-text-secondary">Forma de pago</legend>
-                  {(paymentMethods.length > 0
-                    ? paymentMethods
-                    : Object.entries(PAYMENT_LABELS).map(([code, label]) => ({ code, label }))
-                  )
-                    .filter((p) => p.code !== "apple_pay" && p.code !== "google_pay")
-                    .map((p) => (
-                    <label
-                      key={p.code}
-                      className="flex cursor-pointer items-center gap-2 text-sm"
-                    >
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentMethodCode === p.code}
-                        onChange={() => {
-                          setPaymentMethodCode(p.code);
-                          persistDraft({ paymentMethodCode: p.code });
-                        }}
-                      />
-                      {p.label}
-                    </label>
-                  ))}
-                  {paymentSettings && (
-                    <WalletPayButtons
-                      applePayEnabled={paymentSettings.applePayEnabled}
-                      googlePayEnabled={paymentSettings.googlePayEnabled}
-                      disabled={placing}
-                      onApplePay={() => {
-                        setPaymentMethodCode("apple_pay");
-                        persistDraft({ paymentMethodCode: "apple_pay" });
-                      }}
-                      onGooglePay={() => {
-                        setPaymentMethodCode("google_pay");
-                        persistDraft({ paymentMethodCode: "google_pay" });
-                      }}
-                    />
-                  )}
-                </fieldset>
-              ) : (
-                <div className="rounded-md bg-surface-muted p-4 text-sm">
-                  <p className="font-semibold">Forma de pago acordada</p>
-                  <p className="mt-1 text-text-secondary">
-                    {defaultPaymentMethod || "Condiciones de pago según contrato"}
-                  </p>
-                  <p className="mt-2 text-xs text-text-tertiary">
-                    Confirmación sujeta a condiciones de pago acordadas. No se ofrecen pasarelas
-                    inmediatas en pedidos B2B.
-                  </p>
+            <div className="space-y-6">
+              <Card className="space-y-4 p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-lg font-extrabold">Revisión del pedido</h2>
+                  <Button variant="secondary" size="sm" type="button" onClick={() => setStep("delivery")}>
+                    Volver a entrega
+                  </Button>
                 </div>
-              )}
-              {placeError && <p className="text-sm text-danger-text">{placeError}</p>}
-              <Button size="lg" disabled={placing || !prepareToken} onClick={() => void placeOrder()}>
-                {placing ? "Confirmando…" : "Confirmar pedido"}
-              </Button>
-              {isQuotesEnabledClient() && (
-                <Button variant="secondary" size="lg" className="mt-2 w-full" asChild>
-                  <Link href="/presupuesto">Solicitar presupuesto</Link>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border-subtle text-left text-text-tertiary">
+                      <th className="pb-2 font-medium">Producto</th>
+                      <th className="pb-2 text-right font-medium">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.lines
+                      .filter((l) => !l.unavailable && l.snapshot)
+                      .map((l) => (
+                        <tr key={l.lineId} className="border-b border-border-subtle">
+                          <td className="py-2.5">
+                            {l.snapshot?.name} × {l.qty}
+                          </td>
+                          <td className="py-2.5 text-right tabular">{formatMoney(l.lineTotal)}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </Card>
+
+              <Card className="space-y-4 p-6">
+                {segment === "b2c" ? (
+                  <PaymentMethodSelector
+                    methods={
+                      paymentMethods.length > 0
+                        ? paymentMethods
+                        : Object.entries(PAYMENT_LABELS).map(([code, label]) => ({ code, label }))
+                    }
+                    value={paymentMethodCode}
+                    onChange={(code) => {
+                      setPaymentMethodCode(code);
+                      persistDraft({ paymentMethodCode: code });
+                    }}
+                    applePayEnabled={paymentSettings?.applePayEnabled}
+                    googlePayEnabled={paymentSettings?.googlePayEnabled}
+                    disabled={placing}
+                  />
+                ) : (
+                  <div>
+                    <h2 className="text-lg font-extrabold">Forma de pago acordada</h2>
+                    <div className="mt-4 rounded-md bg-surface-muted p-4 text-sm">
+                      <p className="font-semibold text-text">
+                        {defaultPaymentMethod || "Condiciones de pago según contrato"}
+                      </p>
+                      <p className="mt-2 text-xs text-text-tertiary">
+                        Confirmación sujeta a condiciones de pago acordadas. No se ofrecen pasarelas
+                        inmediatas en pedidos B2B.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {placeError && <p className="text-sm text-danger-text">{placeError}</p>}
+                <Button size="lg" disabled={placing || !prepareToken} onClick={() => void placeOrder()}>
+                  {confirmButtonLabel}
                 </Button>
-              )}
-            </Card>
+                {isQuotesEnabledClient() && (
+                  <Button variant="secondary" size="lg" className="mt-2 w-full" asChild>
+                    <Link href="/presupuesto">Solicitar presupuesto</Link>
+                  </Button>
+                )}
+              </Card>
+            </div>
           )}
         </div>
 
