@@ -38,6 +38,15 @@ export function customerGroupLabel(group: number): string {
   return CUSTOMER_GROUP_OPTIONS.find((o) => o.value === group)?.label ?? `Grupo ${group}`
 }
 
+/** Opciones para campos `select` de Payload (valores string, incluye "todos los grupos"). */
+export const CUSTOMER_GROUP_PAYLOAD_SELECT_OPTIONS = [
+  { label: 'Todos los grupos', value: '' },
+  ...CUSTOMER_GROUP_OPTIONS.map((o) => ({
+    label: o.label,
+    value: String(o.value),
+  })),
+]
+
 export function roleForCustomerGroup(group: number): 'b2c' | 'b2b_superadmin' {
   return group === 1 ? 'b2c' : 'b2b_superadmin'
 }

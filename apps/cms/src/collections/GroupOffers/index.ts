@@ -12,16 +12,9 @@ import {
   mirrorGroupOfferToSupabase,
   removeGroupOfferFromSupabase,
 } from '@/collections/GroupOffers/supabase-mirror'
+import { CUSTOMER_GROUP_PAYLOAD_SELECT_OPTIONS } from '@/lib/customers/group-labels'
 
 const auditHooks = createAuditHooks({ collection: 'group-offers' })
-
-const CUSTOMER_GROUP_OPTIONS = [
-  { label: 'Todos los grupos', value: '' },
-  { label: 'Grupo 1', value: '1' },
-  { label: 'Grupo 2', value: '2' },
-  { label: 'Grupo 3', value: '3' },
-  { label: 'Grupo 4', value: '4' },
-]
 
 export const GroupOffers: CollectionConfig = {
   slug: 'group-offers',
@@ -101,7 +94,7 @@ export const GroupOffers: CollectionConfig = {
       name: 'customerGroup',
       type: 'select',
       label: 'Grupo cliente',
-      options: CUSTOMER_GROUP_OPTIONS,
+      options: CUSTOMER_GROUP_PAYLOAD_SELECT_OPTIONS,
     },
     {
       name: 'validFrom',
